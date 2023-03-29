@@ -27,7 +27,8 @@ def debugScannedDevices(devices, screen):
     
     ypos = 0
     for device in devices:
-        text = "{} -> {}".format(device.name, device.address)
+        #text = "{} -> {}".format(device.name, device.address)
+        text = "{}".format(device)
         test_text(screen, text, (screen.get_width()/2, 100+ypos), (255, 255, 255))
         ypos += 20
 

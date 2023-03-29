@@ -6,6 +6,7 @@ def scanBT():
     
     print("Found {} devices".format(len(devices)))
     for device in devices:
-        print("{} - {}".format(device.name, device.address))
+        print(device)
+        #print("{} - {}".format(device.name, device.address))
 
     return devices
