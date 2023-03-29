@@ -1,10 +1,12 @@
 import time
+import os
 import pygame
 
 from src.bluetooth import *
 from src.graphics import *
 
 # Initialize Pygame
+os.environ["DISPLAY"] = ":0"
 pygame.init()
 
 # Set up the Pygame display
