@@ -16,11 +16,19 @@ def test_ellipse(screen, color, radius, angle):
 # testing method: overlay text
 # draws a given text at given position
 def test_text(screen, text, pos, color):
-    font = pygame.font.Font(None, 36)
+    font = pygame.font.Font(None, 24)
     text = font.render(text, True, color)
     textpos = text.get_rect()
     textpos.centerx = pos[0]
     textpos.centery = pos[1]
     screen.blit(text, textpos)
+
+def debugScannedDevices(devices, screen):
+    
+    ypos = 0
+    for device in devices:
+        text = "{} -> {}".format(device.name, device.address)
+        test_text(screen, text, (screen.get_width()/2, 100+ypos), (255, 255, 255))
+        ypos += 20
 
 
