@@ -8,7 +8,7 @@ from src.graphics import *
 pygame.init()
 
 # Set up the Pygame display
-screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
+screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
 pygame.display.set_caption("Golem: Display Node")
 pygame.mouse.set_visible(False)
 
