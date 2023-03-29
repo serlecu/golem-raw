@@ -1,6 +1,4 @@
-# imports
 import time
-import bluetooth
 import pygame
 
 from src.bluetooth import *
@@ -16,6 +14,9 @@ pygame.mouse.set_visible(False)
 
 # Initialize the Bluetooth client
 
+# Scan for Bluetooth devices
+foundDevices = scanBT()
+
 # Main loop
 while True:
     # Handle Pygame events
@@ -26,16 +27,21 @@ while True:
             quit()
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                # Exit the loop if the 'esc' key is pressed
+                # Quit if the 'esc' key is pressed
                 pygame.quit()
                 quit()
 
     # Draw graphics on the screen
     draw_background(screen, (50, 50, 50))
     test_ellipse(screen, (200, 200, 200), 200, time.time())
-    test_text(screen, "Hello World!", (240, 240), (255, 255, 255))
+
+    #test_text(screen, "Hello World!", (240, 240), (255, 255, 255))
+    debugScannedDevices(foundDevices, screen)
 
     # Update the Pygame display
     pygame.display.update()
 
     # Send and receive data from the Bluetooth device
+
+
+    
