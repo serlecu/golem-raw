@@ -1,26 +1,46 @@
 import time
 import os
+import threading
 import pygame
 
 from src.bluetooth import *
 from src.graphics import *
+from src.debug_display import *
 
-# Initialize Pygame
-os.environ["DISPLAY"] = ":0"
-pygame.init()
+import simplepyble as ble
 
-# Set up the Pygame display
-screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
-pygame.display.set_caption("Golem: Display Node")
-pygame.mouse.set_visible(False)
+def Setup():
+  import src.globals as g
 
-# Initialize the Bluetooth client
+  g.initGlobals()
 
-# Scan for Bluetooth devices
-foundDevices = scanBT()
+  # Initialize Pygame
+  os.environ["DISPLAY"] = ":0"
+  pygame.init()
+  g.screen = pygame.display.set_mode((480,480))#,pygame.FULLSCREEN)
+  pygame.display.set_caption("Golem: Display Node")
+  pygame.mouse.set_visible(False)
 
-# Main loop
-while True:
+  # Initialize Bluetooth
+  setupBTAdapter()
+
+# End of Setup() ========================================
+
+
+def Update():
+  import src.globals as g
+
+  while True:
+    # Handle Bluetooth device scanning
+    if((g.isScanning == False) and (g.scannCrono <= 0)):
+      scan_thread = threading.Thread(target=scanBT, daemon=True)
+      scan_thread.start()
+      
+      g.scannCrono = g.scannFrequency
+      print(g.foundDevices)
+       
+      
+
     # Handle Pygame events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -33,17 +53,25 @@ while True:
                 pygame.quit()
                 quit()
 
-    # Draw graphics on the screen
-    draw_background(screen, (50, 50, 50))
-    test_ellipse(screen, (200, 200, 200), 200, time.time())
 
-    #test_text(screen, "Hello World!", (240, 240), (255, 255, 255))
-    debugScannedDevices(foundDevices, screen)
+    # Draw graphics on the screen
+    DrawLoop()
+    DrawDebugLayer()
 
     # Update the Pygame display
     pygame.display.update()
 
-    # Send and receive data from the Bluetooth device
 
+    # Update Timers
+    if(g.isScanning == False):
+      g.scannCrono -= (time.time() - g.lastLoopTime)
 
+    g.lastLoopTime = time.time()
+
+  # End of Update() ========================================
     
+
+# Start the event loop
+if __name__ == "__main__":
+  Setup()
+  Update()
