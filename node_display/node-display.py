@@ -35,9 +35,7 @@ def Update():
     if((g.isScanning == False) and (g.scannCrono <= 0)):
       scan_thread = threading.Thread(target=scanBT, daemon=True)
       scan_thread.start()
-      
       g.scannCrono = g.scannFrequency
-      print(g.foundDevices)
        
       
 

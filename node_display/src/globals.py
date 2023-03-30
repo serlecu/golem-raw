@@ -21,4 +21,4 @@ def initGlobals():
   scannCrono = 5
   scannFrequency = 5
   isScanning = False
-  foundDevices = ["No devices found."]
+  foundDevices = []

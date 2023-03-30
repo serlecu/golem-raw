@@ -39,10 +39,8 @@ def filter_devices(devices, name):
     return filtered
 
 def connectBT(device):
-    print("Connecting to {}".format(device.address))
-    # sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-    # sock.connect((device.address, 1))
-    # return sock
+    print("Connecting to {}".format(device.address()))
+    device.connect()
 
 def sendBT(sock, data):
     print("Sending {}".format(data))

@@ -13,8 +13,8 @@ def test_text(screen, text, pos, color):
 def debugScannedDevices(devices, screen):
   ypos = 0
   for i, device in enumerate(devices):
-      #text = "{} -> {}".format(device.name, device.address)
-      text = "{}. {}".format(i, device)
+      text = "{}. {} -> {}".format(i, device.identifier(), device.address())
+      # text = "{}. {}".format(i, device)
       test_text(screen, text, (screen.get_width()/2, 100+ypos), (255, 255, 255))
       ypos += 20
 
@@ -22,5 +22,8 @@ def debugScannedDevices(devices, screen):
 def DrawDebugLayer():
   test_text(g.screen, "IsScanning: {}".format(g.isScanning), (g.screen.get_width()/2, 20), (255, 255, 255))
   test_text(g.screen, "ScanCrono: {}".format(g.scannCrono), (g.screen.get_width()/2, 40), (255, 255, 255))
-  #test_text(screen, "Threads: {}".format(threads), (100, 160), (255, 255, 255))
-  debugScannedDevices(g.foundDevices, g.screen)
+  
+  if(len(g.foundDevices) > 0):
+    debugScannedDevices(g.foundDevices, g.screen)
+  else:
+    test_text(g.screen, "No devices found", (g.screen.get_width()/2, 100), (255, 255, 255))
