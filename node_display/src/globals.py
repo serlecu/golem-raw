@@ -15,7 +15,6 @@ screen: pygame.Surface
 
 def initGlobals():
   global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices
-
   lastLoopTime = time.time()
 
   scannCrono = 5

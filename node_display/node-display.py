@@ -17,7 +17,15 @@ def Setup():
   # Initialize Pygame
   os.environ["DISPLAY"] = ":0"
   pygame.init()
-  g.screen = pygame.display.set_mode((480,480))#,pygame.FULLSCREEN)
+  
+  # get os
+  platform_os = os.uname()[0]
+  print("OS: " + platform_os)
+
+  if platform_os == "Darwin":
+    g.screen = pygame.display.set_mode((480,480))
+  else:
+    g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
   pygame.display.set_caption("Golem: Display Node")
   pygame.mouse.set_visible(False)
 
