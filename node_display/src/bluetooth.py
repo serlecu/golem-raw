@@ -51,3 +51,11 @@ def receiveBT(sock):
     # data = sock.recv(1024)
     # print("Received {}".format(data))
     # return data
+
+
+
+def handleBTConnections():
+    pass
+
+def handleBTData():
+    pass

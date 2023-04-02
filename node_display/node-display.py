@@ -45,8 +45,6 @@ def Update():
       scan_thread.start()
       g.scannCrono = g.scannFrequency
        
-      
-
     # Handle Pygame events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -59,6 +57,9 @@ def Update():
                 pygame.quit()
                 quit()
 
+    # Handle Bluetooth connections and data
+    handleBTConnections()
+    handleBTData()
 
     # Draw graphics on the screen
     DrawLoop()
