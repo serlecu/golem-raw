@@ -10,7 +10,7 @@ CHARACTERISTIC_UUID = "00002A19-0000-1000-8000-00805F9B34FB"
 
 def advertService(address):
     from bluetooth import BluetoothSocket
-    BTServer = BluetoothSocket( bt.Protocols.RFCOMM )
+    #BTServer = BluetoothSocket( bt.Protocols.RFCOMM )
     #BTServer.bind(("", bt.PORT_ANY))
     # BTServer.listen(1)
 
@@ -100,7 +100,13 @@ def setupBTAdapter():
       advertService(g.BTAdapter.address())
 
 def handleBTConnections():
-    pass
+    from bluetooth.ble import BeaconService
+
+    service = BeaconService()
+    service.start_advertising(SERVICE_UUID,
+                              1, 1, 1, 200)
+
+    print("Done.")
 
 def handleBTData():
     pass
