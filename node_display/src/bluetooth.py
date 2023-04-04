@@ -75,10 +75,6 @@ def setupBTAdapter():
       g.BTAdapter.set_callback_on_scan_updated(lambda peripheral: onDeviceUpdated(peripheral))
       isAdapterSet = True
 
-  BTService = ble.Service()
-  BTService.uuid = "4A98XXXX-1CC4-E7C1-C757-F1267DD021E8"
-  g.BTAdapter.add_service(BTService)
-
 def handleBTConnections():
     pass
 
