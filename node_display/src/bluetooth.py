@@ -1,6 +1,28 @@
 import simplepyble as ble
+import bluetooth as bt
 import time
 import src.globals as g
+
+
+# Define UUIDs for the service and characteristic
+SERVICE_UUID = "0000180F-0000-1000-8000-00805F9B34FB"
+CHARACTERISTIC_UUID = "00002A19-0000-1000-8000-00805F9B34FB"
+
+def advertService(address):
+    from bluetooth import BluetoothSocket
+    BTServer = BluetoothSocket( bt.Protocols.RFCOMM )
+    #BTServer.bind(("", bt.PORT_ANY))
+    # BTServer.listen(1)
+
+    # # Define the GATT server and characteristic
+    # gatt_server = bt.GATTServer()
+    # characteristic = bt.Characteristic(CHARACTERISTIC_UUID, ["read", "write"], value)
+
+    # # Define the service and add the characteristic to it
+    # service = bt.Service(SERVICE_UUID, [characteristic])
+
+    # # Add the service to the GATT server
+    # gatt_server.add_service(service)
 
 
 def scanBT():
@@ -55,11 +77,11 @@ def onDeviceUpdated(device):
 
 def setupBTAdapter():
   print("Initializing Bluetooth...")
-  print(f"Running on {ble.get_operating_system()}")
+  print(f"Running on {ble.get_operating_system()}") #type: ignore
 
   isAdapterSet = False
   while not isAdapterSet:
-    adapters = ble.Adapter.get_adapters()
+    adapters = ble.Adapter.get_adapters() #type: ignore
     if len(adapters) == 0:
           print("No adapters found")
           time.sleep(2)
@@ -74,6 +96,8 @@ def setupBTAdapter():
       g.BTAdapter.set_callback_on_scan_found(lambda peripheral: onDeviceFound(peripheral))
       g.BTAdapter.set_callback_on_scan_updated(lambda peripheral: onDeviceUpdated(peripheral))
       isAdapterSet = True
+
+      advertService(g.BTAdapter.address())
 
 def handleBTConnections():
     pass
