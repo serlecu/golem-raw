@@ -5,7 +5,7 @@ import time
 lastLoopTime: float
 
 #BTAdapter: Adapter
-targetUUID = "19B10000-E8F2-537E-4F6C-D104768A1214"
+targetUUID = '19b10000-e8f2-537e-4f6c-d104768a1214'
 
 isScanning: bool
 scannCrono: float

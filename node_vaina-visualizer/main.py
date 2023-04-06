@@ -18,12 +18,11 @@ def Setup():
     pygame.init()
 
     g.screen = pygame.display.set_mode((480,480))
-    pygame.display.set_caption("Golem: Display Node")
+    pygame.display.set_caption("Golem: Vaina Visualizer")
     pygame.mouse.set_visible(False)
 
     # Initialize Bluetooth
     setupBTAdapter()
-    scanBT()
 
     # End of Setup() ========================================
 
@@ -33,8 +32,8 @@ def Update():
     while True:
         # Handle Bluetooth device scanning
         if((g.isScanning == False) and (g.scannCrono <= 0)):
-            #scan_thread = threading.Thread(target=scanBT, daemon=True)
-            #scan_thread.start()
+            scan_thread = threading.Thread(target=scanBT, daemon=True)
+            scan_thread.start()
             g.scannCrono = g.scannFrequency
             
         # Handle Pygame events
