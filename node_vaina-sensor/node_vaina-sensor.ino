@@ -285,25 +285,26 @@ void readSensors() {
 }
 
 void publishValues() {
-//Magnet
-//BMMagXChar.writeValue(valMagnetX);
-//BMMagYChar.writeValue(valMagnetY);
-//BMMagZChar.writeValue(valMagnetZ);
-//Color
-apdColorRChar.writeValue(valColorR);
-apdColorGChar.writeValue(valColorG);
-apdColorBChar.writeValue(valColorB);
-//Lux
-adpLuxChar.writeValue(valLight);
-//Proximity
-//adpProxChar
-//Temperature
-//hs3TempChar
-//Humidity
-//hs3HumChar
-//Presure
-//lpsPressChar
-
+  Serial.println("Start publishing ...");
+  //Magnet
+  //BMMagXChar.writeValue(valMagnetX);
+  //BMMagYChar.writeValue(valMagnetY);
+  //BMMagZChar.writeValue(valMagnetZ);
+  //Color
+  apdColorRChar.writeValue(valColorR);
+  apdColorGChar.writeValue(valColorG);
+  apdColorBChar.writeValue(valColorB);
+  //Lux
+  adpLuxChar.writeValue(valLight);
+  //Proximity
+  //adpProxChar
+  //Temperature
+  //hs3TempChar
+  //Humidity
+  //hs3HumChar
+  //Presure
+  //lpsPressChar
+  Serial.println("... end publishing.");
 }
 
 void blePeripheralConnectHandler( BLEDevice central )
