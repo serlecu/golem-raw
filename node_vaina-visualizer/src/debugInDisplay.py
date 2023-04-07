@@ -30,6 +30,6 @@ def DrawDebugLayer():
   
   if(len(g.foundDevices) > 0):
     #debugScannedDevices(g.foundDevices, g.screen)
-    debugScannedDevices(g.connectedDevices, g.screen)
+    debugScannedDevices(g.matchedDevices, g.screen)
   else:
     test_text(g.screen, "No devices found", (g.screen.get_width()/2, 100), (255, 255, 255))
