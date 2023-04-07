@@ -1,11 +1,13 @@
 import time
 import threading
 import simplepyble as ble
+
 import src.globals as g
+
+BTAdapter: ble.Adapter #type: ignore
 
 def setupBTAdapter():
   print("Initializing Bluetooth...")
-  print(f"Running on {ble.get_operating_system()}") #type: ignore
 
   isAdapterSet = False
   while not isAdapterSet:
@@ -42,7 +44,7 @@ def filter_device(device, targetUUID):
             if service.uuid() == targetUUID:
                 print(f"Matching target service {service.uuid()}")
                 printCharacteristics(device)
-                g.connectedDevices.append(device)
+                g.matchedDevices.append(device)
                 connect_thread = threading.Thread(target=lambda: connectBT(device), daemon=True)
                 connect_thread.start()
             else:
@@ -61,11 +63,11 @@ def connectBT(device):
     
 def onConnectedDevice(device):
     print(f"Connected to {device.address()}.")
-    g.connectedDevices.append(device)
+    g.matchedDevices.append(device)
 
 def onDisconnectedDevice(device):
     print(f"Disconnected from {device.address()}.")
-    g.connectedDevices.remove(device)
+    g.matchedDevices.remove(device)
 
 def sendBT(sock, data):
     print("Sending {}".format(data))

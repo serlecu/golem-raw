@@ -11,16 +11,16 @@ isScanning: bool
 scannCrono: float
 scannFrequency: float
 foundDevices: list #str/bluetooth.Device
-connectedDevices: list
+matchedDevices: list
 
 screen: Surface
 
 def initGlobals():
-  global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices, connectedDevices
+  global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices, matchedDevices
   lastLoopTime = time.time()
 
   scannCrono = 5
   scannFrequency = 5
   isScanning = False
   foundDevices = []
-  connectedDevices = []
+  matchedDevices = []
