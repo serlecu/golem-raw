@@ -16,10 +16,11 @@ connectedDevices: list
 screen: Surface
 
 def initGlobals():
-  global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices
+  global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices, connectedDevices
   lastLoopTime = time.time()
 
   scannCrono = 5
   scannFrequency = 5
   isScanning = False
   foundDevices = []
+  connectedDevices = []
