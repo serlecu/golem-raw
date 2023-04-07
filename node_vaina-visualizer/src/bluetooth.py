@@ -7,6 +7,7 @@ import src.globals as g
 BTAdapter: ble.Adapter #type: ignore
 
 def setupBTAdapter():
+  global BTAdapter
   print("Initializing Bluetooth...")
 
   isAdapterSet = False
@@ -19,18 +20,19 @@ def setupBTAdapter():
       for adapter in adapters:
           print(f"Adapter: {adapter.identifier()} [{adapter.address()}]")
 
-      g.BTAdapter = adapters[0] # I take the first adapter IDKW                   #type: ignore
-      g.BTAdapter.set_callback_on_scan_start(lambda: print("Scan started."))      #type: ignore
+      BTAdapter = adapters[0] # I take the first adapter IDKW                   
+      BTAdapter.set_callback_on_scan_start(lambda: print("Scan started."))      
       #g.BTAdapter.set_callback_on_scan_stop(lambda: print("Scan complete."))
-      g.BTAdapter.set_callback_on_scan_found(lambda peripheral: filter_device(peripheral, g.targetUUID) )    #type: ignore
+      BTAdapter.set_callback_on_scan_found(lambda peripheral: filter_device(peripheral, g.targetUUID) )
       isAdapterSet = True
 
 
 
 def scanBT():
+    global BTAdapter
     g.isScanning = True
-    g.BTAdapter.scan_for(4000)                        #type: ignore
-    g.foundDevices = g.BTAdapter.scan_get_results()   #type: ignore
+    BTAdapter.scan_for(4000)                        
+    g.foundDevices = BTAdapter.scan_get_results()   #type: ignore
     g.isScanning = False
     print("Scan complete")
 
