@@ -1,8 +1,10 @@
 import time
 import threading
+import struct
 import simplepyble as ble
 
 import src.globals as g
+from src.globals import *
 
 BTAdapter: ble.Adapter #type: ignore
 devicesChecked = False
@@ -24,7 +26,7 @@ def setupBTAdapter():
       BTAdapter = adapters[0] # I take the first adapter IDKW                   
       BTAdapter.set_callback_on_scan_start( lambda: onScanStart() )      
       BTAdapter.set_callback_on_scan_stop( lambda: onScanStop() )
-      BTAdapter.set_callback_on_scan_found(lambda peripheral: filterDevice(peripheral, g.targetUUID) )
+      BTAdapter.set_callback_on_scan_found(lambda peripheral: filterDevice(peripheral, TARGET_UUID) )
       isAdapterSet = True
 
 
@@ -34,17 +36,17 @@ def scanBT():
     # g.foundDevices = BTAdapter.scan_get_results()   #type: ignore
 
 
-def filterDevices(devices, targetUUID):
+def filterDevices(devices, TARGET_UUID):
     for device in devices:
-      filterDevice(device, targetUUID)
+      filterDevice(device, TARGET_UUID)
 
 
-def filterDevice(device, targetUUID):
+def filterDevice(device, TARGET_UUID):
     if device.is_connectable():
       print(f"Found: {device.identifier()} [{device.address()}]")
       services = device.services()
       for service in services:
-          if service.uuid() == targetUUID:
+          if service.uuid() == TARGET_UUID:
               print(f"Matching target service {service.uuid()}")
               if (device not in g.matchedDevices):
                 print(f"Device {device.identifier()} [{device.address()}] not in matched devices.")
@@ -98,14 +100,28 @@ def onScanStop():
 
 def onConnectedDevice(device):
     print(f"Connected to {device.address()}.")
-    # printCharacteristics(device)
     notifyToChars(device, getServiceCharPairs(device))
-    g.matchedDevices.append(device)
+    # g.matchedDevices.append(device)
+    g.sensorDataList.append( VainaSensorNode(device.address(), device.identifier()) )
     
 
 def onDisconnectedDevice(device):
     print(f"Disconnected from {device.address()}.")
     g.matchedDevices.remove(device)
+    for sensorData in g.sensorDataList:
+      if sensorData.deviceUUID == device.address():
+        g.sensorDataList.remove(sensorData)
+        break
+
+
+def onCharacNotified(data, uuid, deviceAddres): #! .deviceUUID is actually the MAC address
+    print(f"Received from [{deviceAddres}]: {parseBTData(data)} - {uuid}")
+    for sensorData in g.sensorDataList:
+      if sensorData.deviceUUID == deviceAddres:
+        lastValue = sensorData.getSensorDataByUUID(uuid)
+        sensorData.updateSensorDataFromUUID(uuid, parseBTData(data))
+        # Check:
+        print(f"Updated {sensorData.deviceUUID}. {lastValue} => {sensorData.getSensorDataByUUID(uuid)}.")
 
 
 def getServiceCharPairs(device, serviceUUID = None):
@@ -128,8 +144,41 @@ def notifyToChars(device, serviceCharsPairs):
     if len(serviceCharsPairs) > 0:
       print("Enabling notifications ...")
       for service, char in serviceCharsPairs:
-          device.notify(service, char, lambda data: print("Received: {}".format(data)) )
+          device.notify(service, char, lambda data: onCharacNotified(data, char, device.address()) ) #! Atention to char to be a UUID
           # https://simpleble.readthedocs.io/en/latest/simpleble/api.html#_CPPv4N9SimpleBLE4Safe10Peripheral6notifyERK13BluetoothUUIDRK13BluetoothUUIDNSt8functionIFv9ByteArrayEEE
+
+
+# Transform raw bytes received from the device into int, float, etc.
+def parseBTData(inData: bytearray):
+    data_type, outData = detect_data_type(inData)
+    print(f"Data type: {data_type}")
+    return outData
+
+
+def detect_data_type(byteArray):
+    try:
+        # Try unpacking as int
+        int_value = struct.unpack('i', byteArray)[0]
+        return "int", int_value
+    except struct.error:
+        pass
+
+    try:
+        # Try unpacking as float
+        float_value = struct.unpack('f', byteArray)[0]
+        return "float", float_value
+    except struct.error:
+        pass
+
+    try:
+        # Try decoding as string
+        string_value = byteArray.decode('utf-8')
+        return "string", string_value
+    except UnicodeDecodeError:
+        pass
+
+    # If none of the above formats work, return "unknown"
+    return "unknown", None
 
 
 def printCharacteristics( device ):
