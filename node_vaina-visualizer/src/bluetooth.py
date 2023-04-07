@@ -1,53 +1,7 @@
 import time
 import threading
 import simplepyble as ble
-#import select
-#import bluetooth as bluez
 import src.globals as g
-
-# class AsyncDiscoverer(bluez.DeviceDiscoverer):
-
-#     def pre_inquiry(self):
-#         self.done = False
-
-#     def device_discovered(self, address, device_class, rssi, name):
-#         print("{} - {}".format(address, name))
-
-#         # get some information out of the device class and display it.
-#         # voodoo magic specified at:
-#         # https://www.bluetooth.org/foundry/assignnumb/document/baseband
-#         major_classes = ("Miscellaneous",
-#                          "Computer",
-#                          "Phone",
-#                          "LAN/Network Access Point",
-#                          "Audio/Video",
-#                          "Peripheral",
-#                          "Imaging")
-#         major_class = (device_class >> 8) & 0xf
-#         if major_class < 7:
-#             print(" " + major_classes[major_class])
-#         else:
-#             print("  Uncategorized")
-
-#         print("  Services:")
-#         service_classes = ((16, "positioning"),
-#                            (17, "networking"),
-#                            (18, "rendering"),
-#                            (19, "capturing"),
-#                            (20, "object transfer"),
-#                            (21, "audio"),
-#                            (22, "telephony"),
-#                            (23, "information"))
-
-#         for bitpos, classname in service_classes:
-#             if device_class & (1 << (bitpos-1)):
-#                 print("   ", classname)
-#         print("  RSSI:", rssi)
-
-#     def inquiry_complete(self):
-#         self.done = True
-
-
 
 def setupBTAdapter():
   print("Initializing Bluetooth...")
@@ -76,14 +30,6 @@ def scanBT():
     g.BTAdapter.scan_for(4000)                        #type: ignore
     g.foundDevices = g.BTAdapter.scan_get_results()   #type: ignore
     g.isScanning = False
-
-    # / Using BlueZ
-    # nearby_devices = bluez.discover_devices(duration=2,
-    #                                             lookup_names=True,
-    #                                             lookup_class=False,
-    #                                             flush_cache=True)
-    # print(f"Found {len((nearby_devices))} devices.")
-
     print("Scan complete")
 
 def filter_device(device, targetUUID):
