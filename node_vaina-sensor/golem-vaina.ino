@@ -8,32 +8,36 @@
 
 BLEService customService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create a custom service
 //Magnet
-BLEUnsignedCharCharacteristic BMMagChar("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEUnsignedCharCharacteristic BMMagXChar("19B10010-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEUnsignedCharCharacteristic BMMagYChar("19B10011-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEUnsignedCharCharacteristic BMMagZChar("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 //Color
-BLEUnsignedCharCharacteristic apdColorChar("19B10002-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEIntCharacteristic apdColorRChar("19B10020-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEIntCharacteristic apdColorGChar("19B10021-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEIntCharacteristic apdColorBChar("19B10022-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 //Lux
-BLEIntCharacteristic adpLuxChar("19B10003-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEIntCharacteristic adpLuxChar("19B10023-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 //Proximity
-BLEUnsignedCharCharacteristic adpProxChar("19B10004-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEUnsignedCharCharacteristic adpProxChar("19B10040-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 //Temperature
-BLEUnsignedCharCharacteristic hs3TempChar("19B10005-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEUnsignedCharCharacteristic hs3TempChar("19B10050-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 //Humidity
-BLEUnsignedCharCharacteristic hs3HumChar("19B10006-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEUnsignedCharCharacteristic hs3HumChar("19B10060-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 //Presure
-BLEUnsignedCharCharacteristic lpsPressChar("19B10007-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEUnsignedCharCharacteristic lpsPressChar("19B10070-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 //IR
 //BLEUnsignedCharCharacteristic customChar("19B10008-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 
 
 // Mains
-bool isConnected = false;
+bool isConnected = false; //miss
 bool waitBleLed = false; //Blue Blink while waiting for connection
 unsigned long disconnectedTimer;
 unsigned long mainTimer;
 
 // BMI270 & BMM150
-int valAccelX, valAccelY, valAccelZ;
-int valGyroX, valGyroY, valGyroZ;
+int valAccelX, valAccelY, valAccelZ; //miss
+int valGyroX, valGyroY, valGyroZ; //miss
 float valMagnetX, valMagnetY, valMagnetZ;
 // APD
 int valColorR, valColorG, valColorB;
@@ -41,10 +45,10 @@ int valLight;
 int valProximity;
 // HS300x
 int valTemperature, valHumidity;
-bool isReadHS300 = false;
+bool isReadHS300 = false; //miss
 // LPS22HB
 int valPressure;
-bool isReadLPS = false;
+bool isReadLPS = false; //miss
 // PDM -> TODO
 static const char channels = 1; // default number of output channels
 static const int frequency = 16000; // default PCM output frequency
@@ -178,8 +182,8 @@ void setup() {
   inLedBlue(HIGH);
   if (!BLE.begin()) { // Try enabling BLE
     inLedBlue(LOW);
-    Serial.println("starting Bluetooth® Low Energy module failed!");
-    Serial.println("Restarting...");
+    Serial.println( "starting Bluetooth® Low Energy module failed!" );
+    Serial.println( "Restarting..." );
     errorSequence();
     resetFunc(); // Reset if not succeded
   }
@@ -187,12 +191,23 @@ void setup() {
   delay(500);  
 
   inLedBlue(HIGH);
-  BLE.setLocalName("GOLEM_Vaina");  // Set name for connection
-  BLE.setAdvertisedService(customService); // add the custom service UUID
-  
-  customService.addCharacteristic(adpLuxChar); // add the custom characteristic UUID
-  BLE.advertise();  // Start advertising
-  
+  // set Names and service UUID
+  BLE.setDeviceName( "GOLEM_Vaina" );
+  BLE.setLocalName( "GOLEM_Vaina" );
+  BLE.setAdvertisedService( customService );
+  // add Custom Characteristics
+  customService.addCharacteristic(apdColorRChar);
+  customService.addCharacteristic(apdColorGChar);
+  customService.addCharacteristic(apdColorBChar);
+  customService.addCharacteristic(adpLuxChar);
+  // add Service
+  BLE.addService( customService );
+  // set BLE event handlers
+  BLE.setEventHandler( BLEConnected, blePeripheralConnectHandler );
+  BLE.setEventHandler( BLEDisconnected, blePeripheralDisconnectHandler );
+  // start advertising
+  BLE.advertise();  
+  // status prints
   Serial.print("MAC: ");
   Serial.println(BLE.address());
   Serial.println("Waiting for connections...");
@@ -203,42 +218,34 @@ void setup() {
 }
 
 void loop() {
-  waitForConnection();
-// connectToPeripheral();
-
-  if( (millis() - mainTimer) > 1000 ){
-    if(isConnected){
-      readSensors();
-      publishValues();
-    }
-
-    mainTimer = millis();
+  BLEDevice central = BLE.central();
+  
+  if (!BLE.connected() && (millis() - disconnectedTimer) > 1000) {
+    waitForConnection();
+  
+  } else if ( BLE.connected() ) {
+    handleConnection(); 
   }
   
-  delay(100);
+  delay(50);
 }
 
 void waitForConnection() {
-  BLEDevice central = BLE.central();
-  if(BLE.connected()) {
-    isConnected = true;  
-  } else {
-    isConnected = false;    
-  }
+  waitBleLed = !waitBleLed;
+  inLedBlue(waitBleLed);     
+  //Serial.println("...");
+  disconnectedTimer = millis();
+}
 
-  if (!isConnected && (millis() - disconnectedTimer) > 1000) {
-    waitBleLed = !waitBleLed;
-    if (waitBleLed){
-      inLedBlue(HIGH);
-    } else {
-      inLedBlue(LOW);      
-    }
-    Serial.println("...");
-    disconnectedTimer = millis();
+void handleConnection() {
+  while ( BLE.connected() ) {
+    if( (millis() - mainTimer) > 1000 ){
+      readSensors();
+      publishValues();
     
-  } else if (isConnected && waitBleLed) {
-    waitBleLed = false;
-    inLedBlue(LOW);
+      mainTimer = millis();
+    }
+    delay(50);
   }
 }
 
@@ -278,5 +285,40 @@ void readSensors() {
 }
 
 void publishValues() {
-  adpLuxChar.writeValue(valLight);
+//Magnet
+//BMMagXChar.writeValue(valMagnetX);
+//BMMagYChar.writeValue(valMagnetY);
+//BMMagZChar.writeValue(valMagnetZ);
+//Color
+apdColorRChar.writeValue(valColorR);
+apdColorGChar.writeValue(valColorG);
+apdColorBChar.writeValue(valColorB);
+//Lux
+adpLuxChar.writeValue(valLight);
+//Proximity
+//adpProxChar
+//Temperature
+//hs3TempChar
+//Humidity
+//hs3HumChar
+//Presure
+//lpsPressChar
+
+}
+
+void blePeripheralConnectHandler( BLEDevice central )
+{
+  waitBleLed = true;
+  inLedBlue(waitBleLed);
+  Serial.print("Connected to: ");
+  Serial.println(central.address());
+}
+
+
+void blePeripheralDisconnectHandler( BLEDevice central )
+{
+  waitBleLed = false;
+  inLedBlue(waitBleLed);
+  Serial.print("Disconnected from: ");
+  Serial.println(central.address());
 }
