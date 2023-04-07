@@ -71,5 +71,5 @@ def Update():
 
 # Start the event loop
 if __name__ == "__main__":
-  Setup()
-  Update()
+    Setup()
+    Update()
