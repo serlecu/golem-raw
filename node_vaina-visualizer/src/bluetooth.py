@@ -98,7 +98,8 @@ def onScanStop():
 
 def onConnectedDevice(device):
     print(f"Connected to {device.address()}.")
-    printCharacteristics(device)
+    # printCharacteristics(device)
+    notifyToChars(device, getServiceCharPairs(device))
     g.matchedDevices.append(device)
     
 
@@ -107,19 +108,32 @@ def onDisconnectedDevice(device):
     g.matchedDevices.remove(device)
 
 
-def sendBT(sock, data):
-    print("Sending {}".format(data))
-    # sock.send(data)
+def getServiceCharPairs(device, serviceUUID = None):
+    serviceCharsPairs = []
+    services = device.services()
+    for service in services:
+        if serviceUUID == None:
+          chars = service.characteristics()
+          for char in chars:
+              serviceCharsPairs.append((service.uuid(), char.uuid()))
+        else:
+          if service.uuid() == serviceUUID:
+            chars = service.characteristics()
+            for char in chars:
+                serviceCharsPairs.append((service.uuid(), char.uuid()))
+    return serviceCharsPairs
 
-def receiveBT(sock):
-    print("Receiving...")
-    # data = sock.recv(1024)
-    # print("Received {}".format(data))
-    # return data
+
+def notifyToChars(device, serviceCharsPairs):
+    if len(serviceCharsPairs) > 0:
+      print("Enabling notifications ...")
+      for service, char in serviceCharsPairs:
+          device.notify(service, char, lambda data: print("Received: {}".format(data)) )
+          # https://simpleble.readthedocs.io/en/latest/simpleble/api.html#_CPPv4N9SimpleBLE4Safe10Peripheral6notifyERK13BluetoothUUIDRK13BluetoothUUIDNSt8functionIFv9ByteArrayEEE
+
 
 def printCharacteristics( device ):
     services = device.services()
-    #service_characteristic_pair = []
     if len(services) == 0:
         print("No services found")
     else:
@@ -130,4 +144,3 @@ def printCharacteristics( device ):
               print("No characteristics found")
           for characteristic in service.characteristics():
               print(f" - Char: {characteristic.uuid()}")
-              #service_characteristic_pair.append((service.uuid(), characteristic.uuid()))
