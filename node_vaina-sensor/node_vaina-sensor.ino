@@ -8,9 +8,9 @@
 
 BLEService customService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create a custom service
 //Magnet
-BLEUnsignedCharCharacteristic BMMagXChar("19B10010-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
-BLEUnsignedCharCharacteristic BMMagYChar("19B10011-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
-BLEUnsignedCharCharacteristic BMMagZChar("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEFloatCharacteristic BMMagXChar("19B10010-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEFloatCharacteristic BMMagYChar("19B10011-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEFloatCharacteristic BMMagZChar("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 //Color
 BLEIntCharacteristic apdColorRChar("19B10020-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 BLEIntCharacteristic apdColorGChar("19B10021-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
@@ -18,15 +18,15 @@ BLEIntCharacteristic apdColorBChar("19B10022-E8F2-537E-4F6C-D104768A1214", BLERe
 //Lux
 BLEIntCharacteristic adpLuxChar("19B10023-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 //Proximity
-BLEUnsignedCharCharacteristic adpProxChar("19B10040-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEIntCharacteristic adpProxChar("19B10040-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 //Temperature
-BLEUnsignedCharCharacteristic hs3TempChar("19B10050-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEFloatCharacteristic hs3TempChar("19B10050-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 //Humidity
-BLEUnsignedCharCharacteristic hs3HumChar("19B10060-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEFloatCharacteristic hs3HumChar("19B10060-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 //Presure
-BLEUnsignedCharCharacteristic lpsPressChar("19B10070-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLEFloatCharacteristic lpsPressChar("19B10070-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 //IR
-//BLEUnsignedCharCharacteristic customChar("19B10008-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+//BLEUnsignedCharCharacteristic impulseResponseChar("19B10008-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 
 
 // Mains
@@ -36,18 +36,18 @@ unsigned long disconnectedTimer;
 unsigned long mainTimer;
 
 // BMI270 & BMM150
-int valAccelX, valAccelY, valAccelZ; //miss
-int valGyroX, valGyroY, valGyroZ; //miss
+float valAccelX, valAccelY, valAccelZ; //miss
+float valGyroX, valGyroY, valGyroZ; //miss
 float valMagnetX, valMagnetY, valMagnetZ;
 // APD
 int valColorR, valColorG, valColorB;
 int valLight;
 int valProximity;
 // HS300x
-int valTemperature, valHumidity;
+float valTemperature, valHumidity;
 bool isReadHS300 = false; //miss
 // LPS22HB
-int valPressure;
+float valPressure;
 bool isReadLPS = false; //miss
 // PDM -> TODO
 static const char channels = 1; // default number of output channels
@@ -196,12 +196,34 @@ void setup() {
   BLE.setLocalName( "GOLEM_Vaina" );
   BLE.setAdvertisedService( customService );
   // add Custom Characteristics
+  customService.addCharacteristic(BMMagXChar);
+  customService.addCharacteristic(BMMagYChar);
+  customService.addCharacteristic(BMMagZChar);
   customService.addCharacteristic(apdColorRChar);
   customService.addCharacteristic(apdColorGChar);
   customService.addCharacteristic(apdColorBChar);
   customService.addCharacteristic(adpLuxChar);
+  customService.addCharacteristic(adpProxChar);
+  customService.addCharacteristic(hs3TempChar);
+  customService.addCharacteristic(hs3HumChar);
+  customService.addCharacteristic(lpsPressChar);
+  // customService.addCharacteristic(impulseResponseChar);
   // add Service
   BLE.addService( customService );
+  // init Characteristics
+  BMMagXChar.setValue(-1);
+  BMMagYChar.setValue(-1);
+  BMMagZChar.setValue(-1);
+  apdColorRChar.setValue(-1);
+  apdColorGChar.setValue(-1);
+  apdColorBChar.setValue(-1);
+  adpLuxChar.setValue(-1);
+  adpProxChar.setValue(-1);
+  hs3TempChar.setValue(-1);
+  hs3HumChar.setValue(-1);
+  lpsPressChar.setValue(-1);
+  // impulseResponseChar.setValue(-1);
+  
   // set BLE event handlers
   BLE.setEventHandler( BLEConnected, blePeripheralConnectHandler );
   BLE.setEventHandler( BLEDisconnected, blePeripheralDisconnectHandler );
@@ -285,29 +307,60 @@ void readSensors() {
 }
 
 void publishValues() {
-//Magnet
-//BMMagXChar.writeValue(valMagnetX);
-//BMMagYChar.writeValue(valMagnetY);
-//BMMagZChar.writeValue(valMagnetZ);
-//Color
-apdColorRChar.writeValue(valColorR);
-apdColorGChar.writeValue(valColorG);
-apdColorBChar.writeValue(valColorB);
-//Lux
-adpLuxChar.writeValue(valLight);
-//Proximity
-//adpProxChar
-//Temperature
-//hs3TempChar
-//Humidity
-//hs3HumChar
-//Presure
-//lpsPressChar
+  // https://docs.arduino.cc/tutorials/nano-33-ble-sense/cheat-sheet
+  Serial.println("Start publishing ...");
+  //Magnet
+  BMMagXChar.writeValue( float(valMagnetX) ); //valMagnetX); // float[-400,400]
+  BMMagYChar.writeValue( float(valMagnetY) ); //valMagnetY); // float[-400,400]
+  BMMagZChar.writeValue( float(valMagnetZ) ); //valMagnetZ); // float[-400,400]
+  //Color
+  apdColorRChar.writeValue( int(valColorR) );  // int[0-255]
+  apdColorGChar.writeValue( int(valColorG) );  // int[0-255]
+  apdColorBChar.writeValue( int(valColorB) );  // int[0-255]
+  //Lux
+  adpLuxChar.writeValue( int(valLight) );  // int[0-255]
+  //Proximity
+  adpProxChar.writeValue( int(valProximity) ); // int[0-255]
+  //Temperature
+  hs3TempChar.writeValue( float(valTemperature) ); // float[-40,120]
+  //Humidity
+  hs3HumChar.writeValue( float(valHumidity) ); // float[0,100]
+  //Presure
+  lpsPressChar.writeValue( float(valPressure) ); // ?? (24-bit precission float)
+  // IR
+  // impulseResponseChar.writeValue(-1);
 
+  printValuesToSerial();
+  Serial.println("... end publishing.");
 }
 
-void blePeripheralConnectHandler( BLEDevice central )
-{
+void printValuesToSerial() {
+  Serial.print( "Magnet Field: " );
+  Serial.print( String(valMagnetX, 2) );
+  Serial.print( " , " );
+  Serial.print( String(valMagnetY, 2) );
+  Serial.print( " , " );
+  Serial.println( String(valMagnetZ, 2) );
+  Serial.print( "Color: " );
+  Serial.print( String(valColorR) );
+  Serial.print( " , " );
+  Serial.print( String(valColorG) );
+  Serial.print( " , " );
+  Serial.println( String(valColorB) );
+  Serial.print( "Light: " );
+  Serial.println( String(valLight) );
+  Serial.print( "Proximity: " );
+  Serial.println( String(valProximity) );
+  Serial.print( "Temperature: " );
+  Serial.println( String(valTemperature, 2) );
+  Serial.print( "Humidity: " );
+  Serial.println( String(valHumidity, 2) );
+  Serial.print( "Pressure: " );
+  Serial.println( String(valPressure, 2) );
+  // impulseResponseChar.writeValue(-1);
+}
+
+void blePeripheralConnectHandler( BLEDevice central ) {
   waitBleLed = true;
   inLedBlue(waitBleLed);
   Serial.print("Connected to: ");
@@ -315,8 +368,7 @@ void blePeripheralConnectHandler( BLEDevice central )
 }
 
 
-void blePeripheralDisconnectHandler( BLEDevice central )
-{
+void blePeripheralDisconnectHandler( BLEDevice central ) {
   waitBleLed = false;
   inLedBlue(waitBleLed);
   Serial.print("Disconnected from: ");
