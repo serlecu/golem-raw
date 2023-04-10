@@ -8,6 +8,8 @@ from src.globals import *
 
 BTAdapter: ble.Adapter #type: ignore
 devicesChecked = False
+connectingDevices = []
+notifiedCharList = []
 
 def setupBTAdapter():
   global BTAdapter
@@ -59,14 +61,18 @@ def filterDevice(device, TARGET_UUID):
 
 def handleBTConnections(frequecy = 3000):
     pass
-    global BTAdapter, devicesChecked
+    global BTAdapter, devicesChecked, connectingDevices
     if( not BTAdapter.scan_is_active() ): 
       if( not devicesChecked ):
         for device in g.matchedDevices:
             if not device.is_connected():
-              connectBT(device)
-              # connect_thread = threading.Thread(target=lambda: connectBT(device), daemon=True)
-              # connect_thread.start()
+              #connectBT(device)
+              if not device in connectingDevices:
+                connectingDevices.append(device)
+                connect_thread = threading.Thread(target=lambda: connectBT(device), daemon=True)
+                connect_thread.start()
+              else:
+                print(f"Device {device.identifier()} [{device.address()}] already connecting.")
             else:
               print(f"Device {device.identifier()} [{device.address()}] already connected.")
         devicesChecked = True
@@ -77,6 +83,7 @@ def handleBTData(): # miss
 
 
 def connectBT(device):
+    global connectingDevices
     print("Connecting to {}".format(device.address()))
     device.set_callback_on_connected(lambda: onConnectedDevice(device) )
     device.set_callback_on_disconnected(lambda: onDisconnectedDevice(device) )
@@ -84,6 +91,8 @@ def connectBT(device):
       device.connect()
     except:
       print("Failed to connect to {}".format(device.address()))
+    finally:
+      connectingDevices.remove(device)
 
 
 def onScanStart():
@@ -115,22 +124,44 @@ def onDisconnectedDevice(device):
 
 
 def onCharacNotified(data, uuid, deviceAddres): #! .deviceUUID is actually the MAC address
-    print(f"Received from [{deviceAddres}]: {parseBTData(data)} - {uuid}")
-    for sensorData in g.sensorDataList:
-      if sensorData.deviceUUID == deviceAddres:
-        lastValue = sensorData.getSensorDataByUUID(uuid)
-        sensorData.updateSensorDataFromUUID(uuid, parseBTData(data))
-        # Check:
-        print(f"Updated {sensorData.deviceUUID}. {lastValue} => {sensorData.getSensorDataByUUID(uuid)}.")
-
+    # ----------------------------------------
+    # print(f"Received from [{deviceAddres}]: {uuid}")
+    # print(f"  {data} => {parseBTData(data)}")
+    # for sensorData in g.sensorDataList:
+    #   if sensorData.deviceUUID == deviceAddres:
+    #     lastValue = sensorData.getSensorDataByUUID(uuid)
+    #     sensorData.updateSensorDataFromUUID(uuid, parseBTData(data))
+    #     # Check:
+    #     print(f"Updated {sensorData.deviceUUID}. {lastValue} => {sensorData.getSensorDataByUUID(uuid)}.")
+    #     break
+    # ----------------------------------------
+    # Using the folowing chunck because we cannot retrieve UUID of the notified characteristic
+    # if data is not an empty bytearray
+    
+    if data != b'\x00':
+      parsedData = parseBTData(data)
+      deviceUUID = extractSensorUUID(parsedData)
+      characUUID = extractCharacUUID(parsedData)
+      characValue = extractCHaracValue(parsedData)
+      print(f"Received from [{deviceUUID}]: {characUUID}")
+      for sensorData in g.sensorDataList:
+        # breakpoint()
+        if sensorData.deviceUUID == deviceAddres:
+          sensorData.updateSensorDataFromUUID(characUUID, characValue)
+          # Check:
+          print(f"Updated {sensorData.deviceUUID}.")
+          break
+  
 
 def getServiceCharPairs(device, serviceUUID = None):
     serviceCharsPairs = []
     services = device.services()
     for service in services:
-        if serviceUUID == None:
+        print (f"Service: {service.uuid()}")
+        if serviceUUID == None: 
           chars = service.characteristics()
           for char in chars:
+              print (f"Characteristic: {char.uuid()}")
               serviceCharsPairs.append((service.uuid(), char.uuid()))
         else:
           if service.uuid() == serviceUUID:
@@ -146,12 +177,29 @@ def notifyToChars(device, serviceCharsPairs):
       for service, char in serviceCharsPairs:
           device.notify(service, char, lambda data: onCharacNotified(data, char, device.address()) ) #! Atention to char to be a UUID
           # https://simpleble.readthedocs.io/en/latest/simpleble/api.html#_CPPv4N9SimpleBLE4Safe10Peripheral6notifyERK13BluetoothUUIDRK13BluetoothUUIDNSt8functionIFv9ByteArrayEEE
+          print(f"Notifications enabled for {char} in {service}.")
+          # notifiedCharList.append(content)
+
+
+def extractSensorUUID(data): # UUID: 19b1XXXX
+    uuid = '19b1000' + data[0] + '-e8f2-537e-4f6c-d104768a1214'
+    return uuid
+
+
+def extractCharacUUID(data):
+    uuid = '19b100' + data[1] + data[2] + '-e8f2-537e-4f6c-d104768a1214'
+    return uuid
+
+
+def extractCHaracValue(data):
+    return data[3:]
 
 
 # Transform raw bytes received from the device into int, float, etc.
 def parseBTData(inData: bytearray):
     data_type, outData = detect_data_type(inData)
-    print(f"Data type: {data_type}")
+    # print(f"Raw: {inData} => {outData} | {data_type}")
+    print(f"{outData} | {data_type}")
     return outData
 
 
@@ -172,7 +220,9 @@ def detect_data_type(byteArray):
 
     try:
         # Try decoding as string
-        string_value = byteArray.decode('utf-8')
+        string_value = byteArray.decode()
+        string_value.rstrip('\x00')
+        # print(f"Raw: {byteArray}. Decoded: {string_value}")
         return "string", string_value
     except UnicodeDecodeError:
         pass
