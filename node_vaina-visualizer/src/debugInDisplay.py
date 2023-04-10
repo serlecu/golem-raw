@@ -5,6 +5,7 @@ import src.globals as g
 
 def test_text(screen, text, pos, color):
     font = pygame.font.Font(None, 12)
+    text = text.replace('\x00','')
     text = font.render(text, True, color)
     textpos = text.get_rect()
     textpos.centerx = pos[0]
@@ -27,7 +28,7 @@ def debugScannedDevices(devices, screen):
 
 def debugSensorData():
     xpos = g.screen.get_width()/2
-    ypos = 100
+    ypos = 120
     for dataList in g.sensorDataList: # dataList is a VainaSensorData object
       #print(f"Darwing sensor {dataList} ...")
       for key, value in dataList.getSensorData().items(): # returns a dict (key, value)
@@ -36,7 +37,7 @@ def debugSensorData():
           test_text(g.screen, f"Device [{value}]:", (xpos, ypos), (255, 255, 255))
         else:
           #print(f"{key}: {value}")
-          test_text(g.screen, " - {}: {}".format(key, value), (xpos, ypos), (255, 255, 255))
+          test_text(g.screen, f" - {key}: {value}", (xpos, ypos), (255, 255, 255))
         ypos += 15
       ypos += 15
 
