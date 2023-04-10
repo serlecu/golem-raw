@@ -6,25 +6,27 @@
 #include <PDM.h> // Pulse-density modulation microphones
 // Check #include <ArduinoSound.h>
 
+const int VAINA_ID = 0;
+
 BLEService customService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create a custom service
 //Magnet
-BLEFloatCharacteristic BMMagXChar("19B10010-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
-BLEFloatCharacteristic BMMagYChar("19B10011-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
-BLEFloatCharacteristic BMMagZChar("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLECharacteristic BMMagXChar("19B10010-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
+BLECharacteristic BMMagYChar("19B10011-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
+BLECharacteristic BMMagZChar("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
 //Color
-BLEIntCharacteristic apdColorRChar("19B10020-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
-BLEIntCharacteristic apdColorGChar("19B10021-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
-BLEIntCharacteristic apdColorBChar("19B10022-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLECharacteristic apdColorRChar("19B10020-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
+BLECharacteristic apdColorGChar("19B10021-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
+BLECharacteristic apdColorBChar("19B10022-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
 //Lux
-BLEIntCharacteristic adpLuxChar("19B10023-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLECharacteristic adpLuxChar("19B10023-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
 //Proximity
-BLEIntCharacteristic adpProxChar("19B10040-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLECharacteristic adpProxChar("19B10040-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
 //Temperature
-BLEFloatCharacteristic hs3TempChar("19B10050-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLECharacteristic hs3TempChar("19B10050-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
 //Humidity
-BLEFloatCharacteristic hs3HumChar("19B10060-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLECharacteristic hs3HumChar("19B10060-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
 //Presure
-BLEFloatCharacteristic lpsPressChar("19B10070-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
+BLECharacteristic lpsPressChar("19B10070-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
 //IR
 //BLEUnsignedCharCharacteristic impulseResponseChar("19B10008-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify); // create a custom characteristic
 
@@ -34,6 +36,10 @@ bool isConnected = false; //miss
 bool waitBleLed = false; //Blue Blink while waiting for connection
 unsigned long disconnectedTimer;
 unsigned long mainTimer;
+
+uint8_t byteArray[512];
+String stringValue = "";
+int length = 0;
 
 // BMI270 & BMM150
 float valAccelX, valAccelY, valAccelZ; //miss
@@ -210,19 +216,6 @@ void setup() {
   // customService.addCharacteristic(impulseResponseChar);
   // add Service
   BLE.addService( customService );
-  // init Characteristics
-  BMMagXChar.setValue(-1);
-  BMMagYChar.setValue(-1);
-  BMMagZChar.setValue(-1);
-  apdColorRChar.setValue(-1);
-  apdColorGChar.setValue(-1);
-  apdColorBChar.setValue(-1);
-  adpLuxChar.setValue(-1);
-  adpProxChar.setValue(-1);
-  hs3TempChar.setValue(-1);
-  hs3HumChar.setValue(-1);
-  lpsPressChar.setValue(-1);
-  // impulseResponseChar.setValue(-1);
   
   // set BLE event handlers
   BLE.setEventHandler( BLEConnected, blePeripheralConnectHandler );
@@ -261,7 +254,7 @@ void waitForConnection() {
 
 void handleConnection() {
   while ( BLE.connected() ) {
-    if( (millis() - mainTimer) > 1000 ){
+    if( (millis() - mainTimer) > 2000 ){
       readSensors();
       publishValues();
     
@@ -309,24 +302,59 @@ void readSensors() {
 void publishValues() {
   // https://docs.arduino.cc/tutorials/nano-33-ble-sense/cheat-sheet
   Serial.println("Start publishing ...");
-  //Magnet
-  BMMagXChar.writeValue( float(valMagnetX) ); //valMagnetX); // float[-400,400]
-  BMMagYChar.writeValue( float(valMagnetY) ); //valMagnetY); // float[-400,400]
-  BMMagZChar.writeValue( float(valMagnetZ) ); //valMagnetZ); // float[-400,400]
-  //Color
-  apdColorRChar.writeValue( int(valColorR) );  // int[0-255]
-  apdColorGChar.writeValue( int(valColorG) );  // int[0-255]
-  apdColorBChar.writeValue( int(valColorB) );  // int[0-255]
-  //Lux
-  adpLuxChar.writeValue( int(valLight) );  // int[0-255]
-  //Proximity
-  adpProxChar.writeValue( int(valProximity) ); // int[0-255]
-  //Temperature
-  hs3TempChar.writeValue( float(valTemperature) ); // float[-40,120]
+  // //Magnet
+  stringValue = String(VAINA_ID) + String(10) + String(valMagnetX);
+  stringValue.getBytes( byteArray, sizeof(byteArray) );
+  BMMagXChar.writeValue( byteArray, sizeof(byteArray) ); // float[-400,400]
+  // Serial.println(stringValue);
+  stringValue = String(VAINA_ID) + String(11) + String(valMagnetY);
+  stringValue.getBytes( byteArray, sizeof(byteArray) );
+  BMMagYChar.writeValue( byteArray, sizeof(byteArray) ); // float[-400,400]
+  // Serial.println(stringValue);
+  stringValue = String(VAINA_ID) + String(12) + String(valMagnetZ);
+  stringValue.getBytes( byteArray, sizeof(byteArray) );
+  BMMagZChar.writeValue( byteArray, sizeof(byteArray) ); // float[-400,400]
+  // Serial.println(stringValue);
+  
+  // //Lux
+  stringValue = String(VAINA_ID) + String(20) + String(valLight);
+  stringValue.getBytes( byteArray, sizeof(byteArray) ); // int[0-255]
+  adpLuxChar.writeValue( byteArray, sizeof(byteArray) ); // float[-400,400]
+  // Serial.println(stringValue);
+
+  // // //Color
+  // stringValue = String(VAINA_ID) + String(21) + String(valColorR) +","+String(valColorG)+","+String(valColorB);
+  stringValue = String(VAINA_ID) + String(22) + String(valColorR);
+  stringValue.getBytes( byteArray, sizeof(byteArray) );
+  apdColorRChar.writeValue( byteArray, sizeof(byteArray) ); // int[0-255]
+  // Serial.println(stringValue);
+  stringValue = String(VAINA_ID) + String(22) + String(valColorG);
+  stringValue.getBytes( byteArray, sizeof(byteArray) );
+  apdColorGChar.writeValue( byteArray, sizeof(byteArray) ); // int[0-255]
+  stringValue = String(VAINA_ID) + String(23) + String(valColorB);
+  stringValue.getBytes( byteArray, sizeof(byteArray) );
+  apdColorBChar.writeValue( byteArray, sizeof(byteArray) ); // int[0-255]
+  
+  // // //Proximity
+  stringValue = String(VAINA_ID) + String(40) + String(valProximity);
+  stringValue.getBytes( byteArray, sizeof(byteArray) );
+  adpProxChar.writeValue( byteArray, sizeof(byteArray) ); // int[0-255]
+
+  // //Temperature
+  stringValue = String(VAINA_ID) + String(50) + String(valTemperature);
+  stringValue.getBytes( byteArray, sizeof(byteArray) );
+  hs3TempChar.writeValue( byteArray, sizeof(byteArray) ); // float[-40,120]
+  
   //Humidity
-  hs3HumChar.writeValue( float(valHumidity) ); // float[0,100]
+  stringValue = String(VAINA_ID) + String(60) + String(valHumidity);
+  stringValue.getBytes( byteArray, sizeof(byteArray) );
+  hs3HumChar.writeValue( byteArray, sizeof(byteArray) );
+  
   //Presure
-  lpsPressChar.writeValue( float(valPressure) ); // ?? (24-bit precission float)
+  stringValue = String(VAINA_ID) + String(70) + String(valPressure);
+  stringValue.getBytes( byteArray, sizeof(byteArray) );
+  lpsPressChar.writeValue( byteArray, sizeof(byteArray) );
+
   // IR
   // impulseResponseChar.writeValue(-1);
 
