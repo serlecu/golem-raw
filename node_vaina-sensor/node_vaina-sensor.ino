@@ -204,8 +204,9 @@ void setup() {
 
   inLedBlue(HIGH);
   // set Names and service UUID
-  BLE.setDeviceName( "GOLEM_Vaina" );
-  BLE.setLocalName( "GOLEM_Vaina" );
+  String deviceName = "GOLEM_Vaina_" + BLE.address().substring(9); //last 3 bytes of the MAC address
+  BLE.setDeviceName( deviceName.c_str() );
+  BLE.setLocalName( deviceName.c_str() );
   BLE.setAdvertisedService( customService );
   // add Custom Characteristics
   customService.addCharacteristic(BMMagXChar);
