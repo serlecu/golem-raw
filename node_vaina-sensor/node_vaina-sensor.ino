@@ -174,9 +174,15 @@ bool initSensors() {
 void setup() {
   Serial.begin(9600);  
   initRGBLED();
+  delay(1000);
   
   inLedGreen(HIGH);
-  while (!Serial); // Wait for serial
+  if (!Serial){
+    delay(500);
+    inLedRed(HIGH);
+    delay(500);
+    inLedRed(LOW);
+  } // Wait for serial
   inLedGreen(LOW);
   delay(1000);
 
