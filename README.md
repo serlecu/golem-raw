@@ -1,24 +1,61 @@
 # golem-node-screen
 
 ```  
-project_name/
+golem-node-screen/
 │
-├── node-dispplay.py
+├── node_display/
+│   │
+│   ├── node-display.py
+│   │
+│   ├── requirements.txt
+│   │
+│   ├── README.md
+│   │
+│   ├── docs/  # TODO: Documentation
+│   │   ├── user_manual.md
+│   │   ├── developer_manual.md
+│   │   ├── design.md
+│   │   └── ...
+│   │
+│   └── src/
+│       ├── __init__.py
+│       ├── globals.py
+│       ├── bluetooth.py
+│       ├── graphics.py
+│       └── debug_display.py
 │
-├── requirements.txt
+├── node_vaina-sensor/
+│   │
+│   ├── node_vaina-sensor.ino
+│   │
+│   ├── README.md
+│   │
+│   └── docs/  # TODO: Documentation
+│       ├── user_manual.md
+│       ├── developer_manual.md
+│       ├── design.md
+│       └── ...
 │
-├── README.md
-│
-├── docs/  # TODO: Documentation
-│   ├── design.md
-│   ├── user_manual.md
-│   ├── developer_manual.md
-│   └── ...
-│
-└── src/
-    ├── __init__.py
-    ├── globals.py
-    ├── bluetooth.py
-    ├── graphics.py
-    └── debug_display.py
+└── node_vaina-visualizer/
+    │
+    ├── main.py
+    │
+    ├── requirements.txt
+    │
+    ├── README.md
+    │
+    ├── docs/  # TODO: Documentation
+    │   ├── design.md
+    │   ├── user_manual.md
+    │   ├── developer_manual.md
+    │   └── ...
+    │
+    └── src/
+        ├── __init__.py
+        ├── globals.py
+        ├── bluetooth.py
+        ├── graphics.py
+        └── debugInDisplay.py
+
+
 ```  
