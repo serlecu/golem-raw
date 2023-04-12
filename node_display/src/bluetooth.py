@@ -1,6 +1,9 @@
-import simplepyble as ble
-import bluetooth as bt
 import time
+import threading
+
+import bluetooth as bt
+import simplepyble as ble
+
 import src.globals as g
 from src.globals import *
 
@@ -162,8 +165,26 @@ def notifyToChars(device, serviceCharPairs):
 
 def onCharacNotified(data, deviceAddress):
     print(f"Recieved msg from {deviceAddress}: {data}")
-            
-    
+
+
+def getServiceCharPairs(device, serviceUUID = None):
+    serviceCharsPairs = []
+    services = device.services()
+    for service in services:
+        #print (f"Service: {service.uuid()}")
+        if serviceUUID == None: 
+            chars = service.characteristics()
+            for char in chars:
+                #print (f"Characteristic: {char.uuid()}")
+                serviceCharsPairs.append((service.uuid(), char.uuid()))
+        else:
+            if service.uuid() == serviceUUID:
+                chars = service.characteristics()
+                for char in chars:
+                    serviceCharsPairs.append((service.uuid(), char.uuid()))
+    return serviceCharsPairs
+
+
 def advertService(address):
     pass
     #from bluetooth import BluetoothSocket
