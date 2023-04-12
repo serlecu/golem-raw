@@ -132,7 +132,7 @@ def connectBT(device):
 
 def onConnectedDevice(device):
     print(f"Connection success {device.address()}")
-    notifyToChars(device, getServicesCharPairs(device))
+    notifyToChars(device, getServiceCharPairs(device, TARGET_SERVICE))
     #g.sensorDataList.append( VainaSensorNode(device.address(), device.identifier()) )
     connectingDevices.remove(device)
     
