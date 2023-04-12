@@ -13,9 +13,16 @@ def test_text(screen, text, pos, color):
 def debugScannedDevices(devices, screen):
   ypos = 0
   for i, device in enumerate(devices):
+      textColor = (255, 255, 255)
+      if(device.is_connected()):
+        textColor = (0, 255, 0)
+      elif( device.is_connectable() == False):
+        #cannot be connected
+        textColor = (255, 0, 0)
+
       text = "{}. {} -> {}".format(i, device.identifier(), device.address())
       # text = "{}. {}".format(i, device)
-      test_text(screen, text, (screen.get_width()/2, 100+ypos), (255, 255, 255))
+      test_text(screen, text, (screen.get_width()/2, 100+ypos), textColor)
       ypos += 20
 
 
