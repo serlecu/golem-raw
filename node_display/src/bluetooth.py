@@ -15,7 +15,7 @@ matchedDevices = []
 TARGET_SERVICE = "19B10100-E8F2-537E-D104768A1214"
 
 # Define UUIDs for the service and characteristic
-SERVICE_UUID = "19B10100-E8F2-537E-D104768A1214"
+SERVICE_UUID = "94f39d29-7d6d-437d-973b-fba39e49d4ee" # "19B10100-E8F2-537E-D104768A1214"
 CHARACTERISTIC_UUID = "19B10000-E8F2-537E-D104768A1214"
 
 
@@ -39,7 +39,28 @@ def setupBTAdapter():
         BTAdapter.set_callback_on_scan_found(lambda peripheral: onDeviceFound(peripheral))
         isAdapterSet = True
 
-        #advertService(g.BTAdapter.address())
+    # ====== PYBLUEZ2 - SERVER =======
+    print("Starting BT server ...")
+#     server_sock = bt.BluetoothSocket(bt.L2CAP)
+#     server_sock.bind( ("", 0x1001) )
+#     server_sock.listen(1)
+    server_sock = bt.BluetoothSocket(bt.RFCOMM)
+    server_sock.bind( ("",0) ) #bt.PORT_ANY = 0
+    server_sock.listen(1)
+    
+    
+    port = server_sock.getsockname()[1]
+    uuid = SERVICE_UUID
+    
+    bt.advertise_service(server_sock,
+                         "GOLEM_NODE",
+                         service_id=uuid,
+                         service_classes=[uuid, bt.SERIAL_PORT_CLASS],
+#                          profiles=[bt.SERIAL_PORT_PROFILE],
+#                          protocols=[bt.OBEX_UUID]
+                         )
+    print(f"Waiting for connections in port [{port}]")
+    #advertService(g.BTAdapter.address())
     
 
 def scanBT():

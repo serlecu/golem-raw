@@ -26,7 +26,7 @@ def Setup():
     g.screen = pygame.display.set_mode((480,480))
   else:
      g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
-#     g.screen = pygame.display.set_mode((480,480))
+#      g.screen = pygame.display.set_mode((480,480))
   pygame.display.set_caption("Golem: Display Node")
   pygame.mouse.set_visible(False)
 
