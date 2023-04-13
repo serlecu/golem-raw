@@ -6,7 +6,8 @@
 #include <PDM.h> // Pulse-density modulation microphones
 // Check #include <ArduinoSound.h>
 
-const int VAINA_ID = 0;
+const int VAINA_ID = 0; // DONT REMEMBER IF USED ON CLIENT
+const int FREQ_BROADCAST = 250;
 
 BLEService customService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create a custom service
 //Magnet
@@ -261,7 +262,7 @@ void waitForConnection() {
 
 void handleConnection() {
   while ( BLE.connected() ) {
-    if( (millis() - mainTimer) > 2000 ){
+    if( (millis() - mainTimer) > FREQ_BROADCAST ){
       readSensors();
       publishValues();
     
