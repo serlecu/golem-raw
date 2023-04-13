@@ -1,0 +1,11 @@
+bluezero @ git+https://github.com/ukBaz/python-bluezero.git@6db02adc16daeafd913b2cdf3d8e46ad10ccda2b
+dpath==2.1.5
+noise==1.2.2
+PyBluez @ git+https://github.com/karulis/pybluez.git@06f3c83dcd7857c7f97aa1f882357725fc4342d4
+pybluez2 @ git+https://github.com/ScR4tCh/pybluez2.git@280dafbcfa2a55744a427a55637c13b31602d0de
+pygame==2.3.0
+pyobjc-core==9.0.1
+pyobjc-framework-Cocoa==9.0.1
+pyobjc-framework-libdispatch==9.0.1
+python-lightblue==1.0.3
+simplepyble==0.6.1
