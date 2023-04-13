@@ -3,6 +3,7 @@ import threading
 
 import bluetooth as bt
 import simplepyble as ble
+# import gobject
 
 import src.globals as g
 from src.globals import *
@@ -12,7 +13,7 @@ devicesChecked: bool = False
 connectingDevices = []
 matchedDevices = []
 
-TARGET_SERVICE = "19B10100-E8F2-537E-D104768A1214"
+TARGET_SERVICE = "94f39d29-7d6d-437d-973b-fba39e49d4ee" # "19B10100-E8F2-537E-D104768A1214"
 
 # Define UUIDs for the service and characteristic
 SERVICE_UUID = "94f39d29-7d6d-437d-973b-fba39e49d4ee" # "19B10100-E8F2-537E-D104768A1214"
@@ -44,24 +45,44 @@ def setupBTAdapter():
 #     server_sock = bt.BluetoothSocket(bt.L2CAP)
 #     server_sock.bind( ("", 0x1001) )
 #     server_sock.listen(1)
+#     
+#     server_sock.io_add_watch(server_sock)
+    
     server_sock = bt.BluetoothSocket(bt.RFCOMM)
     server_sock.bind( ("",0) ) #bt.PORT_ANY = 0
     server_sock.listen(1)
     
-    
     port = server_sock.getsockname()[1]
-    uuid = SERVICE_UUID
+    service_uuid = SERVICE_UUID
+    g.deviceInfo = server_sock.getsockname()
     
-    bt.advertise_service(server_sock,
-                         "GOLEM_NODE",
+    server_thread = threading.Thread(target=lambda sock=server_sock, uuid=service_uuid:advertiseBT(sock,uuid), daemon=True )
+    server_thread.start()
+    
+    
+
+def advertiseBT(socket,uuid):
+    print(f"Advertising ...")
+    bt.advertise_service(socket,
+                        "GOLEM_NODE",
                          service_id=uuid,
                          service_classes=[uuid, bt.SERIAL_PORT_CLASS],
-#                          profiles=[bt.SERIAL_PORT_PROFILE],
+                         profiles=[bt.SERIAL_PORT_PROFILE],
 #                          protocols=[bt.OBEX_UUID]
                          )
-    print(f"Waiting for connections in port [{port}]")
-    #advertService(g.BTAdapter.address())
     
+    onConnectionRequest(sockListener=socket)
+    
+#     gobject.io_add_watch(socket,
+#                          gobjetc.IO_IN,
+#                          onConnectionRequest(socketListener=socket))
+    
+    
+def onConnectionRequest(sockListener):
+    socket, info = sockListener.accept()
+    address, psm = info
+    print(f"Requested connection from {address}")
+
 
 def scanBT():
     BTAdapter.scan_for(4000)
@@ -75,6 +96,7 @@ def onScanStart():
 def onScanStop():
     global devicesChecked
     print("Scan complete")
+    g.foundDevices = BTAdapter.scan_get_results()
     devicesChecked = False
     g.isScanning = False
     

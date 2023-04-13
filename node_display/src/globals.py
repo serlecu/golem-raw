@@ -4,6 +4,7 @@ import time
 
 lastLoopTime: float
 
+deviceInfo: str
 isScanning: bool
 scannCrono: float
 scannFrequency: float

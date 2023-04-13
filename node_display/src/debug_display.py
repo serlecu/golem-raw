@@ -15,10 +15,10 @@ def debugScannedDevices(devices, screen):
   for i, device in enumerate(devices):
       textColor = (255, 255, 255)
       if(device.is_connected()):
-        textColor = (0, 255, 0)
+        textColor = (255, 255, 255)
       elif( device.is_connectable() == False):
         #cannot be connected
-        textColor = (255, 0, 0)
+        textColor = (100, 100, 100)
 
       text = "{}. {} -> {}".format(i, device.identifier(), device.address())
       # text = "{}. {}".format(i, device)
@@ -27,10 +27,11 @@ def debugScannedDevices(devices, screen):
 
 
 def DrawDebugLayer():
-  test_text(g.screen, "IsScanning: {}".format(g.isScanning), (g.screen.get_width()/2, 20), (255, 255, 255))
-  test_text(g.screen, "ScanCrono: {}".format(g.scannCrono), (g.screen.get_width()/2, 40), (255, 255, 255))
+    test_text(g.screen, (f"[ {g.deviceInfo} ]"), (g.screen.get_width()/2, 20), (255, 255, 255))
+    test_text(g.screen, (f"IsScanning: {not g.isScanning}"), (g.screen.get_width()/2, 40), (255, 255, 255))
+    test_text(g.screen, (f"ScanCrono: {g.scannCrono}"), (g.screen.get_width()/2, 60), (255, 255, 255))
   
-  if(len(g.foundDevices) > 0):
-    debugScannedDevices(g.foundDevices, g.screen)
-  else:
-    test_text(g.screen, "No devices found", (g.screen.get_width()/2, 100), (255, 255, 255))
+    if(len(g.foundDevices) > 0):
+        debugScannedDevices(g.foundDevices, g.screen)
+    else:
+        test_text(g.screen, "No devices found", (g.screen.get_width()/2, 100), (255, 255, 255))
