@@ -42,15 +42,15 @@ def setupBTAdapter():
 
     # ====== PYBLUEZ2 - SERVER =======
     print("Starting BT server ...")
-#     server_sock = bt.BluetoothSocket(bt.L2CAP)
-#     server_sock.bind( ("", 0x1001) )
-#     server_sock.listen(1)
+    server_sock = bt.BluetoothSocket(bt.L2CAP)
+    server_sock.bind( (adapter.address(), 0x1001) )
+    server_sock.listen(1)
 #     
 #     server_sock.io_add_watch(server_sock)
     
-    server_sock = bt.BluetoothSocket(bt.RFCOMM)
-    server_sock.bind( ("",0) ) #bt.PORT_ANY = 0
-    server_sock.listen(1)
+#     server_sock = bt.BluetoothSocket(bt.RFCOMM)
+#     server_sock.bind( ("",0) ) #bt.PORT_ANY = 0
+#     server_sock.listen(1)
     
     port = server_sock.getsockname()[1]
     service_uuid = SERVICE_UUID
@@ -79,6 +79,7 @@ def advertiseBT(socket,uuid):
     
     
 def onConnectionRequest(sockListener):
+    print("OnConnectionRequest")
     socket, info = sockListener.accept()
     address, psm = info
     print(f"Requested connection from {address}")
@@ -128,7 +129,7 @@ def filterDevice(device, targetService):
                 if (device in matchedDevices):
                     print(f"Device [{device.identifier()}] already stored.")
                 else:
-                    print(f"Found device [{device.identifier()}].")
+                    print(f"Match [{device.identifier()}].")
                     matchedDevices.append(device)
                 break
 
@@ -150,7 +151,8 @@ def handleBTConnections():
                         connect_thread.start()
                     else:
                         print(f"Already connecting to device [{device.address()}].")
-            
+    
+    
 #     from bluetooth.ble import BeaconService
 
 #     service = BeaconService()
