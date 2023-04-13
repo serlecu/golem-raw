@@ -228,7 +228,7 @@ def printCharacteristics( device ):
                 print("No characteristics found")
             for characteristic in service.characteristics():
                 # print(f" - Char: {characteristic.uuid()}")
-
+                pass
 
 def handleBTData(): # miss
     pass
