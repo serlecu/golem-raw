@@ -3,7 +3,15 @@ import threading
 
 import bluetooth as bt
 import simplepyble as ble
-# import gobject
+
+import bless
+from bless import (
+    BlessServer,
+    BlessGATTCharacteristic,
+    GATTCharacteristicProperties,
+    GATTAttributePermissions)
+import logging
+from typing import Any
 
 import src.globals as g
 from src.globals import *
@@ -13,15 +21,20 @@ devicesChecked: bool = False
 connectingDevices = []
 matchedDevices = []
 
+logger: logging.Logger
+trigger: threading.Event
+
+
 TARGET_SERVICE = "94f39d29-7d6d-437d-973b-fba39e49d4ee" # "19B10100-E8F2-537E-D104768A1214"
 
 # Define UUIDs for the service and characteristic
-SERVICE_UUID = "94f39d29-7d6d-437d-973b-fba39e49d4ee" # "19B10100-E8F2-537E-D104768A1214"
-CHARACTERISTIC_UUID = "19B10000-E8F2-537E-D104768A1214"
+# SERVICE_UUID = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
+SERVICE_UUID = "19B10100-E8F2-537E-D104768A1214"
+CHARACTERISTIC_UUID = "51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B"# '19b10000-e8f2-537e-d104768a1214'
 
 
 def setupBTAdapter():
-    global BTAdapter
+    global BTAdapter, server_sock
     print("Initializing Bluetooth...")
 
     isAdapterSet = False
@@ -41,48 +54,71 @@ def setupBTAdapter():
         isAdapterSet = True
 
     # ====== PYBLUEZ2 - SERVER =======
-    print("Starting BT server ...")
-    server_sock = bt.BluetoothSocket(bt.L2CAP)
-    server_sock.bind( (adapter.address(), 0x1001) )
-    server_sock.listen(1)
+    global logger, trigger
+    
+    print("Starting BLESS ...")
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger(name=__name__)
+    trigger = threading.Event()
+    
+    initServer()
+    
+#     server_port = server_sock.getsockname()[1]
+#     server_name = "GOLEM_NODE_" + ':'.join(server_sock.getsockname()[0].split(":")[2:])
+#     print(f"{server_name}")
+#     service_uuid = SERVICE_UUID
+#     g.deviceInfo = server_sock.getsockname()
 #     
-#     server_sock.io_add_watch(server_sock)
+#     advertiseBT( server_sock, server_name, service_uuid )
     
-#     server_sock = bt.BluetoothSocket(bt.RFCOMM)
-#     server_sock.bind( ("",0) ) #bt.PORT_ANY = 0
-#     server_sock.listen(1)
+def initServer():
+    global trigger, logger
     
-    port = server_sock.getsockname()[1]
-    service_uuid = SERVICE_UUID
-    g.deviceInfo = server_sock.getsockname()
+    trigger.clear()
+    print("Setting up BLE Server...")
+    serviceName = "Golem Screen"
+    server = BlessServer(name=serviceName)
+    server.read_request_func = onReadRequest
+    server.write_request_function = onWriteRequest
     
-    server_thread = threading.Thread(target=lambda sock=server_sock, uuid=service_uuid:advertiseBT(sock,uuid), daemon=True )
-    server_thread.start()
+    server.add_new_service(SERVICE_UUID)
+    server.add_new_characteristic( SERVICE_UUID,
+                                   CHARACTERISTIC_UUID,
+                                   ( GATTCharacteristicProperties.read |
+                                     GATTCharacteristicProperties.write |
+                                     GATTCharacteristicProperties.notify ),
+                                    None,
+                                   ( GATTAttributePermissions.readable |
+                                     GATTAttributePermissions.writeable ) )
+#     logger.debug( server.get_characteristic( CHARACTERISTIC_UUID ) )
     
-    
+    print("Advertising BLE server...")
+    try:
+        server.start()
+    except:
+        print("Error on advertising services")
+    else:
+        print("Advertising...")
+                                   
 
-def advertiseBT(socket,uuid):
-    print(f"Advertising ...")
-    bt.advertise_service(socket,
-                        "GOLEM_NODE",
-                         service_id=uuid,
-                         service_classes=[uuid, bt.SERIAL_PORT_CLASS],
-                         profiles=[bt.SERIAL_PORT_PROFILE],
-#                          protocols=[bt.OBEX_UUID]
-                         )
+def onReadRequest( char: BlessGATTCharacteristic,
+                   **kwargs
+                   ) -> bytearray:
+    global logger
     
-    onConnectionRequest(sockListener=socket)
+    logger.debug(f"Reading {characteristic.value}")
+    return char.value
+
+def onWriteRequest( char: BlessGATTCharacteristic,
+                    value: Any,
+                   **kwargs ):
+    global logger, trigger
     
-#     gobject.io_add_watch(socket,
-#                          gobjetc.IO_IN,
-#                          onConnectionRequest(socketListener=socket))
-    
-    
-def onConnectionRequest(sockListener):
-    print("OnConnectionRequest")
-    socket, info = sockListener.accept()
-    address, psm = info
-    print(f"Requested connection from {address}")
+    char.value = value
+    logger.debug(f"Char value set to { char.value}")
+    if char.value == b'\x0f':
+        logger.debug("NICE")
+        trigger.set()
 
 
 def scanBT():
@@ -139,6 +175,7 @@ def filterDevice(device, targetService):
 def handleBTConnections():
     global BTAdapter, devicesChecked, connectingDevices, matchedDevices
     
+    print("Handling connections")
     if (not BTAdapter.scan_is_active()):
         if (not devicesChecked):
             for device in matchedDevices:
@@ -152,13 +189,16 @@ def handleBTConnections():
                     else:
                         print(f"Already connecting to device [{device.address()}].")
     
+                
+
+def handleClient(client, address):
+    reqBytes = b'' + client.recv(1024)
     
-#     from bluetooth.ble import BeaconService
-
-#     service = BeaconService()
-#     service.start_advertising(SERVICE_UUID,
-#                               1, 1, 1, 200)
-
+    if not reqBytes:
+        print(f"Connection with {client} closed")
+        client.close()
+    reqString = reqBytes.decode()
+    print(f"Received: {reqString}")
 
 def connectBT(device):
     global connectingDevices, matchedDevices

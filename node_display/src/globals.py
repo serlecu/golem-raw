@@ -14,7 +14,7 @@ matchedDevices: list
 screen: pygame.Surface
 
 def initGlobals():
-  global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices
+  global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices, deviceInfo
   lastLoopTime = time.time()
 
   scannCrono = 5
@@ -22,3 +22,4 @@ def initGlobals():
   isScanning = False
   foundDevices = []
   matchedDevices = []
+  deviceInfo = ""
