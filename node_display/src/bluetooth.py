@@ -25,7 +25,7 @@ logger: logging.Logger
 trigger: threading.Event
 
 
-TARGET_SERVICE = "94f39d29-7d6d-437d-973b-fba39e49d4ee" # "19B10100-E8F2-537E-D104768A1214"
+TARGET_SERVICE = "19B10100-E8F2-537E-D104768A1214" #"94f39d29-7d6d-437d-973b-fba39e49d4ee" # "19B10100-E8F2-537E-D104768A1214"
 
 # Define UUIDs for the service and characteristic
 # SERVICE_UUID = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
@@ -175,7 +175,7 @@ def filterDevice(device, targetService):
 def handleBTConnections():
     global BTAdapter, devicesChecked, connectingDevices, matchedDevices
     
-    print("Handling connections")
+#     print("Handling connections")
     if (not BTAdapter.scan_is_active()):
         if (not devicesChecked):
             for device in matchedDevices:

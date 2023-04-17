@@ -5,3 +5,7 @@ pyobjc-framework-libdispatch==9.0.1; sys_platform == 'darwin'
 simplepyble==0.6.1
 pybluez2==0.42
 bless==0.2.5
+bleak==0.19.5
+dbus-fast==1.83
+dbus-next==0.2.2
+dbus-python==1.2.16
