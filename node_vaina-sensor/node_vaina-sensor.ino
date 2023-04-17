@@ -5,9 +5,27 @@
 #include <Arduino_LPS22HB.h> // Barometric pressure
 #include <PDM.h> // Pulse-density modulation microphones
 // Check #include <ArduinoSound.h>
+#include <Adafruit_SSD1306.h>
 
-const int VAINA_ID = 0; // DONT REMEMBER IF USED ON CLIENT
-const int FREQ_BROADCAST = 250;
+void(* resetFunc) (void) = 0; // Software reset
+void inLedRed(bool);
+void inLedGreen(bool);
+void inLedBlue(bool);
+void readySequence(int);
+void errorSequence(int);
+void initRGBLED();
+
+bool initSensors();
+void readSensors();
+void printValuesToSerial();
+
+void blePeripheralConnectHandler( BLEDevice );
+void blePeripheralDisconnectHandler( BLEDevice );
+void publishValues();
+
+void handleOLED();
+void scrollingMAC();
+
 
 BLEService customService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create a custom service
 //Magnet
@@ -33,11 +51,22 @@ BLECharacteristic lpsPressChar("19B10070-E8F2-537E-4F6C-D104768A1214", BLERead |
 
 
 // Mains
+const int VAINA_ID = 0; // DONT REMEMBER IF USED ON CLIENT
+const int FREQ_BROADCAST = 250;
 bool isConnected = false; //miss
 bool waitBleLed = false; //Blue Blink while waiting for connection
 unsigned long disconnectedTimer;
 unsigned long mainTimer;
 
+// OLED
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+#define NOTIFICATION_BADGE_DECAY 10
+int justNotified = 0;
+bool isMacScrolling = false;
+
+// BLE
 uint8_t byteArray[512];
 String stringValue = "";
 int length = 0;
@@ -62,115 +91,9 @@ static const int frequency = 16000; // default PCM output frequency
 short sampleBuffer[512]; // Buffer to read samples into, each sample is 16-bits
 volatile int samplesRead; // Number of audio samples read
 
-// UTILITY FUNCTIONS ===============================
 
-void(* resetFunc) (void) = 0; // Software reset
 
-void inLedRed(bool state) {
-  if(state){
-    digitalWrite(LEDR, !state);
-    digitalWrite(LEDG, state);
-    digitalWrite(LEDB, state);
-  } else {
-    digitalWrite(LEDR, !state);
-  }
-}
-void inLedGreen(bool state) {
-  if (state) {
-  digitalWrite(LEDR, state);
-  digitalWrite(LEDG, !state);
-  digitalWrite(LEDB, state);
-  } else {
-    digitalWrite(LEDG, !state);
-  }
-}
-void inLedBlue(bool state) {
-  if (state) {
-  digitalWrite(LEDR, state);
-  digitalWrite(LEDG, state);
-  digitalWrite(LEDB, !state);
-  } else {
-    digitalWrite(LEDB, !state);
-  }
-}
-void readySequence(int loop = 2) {
-  while (loop > 0) {
-    inLedGreen(HIGH);
-    delay(250);
-    inLedBlue(HIGH);
-    delay(250);
-    loop --;
-  }
-  inLedBlue(LOW);
-}
-void errorSequence(int loop = 2) {
-  while (loop > 0){
-    inLedRed(HIGH);
-    delay(250);
-    inLedRed(LOW);
-    delay(250);
-    loop --;
-  }
-}
-
-void initRGBLED() {
-  pinMode(LEDR, OUTPUT);
-  pinMode(LEDG, OUTPUT);
-  pinMode(LEDB, OUTPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
-  digitalWrite(LEDR, HIGH);
-  digitalWrite(LEDG, HIGH);
-  digitalWrite(LEDB, HIGH);    
-}
-
-bool initSensors() {
-  if (!IMU.begin()) {
-    Serial.println("Failed to initialize IMU!");
-    while(1) {
-      errorSequence(2);
-      delay(2000);
-    }
-  }
-
-  if (!APDS.begin()) {
-    Serial.println("Error initializing APDS9960 sensor!");
-    while(1) {
-      errorSequence(3);
-      delay(2000);
-    }
-  } else {
-    //APDS.setInterruptPin(_); // Better performance if manualy set pin
-    APDS.setLEDBoost(3); //0-3
-  }
-
-  if (!HS300x.begin()) {
-    Serial.println("Failed to initialize humidity temperature sensor!");
-    while(1) {
-      errorSequence(4);
-      delay(2000);
-    }
-  }
-
-  if (!BARO.begin()) {
-    Serial.println("Failed to initialize pressure sensor!");
-    while(1) {
-      errorSequence(5);
-      delay(2000);
-    }
-  }
-
-  // Configure the data receive callback
-  // PDM.onReceive(onPDMdata);
-
-  // if (!PDM.begin(channels, frequency)) {
-  //   Serial.println("Failed to start PDM!");
-  //   while (1);
-  // }
-  
-  return true;
-}
-// END OF UTILITY FUNCTIONS ===============================
+// ====== SETUP ============
 
 void setup() {
   Serial.begin(9600);  
@@ -179,16 +102,21 @@ void setup() {
   
   inLedGreen(HIGH);
   if (!Serial){
-    delay(500);
-    inLedRed(HIGH);
-    delay(500);
-    inLedRed(LOW);
+    errorSequence(1);
   } // Wait for serial
   inLedGreen(LOW);
   delay(1000);
 
   inLedGreen(HIGH);
   while (!initSensors());
+  inLedGreen(LOW);
+  delay(1000);
+
+  inLedGreen(HIGH);
+  // Initialize OLED display
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    errorSequence(2);
+  }
   inLedGreen(LOW);
   delay(2000);
   
@@ -197,7 +125,7 @@ void setup() {
     inLedBlue(LOW);
     Serial.println( "starting Bluetooth® Low Energy module failed!" );
     Serial.println( "Restarting..." );
-    errorSequence();
+    errorSequence(3);
     resetFunc(); // Reset if not succeded
   }
   inLedBlue(LOW);
@@ -229,7 +157,8 @@ void setup() {
   BLE.setEventHandler( BLEConnected, blePeripheralConnectHandler );
   BLE.setEventHandler( BLEDisconnected, blePeripheralDisconnectHandler );
   // start advertising
-  BLE.advertise();  
+  BLE.advertise(); 
+
   // status prints
   Serial.print("MAC: ");
   Serial.println(BLE.address());
@@ -250,7 +179,9 @@ void loop() {
     handleConnection(); 
   }
   
-  delay(50);
+  handleOLED();
+
+  delay(20);
 }
 
 void waitForConnection() {
@@ -258,6 +189,9 @@ void waitForConnection() {
   inLedBlue(waitBleLed);     
   //Serial.println("...");
   disconnectedTimer = millis();
+
+  // Only for debug
+  justNotified = NOTIFICATION_BADGE_DECAY;
 }
 
 void handleConnection() {
@@ -270,143 +204,4 @@ void handleConnection() {
     }
     delay(50);
   }
-}
-
-void readSensors() {
-  //IMU  
-  if(IMU.magneticFieldAvailable()) {
-    IMU.readMagneticField(valMagnetX, valMagnetY, valMagnetZ);
-  }
-  //APDS
-  if (APDS.colorAvailable()) {
-    APDS.readColor(valColorR, valColorG, valColorB);
-    valLight = (int)((valColorR + valColorG + valColorB) / 3);
-  }
-  if (APDS.proximityAvailable()) {
-    valProximity = APDS.readProximity();
-  }
-  //HS300
-  valTemperature = HS300x.readTemperature();
-  valHumidity = HS300x.readHumidity();
-  //LPS
-  valPressure = BARO.readPressure();
-
-  // if (samplesRead) {
-  //   // Print samples to the serial monitor or plotter
-  //   for (int i = 0; i < samplesRead; i++) {
-  //     if(channels == 2) {
-  //       Serial.print("L:");
-  //       Serial.print(sampleBuffer[i]);
-  //       Serial.print(" R:");
-  //       i++;
-  //     }
-  //     Serial.println(sampleBuffer[i]);
-  //   }
-  //   // Clear the read count
-  //   samplesRead = 0;
-  // }  
-}
-
-void publishValues() {
-  // https://docs.arduino.cc/tutorials/nano-33-ble-sense/cheat-sheet
-  Serial.println("Start publishing ...");
-  // //Magnet
-  stringValue = String(VAINA_ID) + String(10) + String(valMagnetX);
-  stringValue.getBytes( byteArray, sizeof(byteArray) );
-  BMMagXChar.writeValue( byteArray, sizeof(byteArray) ); // float[-400,400]
-  // Serial.println(stringValue);
-  stringValue = String(VAINA_ID) + String(11) + String(valMagnetY);
-  stringValue.getBytes( byteArray, sizeof(byteArray) );
-  BMMagYChar.writeValue( byteArray, sizeof(byteArray) ); // float[-400,400]
-  // Serial.println(stringValue);
-  stringValue = String(VAINA_ID) + String(12) + String(valMagnetZ);
-  stringValue.getBytes( byteArray, sizeof(byteArray) );
-  BMMagZChar.writeValue( byteArray, sizeof(byteArray) ); // float[-400,400]
-  // Serial.println(stringValue);
-  
-  // //Lux
-  stringValue = String(VAINA_ID) + String(20) + String(valLight);
-  stringValue.getBytes( byteArray, sizeof(byteArray) ); // int[0-255]
-  adpLuxChar.writeValue( byteArray, sizeof(byteArray) ); // float[-400,400]
-  // Serial.println(stringValue);
-
-  // // //Color
-  // stringValue = String(VAINA_ID) + String(21) + String(valColorR) +","+String(valColorG)+","+String(valColorB);
-  stringValue = String(VAINA_ID) + String(22) + String(valColorR);
-  stringValue.getBytes( byteArray, sizeof(byteArray) );
-  apdColorRChar.writeValue( byteArray, sizeof(byteArray) ); // int[0-255]
-  // Serial.println(stringValue);
-  stringValue = String(VAINA_ID) + String(22) + String(valColorG);
-  stringValue.getBytes( byteArray, sizeof(byteArray) );
-  apdColorGChar.writeValue( byteArray, sizeof(byteArray) ); // int[0-255]
-  stringValue = String(VAINA_ID) + String(23) + String(valColorB);
-  stringValue.getBytes( byteArray, sizeof(byteArray) );
-  apdColorBChar.writeValue( byteArray, sizeof(byteArray) ); // int[0-255]
-  
-  // // //Proximity
-  stringValue = String(VAINA_ID) + String(40) + String(valProximity);
-  stringValue.getBytes( byteArray, sizeof(byteArray) );
-  adpProxChar.writeValue( byteArray, sizeof(byteArray) ); // int[0-255]
-
-  // //Temperature
-  stringValue = String(VAINA_ID) + String(50) + String(valTemperature);
-  stringValue.getBytes( byteArray, sizeof(byteArray) );
-  hs3TempChar.writeValue( byteArray, sizeof(byteArray) ); // float[-40,120]
-  
-  //Humidity
-  stringValue = String(VAINA_ID) + String(60) + String(valHumidity);
-  stringValue.getBytes( byteArray, sizeof(byteArray) );
-  hs3HumChar.writeValue( byteArray, sizeof(byteArray) );
-  
-  //Presure
-  stringValue = String(VAINA_ID) + String(70) + String(valPressure);
-  stringValue.getBytes( byteArray, sizeof(byteArray) );
-  lpsPressChar.writeValue( byteArray, sizeof(byteArray) );
-
-  // IR
-  // impulseResponseChar.writeValue(-1);
-
-  printValuesToSerial();
-  Serial.println("... end publishing.");
-}
-
-void printValuesToSerial() {
-  Serial.print( "Magnet Field: " );
-  Serial.print( String(valMagnetX, 2) );
-  Serial.print( " , " );
-  Serial.print( String(valMagnetY, 2) );
-  Serial.print( " , " );
-  Serial.println( String(valMagnetZ, 2) );
-  Serial.print( "Color: " );
-  Serial.print( String(valColorR) );
-  Serial.print( " , " );
-  Serial.print( String(valColorG) );
-  Serial.print( " , " );
-  Serial.println( String(valColorB) );
-  Serial.print( "Light: " );
-  Serial.println( String(valLight) );
-  Serial.print( "Proximity: " );
-  Serial.println( String(valProximity) );
-  Serial.print( "Temperature: " );
-  Serial.println( String(valTemperature, 2) );
-  Serial.print( "Humidity: " );
-  Serial.println( String(valHumidity, 2) );
-  Serial.print( "Pressure: " );
-  Serial.println( String(valPressure, 2) );
-  // impulseResponseChar.writeValue(-1);
-}
-
-void blePeripheralConnectHandler( BLEDevice central ) {
-  waitBleLed = true;
-  inLedBlue(waitBleLed);
-  Serial.print("Connected to: ");
-  Serial.println(central.address());
-}
-
-
-void blePeripheralDisconnectHandler( BLEDevice central ) {
-  waitBleLed = false;
-  inLedBlue(waitBleLed);
-  Serial.print("Disconnected from: ");
-  Serial.println(central.address());
 }
