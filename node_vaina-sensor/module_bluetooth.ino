@@ -1,3 +1,80 @@
+void setupBLE() {
+  // set Names and service UUID
+  String deviceName = "GOLEM_Vaina_" + BLE.address().substring(9); //last 3 bytes of the MAC address
+  BLE.setDeviceName( deviceName.c_str() );
+  BLE.setLocalName( deviceName.c_str() );
+  BLE.setAdvertisedService( customService );
+  // add Custom Characteristics
+  customService.addCharacteristic(BMMagXChar);
+  customService.addCharacteristic(BMMagYChar);
+  customService.addCharacteristic(BMMagZChar);
+  customService.addCharacteristic(apdColorRChar);
+  customService.addCharacteristic(apdColorGChar);
+  customService.addCharacteristic(apdColorBChar);
+  customService.addCharacteristic(adpLuxChar);
+  customService.addCharacteristic(adpProxChar);
+  customService.addCharacteristic(hs3TempChar);
+  customService.addCharacteristic(hs3HumChar);
+  customService.addCharacteristic(lpsPressChar);
+  // customService.addCharacteristic(impulseResponseChar);
+  // add Service
+  BLE.addService( customService );
+  
+  // set BLE event handlers
+  BLE.setEventHandler( BLEConnected, blePeripheralConnectHandler );
+  BLE.setEventHandler( BLEDisconnected, blePeripheralDisconnectHandler );
+  // start advertising
+  BLE.advertise(); 
+
+  // status prints
+  Serial.print("MAC: ");
+  Serial.println(BLE.address());
+  Serial.println("Waiting for connections...");
+}
+
+void handleBLE() {
+  BLEDevice central = BLE.central();
+  
+  if (BLE.connected()) {
+    if (!wasConnected){
+      Serial.println("Connected!");
+    }
+
+    onConnected();
+
+  } else {
+    if (wasConnected){
+      Serial.println("Disconnected!");
+    }
+
+    if ( (millis() - disconnectedTimer) > UNCONNECTED_BLINK_FREQ ) {
+      waitForConnection();
+    }
+
+  }
+}
+
+void waitForConnection() {
+  waitBleLed = !waitBleLed;
+  inLedBlue(waitBleLed);     
+  //Serial.println("...");
+  disconnectedTimer = millis();
+}
+
+void onConnected() {
+    if( (millis() - mainTimer) > FREQ_BROADCAST ){
+      if (sensorsUpdated){
+        publishValues();
+        sensorsUpdated = false;
+        mainTimer = millis();
+      }
+    }
+}
+
+
+// ==================
+
+
 void blePeripheralConnectHandler( BLEDevice central ) {
   waitBleLed = true;
   inLedBlue(waitBleLed);
@@ -70,7 +147,7 @@ void publishValues() {
 
   // IR
   // impulseResponseChar.writeValue(-1);
-  
+
   justNotified = NOTIFICATION_BADGE_DECAY;
   printValuesToSerial();
   Serial.println("... end publishing.");

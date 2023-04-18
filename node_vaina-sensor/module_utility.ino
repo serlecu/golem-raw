@@ -1,3 +1,14 @@
+void setupRGBLED() {
+  pinMode(LEDR, OUTPUT);
+  pinMode(LEDG, OUTPUT);
+  pinMode(LEDB, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(LEDR, HIGH);
+  digitalWrite(LEDG, HIGH);
+  digitalWrite(LEDB, HIGH);    
+}
+
 // UTILITY FUNCTIONS ===============================
 
 void inLedRed(bool state) {
@@ -45,15 +56,4 @@ void errorSequence(int loop = 2) {
     delay(250);
     loop --;
   }
-}
-
-void initRGBLED() {
-  pinMode(LEDR, OUTPUT);
-  pinMode(LEDG, OUTPUT);
-  pinMode(LEDB, OUTPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
-  digitalWrite(LEDR, HIGH);
-  digitalWrite(LEDG, HIGH);
-  digitalWrite(LEDB, HIGH);    
 }

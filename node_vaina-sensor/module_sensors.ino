@@ -1,4 +1,4 @@
-bool initSensors() {
+bool setupSensors() {
   if (!IMU.begin()) {
     Serial.println("Failed to initialize IMU!");
     while(1) {
@@ -33,6 +33,14 @@ bool initSensors() {
       delay(2000);
     }
   }
+
+
+void handleSensors() {
+  // Read sensors and raise a flag when got new values
+  readSensors();
+  sensorsUpdated = true;
+}
+
 
   // Configure the data receive callback
   // PDM.onReceive(onPDMdata);
