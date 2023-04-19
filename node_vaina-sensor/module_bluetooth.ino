@@ -63,7 +63,7 @@ void waitForConnection() {
 
 void onConnected() {
     if( (millis() - mainTimer) > FREQ_BROADCAST ){
-      if (sensorsUpdated){
+      if (sensorsUpdated || IRupdated){
         publishValues();
         sensorsUpdated = false;
         mainTimer = millis();
@@ -146,7 +146,16 @@ void publishValues() {
   lpsPressChar.writeValue( byteArray, sizeof(byteArray) );
 
   // IR
-  // impulseResponseChar.writeValue(-1);
+  String strArray = "";
+  for(int i = 0; i < arrayLength; i++) {
+    myString += String(resultsFFT[i], 2);
+    if(i < arrayLength - 1) {
+      myString += ",";
+    }
+  }
+  stringValue = String(VAINA_ID) + String(80) + strArray;
+  stringValue.getBytes( byteArray, sizeof(byteArray) );
+  impulseResponseChar.writeValue(byteArray, sizeof(byteArray));
 
   justNotified = NOTIFICATION_BADGE_DECAY;
   printValuesToSerial();

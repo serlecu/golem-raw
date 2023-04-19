@@ -34,14 +34,6 @@ bool setupSensors() {
     }
   }
 
-
-void handleSensors() {
-  // Read sensors and raise a flag when got new values
-  readSensors();
-  sensorsUpdated = true;
-}
-
-
   // Configure the data receive callback
   // PDM.onReceive(onPDMdata);
 
@@ -51,6 +43,12 @@ void handleSensors() {
   // }
   
   return true;
+}
+
+void handleSensors() {
+  // Read sensors and raise a flag when got new values
+  readSensors();
+  sensorsUpdated = true;
 }
 
 void readSensors() {

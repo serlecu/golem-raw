@@ -13,6 +13,9 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+//#include <Thread.h>
+//#include <mbed.h>
+#include <Arduino_Threads.h>
 
 // ====== PRIMITIVE FUNCTS =======
 
@@ -27,7 +30,8 @@ void errorSequence(int);
 void setupRGBLED();
 void setupOLED(void);
 bool setupSensors(void);
-void setupIR(void);
+bool setupIR(void);
+bool createImpulse(void);
 void setupBLE(void);
 // Handlers
 void handleBLE(void);
@@ -45,6 +49,8 @@ bool isConnected = false; //miss
 bool waitBleLed = false; //Blue Blink while waiting for connection
 unsigned long disconnectedTimer;
 unsigned long mainTimer;
+rtos::Thread* impulseThread = new rtos::Thread(osPriorityRealtime, OS_STACK_SIZE);
+rtos::Thread* recordingThread = new rtos::Thread(osPriorityRealtime, OS_STACK_SIZE);
 
 // Sensors
 bool sensorsUpdated = false;
@@ -64,26 +70,30 @@ float valPressure;
 bool isReadLPS = false; //miss
 
 // Audio
-#define AUDIO_IMPULSE_FREQ 5000
+#define AUDIO_IMPULSE_FREQ 10000
 unsigned long IRtimer = 0;
-bool isIRon = false;
-bool isPlaying = false;
-bool wasPlaying = false;
-int playingSample = 0;
-bool isRecording = false;
-bool wasRecording = false;
-int readingSample = 0;
-// PDM -> TODO
-static const char channels = 1; // default number of output channels
-static const int frequency = 16000; // default PCM output frequency
-short sampleBuffer[512]; // Buffer to read samples into, each sample is 16-bits
-volatile int samplesRead; // Number of audio samples read
+volatile bool isIRon = false;
+volatile bool isPlaying = false;
+volatile bool wasPlaying = false;
+volatile bool isRecording = false;
+volatile bool wasRecording = false;
+volatile bool doProcessProfile = false;
+volatile int isIRprocessing = 0;
+bool IRupdated = false;
 // Impulse
 #define IBUFFER_SIZE 1024
-double impulseBuffer[IBUFFER_SIZE];
-// Record
-#define MAX_REC_SAMPLES 2048
-int samplesReaded = 0;
+#define PWM_PIN_A 2
+#define PWM_PIN_B 3
+double impulseBufferA[IBUFFER_SIZE];
+double impulseBufferB[IBUFFER_SIZE];
+int playingSample = 0;
+// Record: PDM
+static const char channels = 1; // default number of output channels
+static const int frequency = 16000; // default PCM output frequency
+#define MAX_REC_SAMPLES 1024
+short tempBuffer[128];
+volatile int freshSamples = 0;
+int readingSample = 0;
 // Profile
 #define SAMPLES 1024 // power of 2
 #define SAMPLING_FREQ 24000 // 12 kHz Fmax = sampleF /2 
@@ -95,7 +105,7 @@ unsigned long sampling_period_us;
 arduinoFFT fft = arduinoFFT(vReal, vImag, SAMPLES, SAMPLING_FREQ);
 float reference = log10(50.0); // adjust reference to get removed background noise noise
 double coutoffFrequencies[FREQUENCY_BANDS];
-
+volatile double resultsFFT[FREQUENCY_BANDS];
 
 // Bluetooth LE
 bool wasConnected = false;
@@ -124,7 +134,9 @@ BLECharacteristic impulseResponseChar("19B10080-E8F2-537E-4F6C-D104768A1214", BL
 #define NOTIFICATION_BADGE_DECAY 5
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 int justNotified = 0;
+int launchIR = 0;
 bool isMacScrolling = false;
+int displayErrorOLED = 0;
 
 
 
@@ -144,7 +156,7 @@ void setup() {
 
   // --- SERIAL ---
   inLedGreen(HIGH);
-  Serial.begin(9600);
+  Serial.begin(115200);
   inLedGreen(LOW);  
   delay(500);
   
@@ -163,8 +175,12 @@ void setup() {
   // --- AUDIO ---
   inLedGreen(HIGH);
   // Initialize PDM and IR
-  setupIR();
-  createImpulse();
+  if(!setupIR()){
+    errorOLED(30);
+  }
+  if (!createImpulse()){
+    errorOLED(31);
+  }
   inLedGreen(LOW);
   delay(1500);
   
