@@ -1,61 +1,186 @@
 import simplepyble as ble
+import bluetooth as bt
 import time
 import src.globals as g
+from src.globals import *
+
+BTAdapter: ble.Adapter #type: ignore
+devicesChecked: bool = False
+connectingDevices = []
+matchedDevices = []
+
+TARGET_SERVICE = "19B10100-E8F2-537E-D104768A1214"
+
+# Define UUIDs for the service and characteristic
+SERVICE_UUID = "19B10100-E8F2-537E-D104768A1214"
+CHARACTERISTIC_UUID = "19B10000-E8F2-537E-D104768A1214"
+
 
 def setupBTAdapter():
-  print("Initializing Bluetooth...")
-  print(f"Running on {ble.get_operating_system()}")
+    global BTAdapter
+    print("Initializing Bluetooth...")
 
-  isAdapterSet = False
-  while not isAdapterSet:
-    adapters = ble.Adapter.get_adapters()
-    if len(adapters) == 0:
+    isAdapterSet = False
+    while not isAdapterSet:
+        adapters = ble.Adapter.get_adapters() #type: ignore
+        if len(adapters) == 0:
           print("No adapters found")
           time.sleep(2)
-    else:
-      for adapter in adapters:
-          print(f"Adapter: {adapter.identifier()} [{adapter.address()}]")
+        else:
+          for adapter in adapters:
+              print(f"Adapter: {adapter.identifier()} [{adapter.address()}]")
 
-      g.BTAdapter = adapters[0] # I take the first adapter IDKW
-      g.BTAdapter.set_callback_on_scan_start(lambda: print("Scan started."))
-      g.BTAdapter.set_callback_on_scan_stop(lambda: print("Scan complete."))
-      g.BTAdapter.set_callback_on_scan_found(lambda peripheral: print(f"Found {peripheral.identifier()} [{peripheral.address()}]"))
-      isAdapterSet = True
+        BTAdapter = adapters[0] # I take the first adapter IDKW
+        BTAdapter.set_callback_on_scan_start(lambda: onScanStart() )
+        BTAdapter.set_callback_on_scan_stop(lambda: onScanStop() )
+        BTAdapter.set_callback_on_scan_found(lambda peripheral: onDeviceFound(peripheral))
+        isAdapterSet = True
 
+        #advertService(g.BTAdapter.address())
+    
 
 def scanBT():
+    BTAdapter.scan_for(4000)
+    
+    
+def onScanStart():
+    print("Scanning ...")
     g.isScanning = True
-    g.BTAdapter.scan_for(1000)
-    g.foundDevices = g.BTAdapter.scan_get_results()
-    g.isScanning = False
+    
+    
+def onScanStop():
+    global devicesChecked
     print("Scan complete")
+    devicesChecked = False
+    g.isScanning = False
+    
+    
+def onDeviceFound(device):
+    print(f"Found device [{device.identifier()}] [{device.address}].")
+    filterDevice(device, TARGET_SERVICE)
+
+def onDeviceFoundOther(device):
+    customUUID = "4A98xxxx-1CC4-E7C1-C757-F1267DD021E8"
+    print(f"Found: {device.identifier()} [{device.address()}]")
+    if device.is_connectable():
+        services = device.services()
+        for service in services:
+            for characteristic in service.characteristics():
+                if service.uuid() == customUUID:
+                    print("Found GOLEM service")
+                    connectBT(device)
+                    break
 
 
-def filter_devices(devices, name):
-    filtered = []
-    for device in devices:
-        if device.name == name:
-            filtered.append(device)
-    return filtered
-
-def connectBT(device):
-    print("Connecting to {}".format(device.address()))
-    device.connect()
-
-def sendBT(sock, data):
-    print("Sending {}".format(data))
-    # sock.send(data)
-
-def receiveBT(sock):
-    print("Receiving...")
-    # data = sock.recv(1024)
-    # print("Received {}".format(data))
-    # return data
+def filterDevice(device, targetService):
+    global matchedDevices
+    
+    if device.is_connectable():
+        services = device.services()
+        for service in services:
+            if service.uuid() == targetService:
+                if (device in matchedDevices):
+                    print(f"Device [{device.identifier()}] already stored.")
+                else:
+                    print(f"Found device [{device.identifier()}].")
+                    matchedDevices.append(device)
+                break
 
 
+# ========= HANDLE CONNECTIONS ===========
 
 def handleBTConnections():
+    global BTAdapter, devicesChecked, connectingDevices, matchedDevices
+    
+    if (not BTAdapter.scan_is_active()):
+        if (not devicesChecked):
+            for device in matchedDevices:
+                if device.is_connected():
+                    print(f"Device [{device.address()}] already connected.")
+                else:
+                    if device not in connectingDevices:
+                        connectingDevices.append(device)
+                        connect_thread = threading.Thread(target=lambda d=device: connectBT(d), daemon=True)
+                        connect_thread.start()
+                    else:
+                        print(f"Already connecting to device [{device.address()}].")
+            
+#     from bluetooth.ble import BeaconService
+
+#     service = BeaconService()
+#     service.start_advertising(SERVICE_UUID,
+#                               1, 1, 1, 200)
+
+
+def connectBT(device):
+    global connectingDevices, matchedDevices
+    print(f"Connecting to {device.address()} ...")
+    device.set_callbeck_on_connected(lambda d=device: onConnectedDevice(d) )
+    device.set_callbeck_on_connected(lambda d=device: onDisconnectedDevice(d) )
+    try:
+        device.connect()
+    except:
+        print(f"Failed to connect to {device.address()}")
+        if device in matchedDevices:
+            matchedDevices.remove(device)
+        if device in connectingDevices:
+            connectingDevices.remove(device)
+
+
+def onConnectedDevice(device):
+    print(f"Connection success {device.address()}")
+    notifyToChars(device, getServicesCharPairs(device))
+    #g.sensorDataList.append( VainaSensorNode(device.address(), device.identifier()) )
+    connectingDevices.remove(device)
+    
+    
+def onDisconnectedDevice(device):
+    print("Device {device.address()} disconnected")
+    if device in g.matchedDevices:
+        g.matchedDevices.remove(device)
+    if device in connectingDevices:
+        connectingDevices.remove(device)
+#     for sensorData in g.sensorDataList:
+#         if sensorData.deviceUUID == deviceaddress():
+#             g.sensorDataList.remov(sensorData)
+#             break
+   
+
+def notifyToChars(device, serviceCharPairs):
+    if len(serviceCharPairs) > 0:
+        print(f"Enabling notifications for {device.address()}...")
+        for service, char in serviceCharPairs:
+            try:
+                device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) )
+            except:
+                print(f"Failed to enable notifications for char[{char}] in service[{service}].")
+#                 print(f"Try again to subscribe to device {device.address()} ...")
+#                 notifyToChars(device,ServicePairs)   #! This is dangerous!!
+                device.disconnect()
+        print(f"... end enabling notifications for {device.address()}.")
+        
+
+def onCharacNotified(data, deviceAddress):
+    print(f"Recieved msg from {deviceAddress}: {data}")
+            
+    
+def advertService(address):
     pass
+    #from bluetooth import BluetoothSocket
+    #BTServer = BluetoothSocket( bt.Protocols.RFCOMM )
+    #BTServer.bind(("", bt.PORT_ANY))
+    # BTServer.listen(1)
+
+    # # Define the GATT server and characteristic
+    # gatt_server = bt.GATTServer()
+    # characteristic = bt.Characteristic(CHARACTERISTIC_UUID, ["read", "write"], value)
+
+    # # Define the service and add the characteristic to it
+    # service = bt.Service(SERVICE_UUID, [characteristic])
+
+    # # Add the service to the GATT server
+    # gatt_server.add_service(service)
+
 
 def handleBTData():
     pass

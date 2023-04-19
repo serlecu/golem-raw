@@ -4,12 +4,11 @@ import time
 
 lastLoopTime: float
 
-BTAdapter: ble.Adapter
-
 isScanning: bool
 scannCrono: float
 scannFrequency: float
 foundDevices: list #str/bluetooth.Device
+matchedDevices: list
 
 screen: pygame.Surface
 
@@ -21,3 +20,4 @@ def initGlobals():
   scannFrequency = 5
   isScanning = False
   foundDevices = []
+  matchedDevices = []

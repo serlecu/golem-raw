@@ -25,7 +25,8 @@ def Setup():
   if platform_os == "Darwin":
     g.screen = pygame.display.set_mode((480,480))
   else:
-    g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
+#     g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
+    g.screen = pygame.display.set_mode((480,480))
   pygame.display.set_caption("Golem: Display Node")
   pygame.mouse.set_visible(False)
 
@@ -59,7 +60,6 @@ def Update():
 
     # Handle Bluetooth connections and data
     handleBTConnections()
-    handleBTData()
 
     # Draw graphics on the screen
     DrawLoop()
