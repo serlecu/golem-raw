@@ -1,7 +1,7 @@
 import pygame
 from pygame import gfxdraw
 from pygame.locals import *
-import noise
+# import noise
 
 import math
 import time
@@ -84,10 +84,11 @@ def initRadial(screen):
     for r in range(int(window_size[0] / 2 - 2 * inset), int(1.5 * inset), int(-radiusOffset)):
         ring = []
         for a in range(0, 360, int(math.pi*2)): 
-            noiseVal = noise.snoise3(r * math.cos(math.radians(a + math.radians(noiseOff) * (math.radians(60))) / 20),
-                                     r * math.sin(math.radians(a + math.radians(noiseOff) * (math.radians(60))) / 20),
-                                     0,
-                                     octaves=6)
+            # noiseVal = noise.snoise3(r * math.cos(math.radians(a + math.radians(noiseOff) * (math.radians(60))) / 20),
+            #                          r * math.sin(math.radians(a + math.radians(noiseOff) * (math.radians(60))) / 20),
+            #                          0,
+            #                          octaves=6)
+            noiseVal = random.random()
             rOff = map_value(noiseVal, 0.0, 1.0, 0, _len / 5)
             aOff = ( a + float(map_value(r, (2 * inset), (window_size[0] / 2 - 1.5 * inset), 0, (math.pi / 2.0)) ) )
             ring.append(pygame.math.Vector2(aOff, rOff))
