@@ -46,7 +46,7 @@ void handleIR() {
       //impulseThread->start(playImpulseThreaded);
       //recordingThread.start();
       
-      Serial.println(String(millis()-IRtimer) + " > " + String(AUDIO_IMPULSE_FREQ));
+      // Serial.println(String(millis()-IRtimer) + " > " + String(AUDIO_IMPULSE_FREQ));
       IRtimer = millis();
     }
   }
@@ -71,7 +71,7 @@ void playImpulse() {
   Serial.println("Start Impulse ...");
   // Play noise from buffer A
   for (int i = 0; i < IBUFFER_SIZE; i++) {
-    Serial.println("Loop: "+String(i)+" / "+String(IBUFFER_SIZE));
+    // Serial.println("Loop: "+String(i)+" / "+String(IBUFFER_SIZE));
     analogWrite(PWM_PIN_A, impulseBufferA[playingSample] / 16 + 2048);
     analogWrite(PWM_PIN_B, impulseBufferB[playingSample] / 16 + 2048);
     //delayMicroseconds(sampling_period_us);// 62.5); // Wait for 1/16000s (62.5us) for 16000Hz sample rate
@@ -83,7 +83,7 @@ void playImpulseThreaded() {
 
   // Play noise from buffer A
   for (int i = 0; i < IBUFFER_SIZE/2; i++) {
-    Serial.println("Loop: "+String(i)+" / "+String(IBUFFER_SIZE));
+    // Serial.println("Loop: "+String(i)+" / "+String(IBUFFER_SIZE));
 
     int headB = playingSample + IBUFFER_SIZE/2;
     analogWrite(PWM_PIN_A, impulseBufferA[playingSample] / 16 + 2048);
@@ -105,7 +105,7 @@ void playImpulseParallel() {
 
     // Play noise from buffer A
     if (playingSample < IBUFFER_SIZE/2) {
-      Serial.println("Loop: "+String(playingSample)+" / "+String(IBUFFER_SIZE));
+      // Serial.println("Loop: "+String(playingSample)+" / "+String(IBUFFER_SIZE));
       int headB = playingSample + IBUFFER_SIZE/2;
       analogWrite(PWM_PIN_A, impulseBufferA[playingSample] / 16 + 2048);
       analogWrite(PWM_PIN_B, impulseBufferA[headB] / 16 + 2048);
@@ -202,7 +202,7 @@ void takeSamplesPDMParallel() { // PDM lib version
       int totalSamples = readingSample + freshSamplesChecked;
       for (int i = readingSample; i < totalSamples-1; i++) {
         int index = i - readingSample;
-        Serial.println("InLoop: "+String(i)+"/"+String(totalSamples));
+        // Serial.println("InLoop: "+String(i)+"/"+String(totalSamples));
 
         if (tempBuffer[index] != '-nan'){
           vReal[i] = tempBuffer[index];
@@ -281,15 +281,15 @@ void computeFFT() {
         if (median[index] > maxinband) {
           maxinband = median[index];
         }
+        resultsFFT[index] = median[index]; 
       }
 
       Serial.println("Done Processing!");
-      for (int i = 0; i < FREQUENCY_BANDS; i++) {
-         Serial.print( String(median[i])+", ");
-      }
-      Serial.println("end.");
+      // for (int i = 0; i < FREQUENCY_BANDS; i++) {
+      //    Serial.print( String(median[i])+", ");
+      // }
+      // Serial.println("end.");
 
-      resultsFFT = median;
       IRupdated = true;
       isIRprocessing = 0;
       isIRon = false;

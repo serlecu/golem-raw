@@ -37,14 +37,14 @@ void handleBLE() {
   
   if (BLE.connected()) {
     if (!wasConnected){
-      Serial.println("Connected!");
+      // Serial.println("Connected!");
     }
 
     onConnected();
 
   } else {
     if (wasConnected){
-      Serial.println("Disconnected!");
+      // Serial.println("Disconnected!");
     }
 
     if ( (millis() - disconnectedTimer) > UNCONNECTED_BLINK_FREQ ) {
@@ -96,28 +96,23 @@ void publishValues() {
   stringValue = String(VAINA_ID) + String(10) + String(valMagnetX);
   stringValue.getBytes( byteArray, sizeof(byteArray) );
   BMMagXChar.writeValue( byteArray, sizeof(byteArray) ); // float[-400,400]
-  // Serial.println(stringValue);
   stringValue = String(VAINA_ID) + String(11) + String(valMagnetY);
   stringValue.getBytes( byteArray, sizeof(byteArray) );
   BMMagYChar.writeValue( byteArray, sizeof(byteArray) ); // float[-400,400]
-  // Serial.println(stringValue);
   stringValue = String(VAINA_ID) + String(12) + String(valMagnetZ);
   stringValue.getBytes( byteArray, sizeof(byteArray) );
   BMMagZChar.writeValue( byteArray, sizeof(byteArray) ); // float[-400,400]
-  // Serial.println(stringValue);
   
   // //Lux
   stringValue = String(VAINA_ID) + String(20) + String(valLight);
   stringValue.getBytes( byteArray, sizeof(byteArray) ); // int[0-255]
   adpLuxChar.writeValue( byteArray, sizeof(byteArray) ); // float[-400,400]
-  // Serial.println(stringValue);
 
   // // //Color
   // stringValue = String(VAINA_ID) + String(21) + String(valColorR) +","+String(valColorG)+","+String(valColorB);
   stringValue = String(VAINA_ID) + String(22) + String(valColorR);
   stringValue.getBytes( byteArray, sizeof(byteArray) );
   apdColorRChar.writeValue( byteArray, sizeof(byteArray) ); // int[0-255]
-  // Serial.println(stringValue);
   stringValue = String(VAINA_ID) + String(22) + String(valColorG);
   stringValue.getBytes( byteArray, sizeof(byteArray) );
   apdColorGChar.writeValue( byteArray, sizeof(byteArray) ); // int[0-255]
@@ -147,10 +142,10 @@ void publishValues() {
 
   // IR
   String strArray = "";
-  for(int i = 0; i < arrayLength; i++) {
-    myString += String(resultsFFT[i], 2);
-    if(i < arrayLength - 1) {
-      myString += ",";
+  for(int i = 0; i < FREQUENCY_BANDS; i++) {
+    strArray += String(resultsFFT[i], 2);
+    if(i < FREQUENCY_BANDS - 1) {
+      strArray += ",";
     }
   }
   stringValue = String(VAINA_ID) + String(80) + strArray;
@@ -158,6 +153,6 @@ void publishValues() {
   impulseResponseChar.writeValue(byteArray, sizeof(byteArray));
 
   justNotified = NOTIFICATION_BADGE_DECAY;
-  printValuesToSerial();
+  //printValuesToSerial();
   Serial.println("... end publishing.");
 }

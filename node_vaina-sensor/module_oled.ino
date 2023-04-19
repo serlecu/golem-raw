@@ -12,12 +12,13 @@ void handleOLED() {
 
     display.drawRect(2, int(display.height()/2), display.width()-2, display.height()-2, SSD1306_WHITE);
     
-    notifyBadge(12, 24, 6, lauchIR);
+    notifyBadge(12, 24, 6, launchIR);
     statusBadge(28, 24, 6, isIRon ); //Playing
     statusBadge(40, 24, 6, isPlaying ); //Playing
     statusBadge(52, 24, 6, isRecording ); //Recording
     statusBadge(64, 24, 6, (isIRprocessing > 0) ); //Recording
-    notifyBadge(80, 24, 6, justNotified);
+    
+    notifyBadge(84, 24, 6, justNotified);
 
     headerText(BLE.address());
 
