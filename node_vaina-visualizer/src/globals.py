@@ -11,6 +11,7 @@ scannCrono: float
 scannFrequency: float
 foundDevices: list #str/bluetooth.Device
 matchedDevices: list
+failedNotifications: list = []
 
 screen: Surface
 
