@@ -77,10 +77,21 @@ def handleBTConnections(frequecy = 3000):
                         connect_thread = threading.Thread(target=lambda d=device: connectBT(d), daemon=True)
                         connect_thread.start()
                     else:
-                        print(f"Device {device.identifier()} [{device.address()}] already connecting.")
+                        print(f" - Device {device.identifier()} [{device.address()}] already connecting.")
                 else:
-                    print(f"Device {device.identifier()} [{device.address()}] already connected.")
+                    print(f" - Device {device.identifier()} [{device.address()}] already connected.")
             devicesChecked = True
+
+        if( len(g.failedNotifications) > 0 ):
+            for device, service, char in g.failedNotifications:
+                if device.is_connected():
+                    print(f"Retry failed notifications of {device.identifier()} [{device.address()}]...")
+                    try:
+                        device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) )
+                    except:
+                        print(f" - Failed to subscribe to {device.identifier()} [{device.address()}]")
+                    else:
+                        g.failedNotifications.remove((device, service, char))
 
 
 def connectBT(device):
@@ -88,10 +99,12 @@ def connectBT(device):
     print(f"Connecting to {device.address()}...")
     device.set_callback_on_connected(lambda: onConnectedDevice(device) )
     device.set_callback_on_disconnected(lambda: onDisconnectedDevice(device) )
+    time.sleep(0.5)
     try:
         device.connect()
-    except:
-        print(f"Failed to connect to {device.address()}")
+    except Exception as e:
+        print(f" - Failed to connect to {device.identifier()}")
+        print(e)
         if device in g.matchedDevices:
             g.matchedDevices.remove(device)
         if device in connectingDevices:
@@ -100,29 +113,41 @@ def connectBT(device):
 
 def notifyToChars(device, serviceCharsPairs):
     if len(serviceCharsPairs) > 0:
-        print("Enabling notifications ...")
+        print(f"Enabling notifications for {device.identifier()} ...")
         for service, char in serviceCharsPairs:
             try:
                 device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) )
                 # https://simpleble.readthedocs.io/en/latest/simpleble/api.html#_CPPv4N9SimpleBLE4Safe10Peripheral6notifyERK13BluetoothUUIDRK13BluetoothUUIDNSt8functionIFv9ByteArrayEEE
-            except:
-                print(f"Failed to enable notifications for char[{char}] in service[{service}].")
-                device.disconnect()
-            # else:
-            #     print(f"Notifications enabled for char[{char}] in service[{service}].")
-        print("End of notifications enabling.")
+            except Exception as e:
+                print(f" - Failed to enable notifications for char[{char}] in service[{service}]. {device.identifier()}")
+                print(f" - {e}. {device.identifier()}")
+                print(f" - Will try later. {device.identifier()}")
+                g.failedNotifications.append((device, service, char))
+            else:
+                print(f" - Notifications enabled for char[{char}] of {device.identifier()}.")
+            time.sleep(0.5)
+        print("... end of notifications enabling.")
 
 
 def onConnectedDevice(device):
     print(f"Connected to {device.address()}.")
-    notifyToChars(device, getServiceCharPairs(device))
+    pairsList = getServiceCharPairs(device)
+    notifyToChars(device, pairsList)
     g.sensorDataList.append( VainaSensorNode(device.address(), device.identifier()) )
-    # for connectingDevice in connectingDevices:
-    #     print(f"Devices connecting: {connectingDevice.address()}")
     connectingDevices.remove(device)
     
 def onDisconnectedDevice(device):
     print(f"Disconnected from {device.address()}.")
+    # Unsubscribe from notifications
+    for service in device.services():
+        for char in service.characteristics():
+            try:
+                device.unsubscribe(service, char)
+            except Exception as e:
+                print(f" - Failed to unsubscribe from {device.identifier()}")
+            else:
+                print(f"Unsubscribed from {device.identifier()} [{device.address()}]")
+    # Remove device from lists
     if device in g.matchedDevices:
         g.matchedDevices.remove(device)
     if device in connectingDevices:
@@ -130,7 +155,9 @@ def onDisconnectedDevice(device):
     for sensorData in g.sensorDataList:
         if sensorData.deviceUUID == device.address():
             g.sensorDataList.remove(sensorData)
-            break
+    for failedNotification in g.failedNotifications:
+        if failedNotification[0] == device:
+            g.failedNotifications.remove(failedNotification)
 
 
 def onCharacNotified(data, deviceAddres): #! sensorData.deviceUUID == MAC address
