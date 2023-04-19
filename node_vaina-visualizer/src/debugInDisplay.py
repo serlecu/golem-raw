@@ -13,7 +13,7 @@ def test_text(screen, text, pos, color):
     screen.blit(text, textpos)
 
 def debugScannedDevices(devices, screen):
-  ypos = 0
+  ypos = 60
   for i, device in enumerate(devices):
       texColor = (255, 255, 255)
       if(device.is_connected()):
@@ -22,7 +22,7 @@ def debugScannedDevices(devices, screen):
         textColor = (255, 0, 0)
       text = "{}. {} -> {}".format(i, device.identifier(), device.address())
       # text = "{}. {}".format(i, device)
-      test_text(screen, text, (screen.get_width()/2, 100+ypos), textColor)
+      test_text(screen, text, (screen.get_width()/2, ypos), textColor)
       ypos += 20
 
 
@@ -54,7 +54,7 @@ def DrawDebugLayer():
     if(len(g.matchedDevices) > 0):
       debugScannedDevices(g.matchedDevices, g.screen)
     else:
-      test_text(g.screen, "No matched devices", (g.screen.get_width()/2, 50), (255, 255, 255))
+      test_text(g.screen, "No matched devices", (g.screen.get_width()/2, 60), (255, 255, 255))
 
     if(len(g.sensorDataList) > 0):
       debugSensorData()
