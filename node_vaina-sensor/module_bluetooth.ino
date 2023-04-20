@@ -27,8 +27,7 @@ void setupBLE() {
   BLE.advertise(); 
 
   // status prints
-  Serial.print("MAC: ");
-  Serial.println(BLE.address());
+  Serial.println("MAC: "+String(BLE.address()));
   Serial.println("Waiting for connections...");
 }
 
@@ -78,20 +77,18 @@ void onConnected() {
 void blePeripheralConnectHandler( BLEDevice central ) {
   waitBleLed = true;
   inLedBlue(waitBleLed);
-  Serial.print("Connected to: ");
-  Serial.println(central.address());
+  Serial.println("Connected to: "+String(central.address()));
 }
 
 void blePeripheralDisconnectHandler( BLEDevice central ) {
   waitBleLed = false;
   inLedBlue(waitBleLed);
-  Serial.print("Disconnected from: ");
-  Serial.println(central.address());
+  Serial.println("Disconnected from: "+String(central.address()));
 }
 
 void publishValues() {
   // https://docs.arduino.cc/tutorials/nano-33-ble-sense/cheat-sheet
-  Serial.println("Start publishing ...");
+  // Serial.println("Start publishing ...");
   // //Magnet
   stringValue = String(VAINA_ID) + String(10) + String(valMagnetX);
   stringValue.getBytes( byteArray, sizeof(byteArray) );
@@ -150,9 +147,10 @@ void publishValues() {
   }
   stringValue = String(VAINA_ID) + String(80) + strArray;
   stringValue.getBytes( byteArray, sizeof(byteArray) );
+  Serial.println("IR size: "+ String(sizeof(byteArray)) );
   impulseResponseChar.writeValue(byteArray, sizeof(byteArray));
 
   justNotified = NOTIFICATION_BADGE_DECAY;
   //printValuesToSerial();
-  Serial.println("... end publishing.");
+  // Serial.println("... end publishing.");
 }

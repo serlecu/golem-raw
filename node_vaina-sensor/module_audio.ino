@@ -24,6 +24,9 @@ bool setupIR() {
   for (int i = 1 ; i < FREQUENCY_BANDS; i++ ) {
     resultsFFT[i] = '-nan';
   }
+
+  // Start the Threads
+  impulseThread.start( playImpulseThreadedLoop );
 }
 
 
@@ -31,7 +34,14 @@ bool setupIR() {
 void handleIR() {
 
   if ( isIRon ) {
+    // playPWMtest();
     // playImpulseParallel();
+    // if ( canPlay ) {
+    //   Serial.println("CanPlay");
+    //   canPlay = false;
+    //   impulseThread.start(playImpulseThreaded);
+    //   // playImpulseThreaded();
+    // }
     takeSamplesPDMParallel();
     computeFFT();
     // processIRProfile();
@@ -41,10 +51,18 @@ void handleIR() {
       launchIR = NOTIFICATION_BADGE_DECAY; // bang in OLED
       
       isIRon = true; // flag for start IR routine
-      isPlaying = true;
+      //isPlaying = true;
+      canPlay = true;
       isRecording = true;
-      //impulseThread->start(playImpulseThreaded);
-      //recordingThread.start();
+
+      rtos::Thread::State state = impulseThread.get_state();
+      if (state == osThreadRunning) {
+          printf("Thread is running\n");
+      } else {
+          printf("Thread is not running\n");
+          // impulseThread.start( playImpulseThreaded );
+      }
+        
       
       // Serial.println(String(millis()-IRtimer) + " > " + String(AUDIO_IMPULSE_FREQ));
       IRtimer = millis();
@@ -67,6 +85,31 @@ bool createImpulse() {
 }
 
 // PLAY IMPULSE
+void playPWMtest() {
+  if (isPlaying) {
+    if(!wasPlaying){
+      Serial.println("Start Impulse ...");
+      wasPlaying = true;
+      playingSample = 0;
+    }
+    analogWrite(PWM_PIN_A, impulseBufferA[playingSample] / 16 + 2048);
+    
+    if (playingSample < 5) {
+      playingSample ++;
+      
+    } else {
+      analogWrite(PWM_PIN_A, 0);
+      isPlaying = false;
+    }
+    Serial.println("PlayingSample: "+String(playingSample) );
+
+  } else {
+    if(wasPlaying){
+      Serial.println("... end Impulse.");
+      wasPlaying = false;
+    }
+  }
+}
 void playImpulse() {
   Serial.println("Start Impulse ...");
   // Play noise from buffer A
@@ -79,21 +122,47 @@ void playImpulse() {
   Serial.println("... end Impulse.");
 }
 void playImpulseThreaded() {
+  isPlaying = true;
   Serial.println("Start Impulse ...");
 
   // Play noise from buffer A
-  for (int i = 0; i < IBUFFER_SIZE/2; i++) {
-    // Serial.println("Loop: "+String(i)+" / "+String(IBUFFER_SIZE));
+  for (int i = 0; i < IBUFFER_SIZE; i++) {
+    Serial.println("Loop: "+String(i)+" / "+String(IBUFFER_SIZE));
 
-    int headB = playingSample + IBUFFER_SIZE/2;
-    analogWrite(PWM_PIN_A, impulseBufferA[playingSample] / 16 + 2048);
-    analogWrite(PWM_PIN_B, impulseBufferA[headB] / 16 + 2048);
-    rtos::ThisThread::sleep_for(1);
-    //delayMicroseconds(sampling_period_us);// 62.5); // Wait for 1/16000s (62.5us) for 16000Hz sample rate
+    // int headB = playingSample + IBUFFER_SIZE/2;
+    // analogWrite(PWM_PIN_A, impulseBufferA[playingSample] / 16 + 2048);
+    analogWrite(PWM_PIN_A, double(random(-32768, 32767)) );
+    // analogWrite(PWM_PIN_B, impulseBufferB[playingSample] / 16 + 2048);
   }
 
   Serial.println("... end Impulse.");
+  isPlaying = false;
 }
+
+void playImpulseThreadedLoop() {
+  Serial.println("Impulse Thread Started");
+  while(1){
+    if (canPlay){
+      isPlaying = true;
+      Serial.println("Start Impulse ...");
+
+      // Play noise from buffer A
+      for (int i = 0; i < IBUFFER_SIZE; i++) {
+        Serial.println("Loop: "+String(i)+" / "+String(IBUFFER_SIZE));
+
+        // int headB = playingSample + IBUFFER_SIZE/2;
+        // analogWrite(PWM_PIN_A, impulseBufferA[playingSample] / 16 + 2048);
+        analogWrite(PWM_PIN_A, double(random(-32768, 32767)) );
+        // analogWrite(PWM_PIN_B, impulseBufferB[playingSample] / 16 + 2048);
+      }
+
+      Serial.println("... end Impulse.");
+      isPlaying = false;
+      canPlay = false;
+    }
+  }
+}
+
 void playImpulseParallel() {
   
   if (isPlaying) {

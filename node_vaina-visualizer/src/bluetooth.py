@@ -1,5 +1,6 @@
 import time
 import threading
+import asyncio
 import struct
 import simplepyble as ble
 
@@ -8,6 +9,7 @@ from src.globals import *
 
 BTAdapter: ble.Adapter #type: ignore
 devicesChecked = False
+retryinNotifications = False
 connectingDevices = []
 
 def setupBTAdapter():
@@ -67,7 +69,7 @@ def filterDevice(device, targetUUID):
 # =================== handleBTConnections() ===================                     
 
 def handleBTConnections(frequecy = 3000):
-    global BTAdapter, devicesChecked, connectingDevices
+    global BTAdapter, devicesChecked, connectingDevices, retryinNotifications
     if( not BTAdapter.scan_is_active() ): 
         if( not devicesChecked ):
             for device in g.matchedDevices:
@@ -83,15 +85,11 @@ def handleBTConnections(frequecy = 3000):
             devicesChecked = True
 
         if( len(g.failedNotifications) > 0 ):
-            for device, service, char in g.failedNotifications:
-                if device.is_connected():
-                    print(f"Retry failed notifications of {device.identifier()} [{device.address()}]...")
-                    try:
-                        device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) )
-                    except:
-                        print(f" - Failed to subscribe to {device.identifier()} [{device.address()}]")
-                    else:
-                        g.failedNotifications.remove((device, service, char))
+            if ( connectingDevices == [] ):
+                if( not retryinNotifications ):
+                    retryNotification_thread = threading.Thread(target=retryNotificationSubscription, daemon=True)
+                    retryNotification_thread.start()
+                    retryinNotifications = True
 
 
 def connectBT(device):
@@ -111,21 +109,40 @@ def connectBT(device):
             connectingDevices.remove(device)
 
 
+def retryNotificationSubscription():
+    global retryinNotifications
+
+    for device, service, char in g.failedNotifications:
+                if device.is_connected():
+                    print(f"Retry failed notifications of {device.identifier()} [{device.address()}]...")
+                    try:
+                        asyncio.run( device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) ) )
+                        # device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) )
+                    except:
+                        print(f" - Failed to subscribe to {device.identifier()} [{device.address()}]")
+                    else:
+                        g.failedNotifications.remove((device, service, char))
+                    time.sleep(1)
+    retryinNotifications = False
+
+
 def notifyToChars(device, serviceCharsPairs):
     if len(serviceCharsPairs) > 0:
         print(f"Enabling notifications for {device.identifier()} ...")
+        index = 0
         for service, char in serviceCharsPairs:
             try:
                 device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) )
+                # device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) )
                 # https://simpleble.readthedocs.io/en/latest/simpleble/api.html#_CPPv4N9SimpleBLE4Safe10Peripheral6notifyERK13BluetoothUUIDRK13BluetoothUUIDNSt8functionIFv9ByteArrayEEE
             except Exception as e:
-                print(f" - Failed to enable notifications for char[{char}] in service[{service}]. {device.identifier()}")
+                print(f" - [{index}] Failed to enable notifications for char[{char}] in service[{service}] - {device.identifier()} - Will try later.")
                 print(f" - {e}. {device.identifier()}")
-                print(f" - Will try later. {device.identifier()}")
                 g.failedNotifications.append((device, service, char))
             else:
-                print(f" - Notifications enabled for char[{char}] of {device.identifier()}.")
-            time.sleep(0.5)
+                print(f" - [{index}] Notifications enabled for char[{char}] of {device.identifier()}.")
+            index += 1
+            time.sleep(1)
         print("... end of notifications enabling.")
 
 

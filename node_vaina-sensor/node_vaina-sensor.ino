@@ -13,9 +13,10 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-//#include <Thread.h>
-//#include <mbed.h>
-#include <Arduino_Threads.h>
+// #include <Thread.h>
+#include <mbed.h>
+#include <rtos.h>
+// #include <Arduino_Threads.h>
 
 // ====== PRIMITIVE FUNCTS =======
 
@@ -49,8 +50,9 @@ bool isConnected = false; //miss
 bool waitBleLed = false; //Blue Blink while waiting for connection
 unsigned long disconnectedTimer;
 unsigned long mainTimer;
-rtos::Thread* impulseThread = new rtos::Thread(osPriorityRealtime, OS_STACK_SIZE);
-rtos::Thread* recordingThread = new rtos::Thread(osPriorityRealtime, OS_STACK_SIZE);
+// rtos::Thread impulseThread = new rtos::Thread(osPriorityRealtime, OS_STACK_SIZE);
+// rtos::Thread recordingThread = new rtos::Thread(osPriorityRealtime, OS_STACK_SIZE);
+rtos::Thread impulseThread;
 
 // Sensors
 bool sensorsUpdated = false;
@@ -74,7 +76,8 @@ bool isReadLPS = false; //miss
 unsigned long IRtimer = 0;
 volatile bool isIRon = false;
 volatile bool isPlaying = false;
-volatile bool wasPlaying = false;
+volatile bool canPlay = false; // needed when threaded
+volatile bool wasPlaying = false; // not needed if Threaded
 volatile bool isRecording = false;
 volatile bool wasRecording = false;
 volatile bool doProcessProfile = false;
