@@ -1,5 +1,7 @@
 void setupOLED() {
+  // Clear the display
   display.clearDisplay();
+  display.display();
 }
 
 void handleOLED() {
@@ -7,10 +9,7 @@ void handleOLED() {
     errorOLED(displayErrorOLED);
 
   } else {
-    // Clear the display
     display.clearDisplay();
-
-    display.drawRect(2, int(display.height()/2), display.width()-2, display.height()-2, SSD1306_WHITE);
     
     notifyBadge(12, 24, 6, launchIR);
     statusBadge(28, 24, 6, isIRon ); //Playing
@@ -79,6 +78,13 @@ void scrollingMAC() {
     display.startscrollright(0x00, 0x00);
     isMacScrolling = true;
   }
+}
+
+void displayText(String text, int posx, int posy) {
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(posx, posy);
+  display.println(text);
 }
 
 static const unsigned char PROGMEM bitmapAlert[] = // 128x32px
