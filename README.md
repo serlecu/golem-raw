@@ -28,6 +28,12 @@ golem-node-screen/
 │   │
 │   ├── node_vaina-sensor.ino
 │   │
+│   ├── module_bluetooth.ino
+│   ├── module_sensors.ino
+│   ├── module_audio.ino
+│   ├── module_utility.ino
+│   ├── noise_sample.ino 
+│   │
 │   ├── README.md
 │   │
 │   └── docs/  # TODO: Documentation
