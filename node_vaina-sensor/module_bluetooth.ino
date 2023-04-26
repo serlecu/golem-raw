@@ -5,9 +5,9 @@ void setupBLE() {
   BLE.setLocalName( deviceName.c_str() );
   BLE.setAdvertisedService( customService );
   // add Custom Characteristics
-  customService.addCharacteristic(BMMagChar);
-  customService.addCharacteristic(BMAccelChar);
-  customService.addCharacteristic(BMGyroChar);
+  customService.addCharacteristic(mbMagChar);
+  customService.addCharacteristic(mbAccelChar);
+  customService.addCharacteristic(mbGyroChar);
   customService.addCharacteristic(apdLightChar);
   customService.addCharacteristic(apdGestureChar);
   customService.addCharacteristic(adpProxChar);
@@ -34,16 +34,10 @@ void handleBLE() {
   BLEDevice central = BLE.central();
   
   if (BLE.connected()) {
-    if (!wasConnected){
-      // Serial.println("Connected!");
-    }
 
     onConnected();
 
   } else {
-    if (wasConnected){
-      // Serial.println("Disconnected!");
-    }
 
     if ( (millis() - disconnectedTimer) > UNCONNECTED_BLINK_FREQ ) {
       waitForConnection();
@@ -76,15 +70,15 @@ void onConnected() {
 void blePeripheralConnectHandler( BLEDevice central ) {
   waitBleLed = true;
   inLedBlue(waitBleLed);
-  // Serial.print("Connected to: ");
-  // Serial.println(String(central.address()));
+  Serial.print("Connected to: ");
+  Serial.println(String(central.address()));
 }
 
 void blePeripheralDisconnectHandler( BLEDevice central ) {
   waitBleLed = false;
   inLedBlue(waitBleLed);
-  // Serial.print("Disconnected from: ");
-  // Serial.println(String(central.address()));
+  Serial.print("Disconnected from: ");
+  Serial.println(String(central.address()));
 }
 
 void publishValues() {
@@ -103,7 +97,7 @@ void publishValues() {
   stringValue += String(10);
   stringValue += magnetValuesStr; // float[3][-400,400]uT
   stringValue.getBytes( magnetBytes, sizeof(magnetBytes) );
-  BMMagChar.writeValue( magnetBytes, sizeof(magnetBytes) );
+  mbMagChar.writeValue( magnetBytes, sizeof(magnetBytes) );
 
   // Accel
   accelValuesStr = "";
@@ -117,7 +111,7 @@ void publishValues() {
   stringValue += String(10);
   stringValue += accelValuesStr; // float[3][-4, +4]g
   stringValue.getBytes( accelBytes, sizeof(accelBytes) );
-  BMAccelChar.writeValue( accelBytes, sizeof(accelBytes) );
+  mbAccelChar.writeValue( accelBytes, sizeof(accelBytes) );
 
   // Gyro
   gyroValuesStr = "";
@@ -131,7 +125,7 @@ void publishValues() {
   stringValue += String(10);
   stringValue += gyroValuesStr; // float[3][-2000, +2000]dps
   stringValue.getBytes( gyroBytes, sizeof(gyroBytes) );
-  BMGyroChar.writeValue( gyroBytes, sizeof(gyroBytes) );
+  mbGyroChar.writeValue( gyroBytes, sizeof(gyroBytes) );
 
   // Color & Light
   lightValuesStr = "";

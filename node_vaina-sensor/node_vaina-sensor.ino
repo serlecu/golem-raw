@@ -119,9 +119,9 @@ String stringValue, magnetValuesStr, accelValuesStr, gyroValuesStr, lightValuesS
 // Service
 BLEService customService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create a custom service
 // Characteristics
-BLECharacteristic BMMagChar("19B10010-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
-BLECharacteristic BMAccelChar("19B10011-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
-BLECharacteristic BMGyroChar("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
+BLECharacteristic mbMagChar("19B10010-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
+BLECharacteristic mbAccelChar("19B10011-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
+BLECharacteristic mbGyroChar("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
 BLECharacteristic apdLightChar("19B10020-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
 BLECharacteristic apdGestureChar("19B10030-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
 BLECharacteristic adpProxChar("19B10040-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
