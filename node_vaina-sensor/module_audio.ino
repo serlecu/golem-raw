@@ -1,18 +1,22 @@
 // ====== IN SETUP ======
 bool setupIR() {
-  pinMode(PWM_PIN_A, OUTPUT);
-  pinMode(PWM_PIN_B, OUTPUT);
 
   PDM.onReceive(onPDMdata);
   PDM.setBufferSize(128);
 
   if (!PDM.begin(1, 16000)) {
-    Serial.println("Failed to start PDM!");
+    errorOLED(30);
+    // Serial.println("Failed to start PDM!");
     return false;
   }
+  
+  // -- IMPULSE --
+  // change pwm output freq for PWM_A
+  PWM_A.period(1.0/32080.0); // was 200k, I'm testing 32k80 for a 16k SampleRat
+  // Start the Threads
+  impulseThread.start( playImpulseThreadedLoop );
 
-  sampling_period_us = (1.0 / SAMPLING_FREQ ) * pow(10.0, 6);
-
+  // -- FFT & PROFILE --
   // Calculate cuttoff frequencies,meake a logarithmic scale base basePOt
   double basePot = pow(SAMPLING_FREQ / 2.0, 1.0 / FREQUENCY_BANDS);
   coutoffFrequencies[0] = basePot;
@@ -24,9 +28,6 @@ bool setupIR() {
   for (int i = 1 ; i < FREQUENCY_BANDS; i++ ) {
     resultsFFT[i] = '-nan';
   }
-
-  // Start the Threads
-  impulseThread.start( playImpulseThreadedLoop );
 }
 
 
@@ -34,17 +35,9 @@ bool setupIR() {
 void handleIR() {
 
   if ( isIRon ) {
-    // playPWMtest();
-    // playImpulseParallel();
-    // if ( canPlay ) {
-    //   Serial.println("CanPlay");
-    //   canPlay = false;
-    //   impulseThread.start(playImpulseThreaded);
-    //   // playImpulseThreaded();
-    // }
+
     takeSamplesPDMParallel();
     computeFFT();
-    // processIRProfile();
 
   } else {
     if ( (millis() - IRtimer) > AUDIO_IMPULSE_FREQ ) {
@@ -54,17 +47,7 @@ void handleIR() {
       //isPlaying = true;
       canPlay = true;
       isRecording = true;
-
-      rtos::Thread::State state = impulseThread.get_state();
-      if (state == osThreadRunning) {
-          printf("Thread is running\n");
-      } else {
-          printf("Thread is not running\n");
-          // impulseThread.start( playImpulseThreaded );
-      }
         
-      
-      // Serial.println(String(millis()-IRtimer) + " > " + String(AUDIO_IMPULSE_FREQ));
       IRtimer = millis();
     }
   }
@@ -73,182 +56,51 @@ void handleIR() {
 
 
 // ====== FUNCTIONS ======
-bool createImpulse() {
-  for (int i = 0; i < IBUFFER_SIZE; i++) {
-    // Generate random noise data between -32768 and 32767
-    // impulseBufferA[i] = double(random(-32768, 32767));
-    // impulseBufferB[i] = double(random(-32768, 32767));
-    impulseBufferA[i] = (double)map(i,0,IBUFFER_SIZE, -32768, 32767) ;
-    impulseBufferB[i] = (double)map(i,0,IBUFFER_SIZE, -32768, 32767) ;
-  }
-  return true;
-}
 
-// PLAY IMPULSE
-void playPWMtest() {
-  if (isPlaying) {
-    if(!wasPlaying){
-      Serial.println("Start Impulse ...");
-      wasPlaying = true;
-      playingSample = 0;
-    }
-    analogWrite(PWM_PIN_A, impulseBufferA[playingSample] / 16 + 2048);
-    
-    if (playingSample < 5) {
-      playingSample ++;
-      
-    } else {
-      analogWrite(PWM_PIN_A, 0);
-      isPlaying = false;
-    }
-    Serial.println("PlayingSample: "+String(playingSample) );
-
-  } else {
-    if(wasPlaying){
-      Serial.println("... end Impulse.");
-      wasPlaying = false;
-    }
-  }
-}
-void playImpulse() {
-  Serial.println("Start Impulse ...");
-  // Play noise from buffer A
-  for (int i = 0; i < IBUFFER_SIZE; i++) {
-    // Serial.println("Loop: "+String(i)+" / "+String(IBUFFER_SIZE));
-    analogWrite(PWM_PIN_A, impulseBufferA[playingSample] / 16 + 2048);
-    analogWrite(PWM_PIN_B, impulseBufferB[playingSample] / 16 + 2048);
-    //delayMicroseconds(sampling_period_us);// 62.5); // Wait for 1/16000s (62.5us) for 16000Hz sample rate
-  }
-  Serial.println("... end Impulse.");
-}
-void playImpulseThreaded() {
-  isPlaying = true;
-  Serial.println("Start Impulse ...");
-
-  // Play noise from buffer A
-  for (int i = 0; i < IBUFFER_SIZE; i++) {
-    Serial.println("Loop: "+String(i)+" / "+String(IBUFFER_SIZE));
-
-    // int headB = playingSample + IBUFFER_SIZE/2;
-    // analogWrite(PWM_PIN_A, impulseBufferA[playingSample] / 16 + 2048);
-    analogWrite(PWM_PIN_A, double(random(-32768, 32767)) );
-    // analogWrite(PWM_PIN_B, impulseBufferB[playingSample] / 16 + 2048);
-  }
-
-  Serial.println("... end Impulse.");
-  isPlaying = false;
+void outputSample() {
+    // PWM_A = (float)(moogTest[playingSample] + 128) / 255; // buffer size = 512
+    PWM_A = (float)(noiseBuffer[playingSample] + 128) / 255.0;
+    playingSample = (playingSample + 1) % IBUFFER_SIZE;
 }
 
 void playImpulseThreadedLoop() {
-  Serial.println("Impulse Thread Started");
+  // Serial.println("Impulse Thread Started"); 
+  unsigned long playbackTimer;
+
   while(1){
     if (canPlay){
       isPlaying = true;
-      Serial.println("Start Impulse ...");
+      playbackTimer = millis();
+      //Serial.println("Start Impulse ...");
 
-      // Play noise from buffer A
-      for (int i = 0; i < IBUFFER_SIZE; i++) {
-        Serial.println("Loop: "+String(i)+" / "+String(IBUFFER_SIZE));
+      playingSample = 0;
+      audioTicker.attach(&outputSample, 1.0 / 16000.0);
+      
+      // int i = 0;
+      // int freq_A = 5;
 
-        // int headB = playingSample + IBUFFER_SIZE/2;
-        // analogWrite(PWM_PIN_A, impulseBufferA[playingSample] / 16 + 2048);
-        analogWrite(PWM_PIN_A, double(random(-32768, 32767)) );
-        // analogWrite(PWM_PIN_B, impulseBufferB[playingSample] / 16 + 2048);
+      while ( (millis() - playbackTimer) < IBUFFER_MILLIS ){
+        //Serial.println(String((millis() - playbackTimer))+" / "+String(IBUFFER_MILLIS));
+        rtos::ThisThread::sleep_for(20);
       }
 
-      Serial.println("... end Impulse.");
+      audioTicker.detach();
+      PWM_A = 0.0;
+
+      //Serial.println("... end Impulse.");
       isPlaying = false;
       canPlay = false;
     }
   }
 }
 
-void playImpulseParallel() {
-  
-  if (isPlaying) {
-    if(!wasPlaying){
-      Serial.println("Start Impulse ...");
-      wasPlaying = true;
-      playingSample = 0;
-    }
 
-    // Play noise from buffer A
-    if (playingSample < IBUFFER_SIZE/2) {
-      // Serial.println("Loop: "+String(playingSample)+" / "+String(IBUFFER_SIZE));
-      int headB = playingSample + IBUFFER_SIZE/2;
-      analogWrite(PWM_PIN_A, impulseBufferA[playingSample] / 16 + 2048);
-      analogWrite(PWM_PIN_B, impulseBufferA[headB] / 16 + 2048);
-      // analogWrite(PWM_PIN_B, impulseBufferB[playingSample] / 16 + 2048);
-      //delayMicroseconds(sampling_period_us); // 62.5); // Wait for 1/16000s (62.5us) for 16000Hz sample rate
-      playingSample ++;
-
-      if (playingSample >= IBUFFER_SIZE) {
-        isPlaying = false;
-        analogWrite(PWM_PIN_A, 0);
-        analogWrite(PWM_PIN_B, 0);
-      }
-    } 
-
-  } else {
-    if(wasPlaying){
-      Serial.println("... end Impulse.");
-      wasPlaying = false;
-    }
-  }
-}
-
-// RECORD
-void takeSamplesA() { // TODO Clean
-  // for (int i = 0; i < SAMPLES; i++) {
-  //   unsigned long newTime = micros();
-  //   int value = analogRead(A0);
-  //   vReal[i] = value;
-  //   vImag[i] = 0;
-  //   while (micros() < (newTime + sampling_period_us)) {
-  //     yield();
-  //   }
-  // }
-}
-void takeSamplesPDM() { // PDM lib version // TODO Clean
-
-    // if ( samplesReaded < MAX_REC_SAMPLES ) {
-
-    //   if( !isRecording ){
-    //     isRecording = true;
-    //   }
-
-    //   int bytesAvailable = PDM.available();
-    //   if ((samplesReaded + bytesAvailable/2 ) > MAX_REC_SAMPLES) {
-    //     bytesAvailable = (MAX_REC_SAMPLES - samplesReaded) * 2;
-    //   } else if( bytesAvailable < 2 ){
-    //     delayMicroseconds(sampling_period_us);
-    //     continue;
-    //   }
-
-    //   double tempB[MAX_REC_SAMPLES];
-    //   int bytesRead = PDM.read(tempB, bytesAvailable);
-    //   for (int i = samplesReaded; i < (samplesReaded + bytesAvailable/2); i++) {
-    //     int index = i - samplesReaded;
-    //     vReal[i] = tempB[index];
-    //     vImag[i] = 0;
-    //   }
-
-    //   samplesReaded += bytesRead/2; // 16-bit, 2 bytes per sample
-    
-    // } else {
-
-    //   if ( isRecording ) {
-    //     isRecording = false;
-    //   }
-
-    // }
-  
-}
+// Record
 void takeSamplesPDMParallel() { // PDM lib version
 
   if (isRecording) {
     if (!wasRecording) {
-      Serial.println("Start recording ...");
+      // Serial.println("Start recording ...");
       wasRecording = true;
       readingSample = 0;
     }
@@ -263,8 +115,7 @@ void takeSamplesPDMParallel() { // PDM lib version
         // Serial.println("GO! "+ String(freshSamplesChecked));
 
       } else if( freshSamples < 1 ){
-        Serial.println("Recording: No samples available.");
-        //delayMicroseconds(sampling_period_us); // 62.5); // Wait for 1/16000s (62.5us) for 16000Hz sample rate
+        // Serial.println("Recording: No samples available.");
         return;
       }
 
@@ -296,7 +147,7 @@ void takeSamplesPDMParallel() { // PDM lib version
 
   } else {
     if (wasRecording) {
-      Serial.println("... end recording.");
+      // Serial.println("... end recording.");
       wasRecording = false;
       isIRprocessing = 1;
     }
@@ -304,7 +155,7 @@ void takeSamplesPDMParallel() { // PDM lib version
   
 }
 
-// PROFILE
+// Compute Profile
 void computeFFT() {
   switch (isIRprocessing) {
     case 1:
@@ -353,7 +204,7 @@ void computeFFT() {
         resultsFFT[index] = median[index]; 
       }
 
-      Serial.println("Done Processing!");
+      // Serial.println("Done Processing!");
       // for (int i = 0; i < FREQUENCY_BANDS; i++) {
       //    Serial.print( String(median[i])+", ");
       // }
@@ -369,7 +220,7 @@ void computeFFT() {
 }
 
 // GET AUDIO DATA
-// callback / IRS process
+// callback / ISR process
 void onPDMdata() {
       int bytesAvailable = PDM.available();
 
