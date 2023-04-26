@@ -15,7 +15,9 @@
 
 // #include <Thread.h>
 #include <mbed.h>
+using namespace mbed;
 #include <rtos.h>
+#include <platform.h>
 // #include <Arduino_Threads.h>
 
 // ====== PRIMITIVE FUNCTS =======
@@ -42,7 +44,7 @@ void handleOLED(void);
 
 // ====== VARAIBLES ======
 
-// Main
+// -- Main -- //
 #define VAINA_ID 0 // DONT REMEMBER IF USED ON CLIENT
 #define UNCONNECTED_BLINK_FREQ 1000
 #define FREQ_BROADCAST 250
@@ -50,19 +52,16 @@ bool isConnected = false; //miss
 bool waitBleLed = false; //Blue Blink while waiting for connection
 unsigned long disconnectedTimer;
 unsigned long mainTimer;
-// rtos::Thread impulseThread = new rtos::Thread(osPriorityRealtime, OS_STACK_SIZE);
-// rtos::Thread recordingThread = new rtos::Thread(osPriorityRealtime, OS_STACK_SIZE);
-rtos::Thread impulseThread;
 
-// Sensors
+// -- Sensors -- //
 bool sensorsUpdated = false;
 // Sensors - BMI270 & BMM150
-float valAccelX, valAccelY, valAccelZ; //miss
-float valGyroX, valGyroY, valGyroZ; //miss
-float valMagnetX, valMagnetY, valMagnetZ;
+float magnetValues[3];
+float accelValues[3]; //miss
+float gyroValues[3]; //miss
 // Sensors - APD
-int valColorR, valColorG, valColorB;
-int valLight;
+int lightValues[4];
+int valGesture;
 int valProximity;
 // Sensors - HS300x
 float valTemperature, valHumidity;
@@ -71,7 +70,7 @@ bool isReadHS300 = false; //miss
 float valPressure;
 bool isReadLPS = false; //miss
 
-// Audio
+// -- Audio -- //
 #define AUDIO_IMPULSE_FREQ 10000
 unsigned long IRtimer = 0;
 volatile bool isIRon = false;
@@ -84,12 +83,13 @@ volatile bool doProcessProfile = false;
 volatile int isIRprocessing = 0;
 bool IRupdated = false;
 // Impulse
-#define IBUFFER_SIZE 1024
-#define PWM_PIN_A 2
-#define PWM_PIN_B 3
-double impulseBufferA[IBUFFER_SIZE];
-double impulseBufferB[IBUFFER_SIZE];
-int playingSample = 0;
+#include "noise_sample.h"
+#define IBUFFER_SIZE 2048 //512
+#define IBUFFER_MILLIS 1000
+rtos::Thread impulseThread;
+Ticker audioTicker;
+PwmOut PWM_A( digitalPinToPinName( 2 ) );
+volatile int playingSample = 0;
 // Record: PDM
 static const char channels = 1; // default number of output channels
 static const int frequency = 16000; // default PCM output frequency
@@ -104,34 +104,33 @@ int readingSample = 0;
 #define FREQUENCY_BANDS 14
 double vImag[SAMPLES];
 double vReal[SAMPLES];
-unsigned long sampling_period_us;
 arduinoFFT fft = arduinoFFT(vReal, vImag, SAMPLES, SAMPLING_FREQ);
 float reference = log10(50.0); // adjust reference to get removed background noise noise
 double coutoffFrequencies[FREQUENCY_BANDS];
 volatile double resultsFFT[FREQUENCY_BANDS];
 
-// Bluetooth LE
+// -- Bluetooth LE -- //
 bool wasConnected = false;
-uint8_t byteArray[512];
-String stringValue = "";
-int length = 0;
+uint8_t magnetBytes[512], accelBytes[512], gyroBytes[512];
+uint8_t lightBytes[512], gestBytes[512], proxBytes[512];
+uint8_t tempBytes[512], humBytes[512], pressBytes[512];
+uint8_t irBytes[512];
+String stringValue, magnetValuesStr, accelValuesStr, gyroValuesStr, lightValuesStr, irValuesStr;
 // Service
 BLEService customService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create a custom service
 // Characteristics
-BLECharacteristic BMMagXChar("19B10010-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
-BLECharacteristic BMMagYChar("19B10011-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
-BLECharacteristic BMMagZChar("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
-BLECharacteristic apdColorRChar("19B10020-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
-BLECharacteristic apdColorGChar("19B10021-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
-BLECharacteristic apdColorBChar("19B10022-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
-BLECharacteristic adpLuxChar("19B10023-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
+BLECharacteristic BMMagChar("19B10010-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
+BLECharacteristic BMAccelChar("19B10011-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
+BLECharacteristic BMGyroChar("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
+BLECharacteristic apdLightChar("19B10020-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
+BLECharacteristic apdGestureChar("19B10030-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
 BLECharacteristic adpProxChar("19B10040-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
 BLECharacteristic hs3TempChar("19B10050-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
 BLECharacteristic hs3HumChar("19B10060-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
 BLECharacteristic lpsPressChar("19B10070-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
 BLECharacteristic impulseResponseChar("19B10080-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
 
-// OLED
+// -- OLED -- //
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
 #define NOTIFICATION_BADGE_DECAY 5
@@ -151,7 +150,7 @@ void setup() {
   // --- OLED ---
   inLedGreen(HIGH);
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    errorSequence(2);
+    errorSequence(1);
   }
   setupOLED();
   inLedGreen(LOW);
@@ -164,7 +163,7 @@ void setup() {
   delay(500);
   
   if (!Serial){
-    errorSequence(1);
+    errorSequence(2);
   }
   inLedGreen(LOW);
   delay(1500);
@@ -179,10 +178,7 @@ void setup() {
   inLedGreen(HIGH);
   // Initialize PDM and IR
   if(!setupIR()){
-    errorOLED(30);
-  }
-  if (!createImpulse()){
-    errorOLED(31);
+    errorSequence(3);
   }
   inLedGreen(LOW);
   delay(1500);
