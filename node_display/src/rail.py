@@ -147,5 +147,5 @@ def stepRun(speed, direction, sleep) :
     # Delay as speed controll
     time.sleep(sleep)
     
-initRail()
-railControl()
+# ~ initRail()
+# ~ railControl()

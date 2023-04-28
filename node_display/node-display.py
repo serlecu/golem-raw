@@ -17,7 +17,7 @@ def Setup():
   
   # Init Rail
   initRail()
-  rail_thread = threading.Thread(target=railTest, daemon=True)
+  rail_thread = threading.Thread(target=railControl, daemon=True)
   rail_thread.start()
   
 
@@ -32,8 +32,8 @@ def Setup():
   if platform_os == "Darwin":
     g.screen = pygame.display.set_mode((480,480))
   else:
-#      g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
-      g.screen = pygame.display.set_mode((480,480))
+    g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
+    # ~ g.screen = pygame.display.set_mode((480,480))
   pygame.display.set_caption("Golem: Display Node")
   pygame.mouse.set_visible(False)
 

@@ -40,7 +40,7 @@ def setupBTAdapter():
 
     isAdapterSet = False
     while not isAdapterSet:
-        adapters = ble.Adapter.get_adapters() #type: ignore
+        adaptersonDeviceFound = ble.Adapter.get_adapters() #type: ignore
         if len(adapters) == 0:
           print("No adapters found")
           time.sleep(2)
@@ -56,13 +56,7 @@ def setupBTAdapter():
 
     # ====== BLESS - SERVER =======
     global logger, trigger
-    
-    print("Starting BLESS ...")
-    # ~ logging.basicConfig(level=logging.DEBUG)
-    # ~ logger = logging.getLogger(name=__name__)
-    # ~ trigger = threading.Event()
-    
-    # ~ asyncio.run( initServer() )
+
     initServer()
     
 #     server_port = server_sock.getsockname()[1]
@@ -120,7 +114,6 @@ async def initServerAsync():
                                     None,
                                    ( GATTAttributePermissions.readable |
                                      GATTAttributePermissions.writeable ) )
-#     logger.debug( server.get_characteristic( CHARACTERISTIC_UUID ) )
     
     print("Advertising BLE server...")
     try:
