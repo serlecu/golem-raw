@@ -6,6 +6,7 @@ import pygame
 from src.bluetooth import *
 from src.graphics import *
 from src.debug_display import *
+from src.rail import*
 
 import simplepyble as ble
 
@@ -13,6 +14,12 @@ def Setup():
   import src.globals as g
 
   g.initGlobals()
+  
+  # Init Rail
+  initRail()
+  rail_thread = threading.Thread(target=railTest, daemon=True)
+  rail_thread.start()
+  
 
   # Initialize Pygame
   os.environ["DISPLAY"] = ":0"
@@ -25,13 +32,14 @@ def Setup():
   if platform_os == "Darwin":
     g.screen = pygame.display.set_mode((480,480))
   else:
-     g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
-#      g.screen = pygame.display.set_mode((480,480))
+#      g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
+      g.screen = pygame.display.set_mode((480,480))
   pygame.display.set_caption("Golem: Display Node")
   pygame.mouse.set_visible(False)
 
   # Initialize Bluetooth
   setupBTAdapter()
+  
 
 # End of Setup() ========================================
 

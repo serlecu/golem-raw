@@ -1,5 +1,6 @@
 import time
 import threading
+import asyncio
 
 import bluetooth as bt
 import simplepyble as ble
@@ -25,12 +26,12 @@ logger: logging.Logger
 trigger: threading.Event
 
 
-TARGET_SERVICE = "19B10100-E8F2-537E-D104768A1214" #"94f39d29-7d6d-437d-973b-fba39e49d4ee" # "19B10100-E8F2-537E-D104768A1214"
+TARGET_SERVICE = 'A07498CA-AD5B-474E-940D-16F1FBE7E8CD' # "19b10100-e8f2-537e-d104768a1214" # "19B10100-E8F2-537E-D104768A1214"
 
 # Define UUIDs for the service and characteristic
 # SERVICE_UUID = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
-SERVICE_UUID = "19B10100-E8F2-537E-D104768A1214"
-CHARACTERISTIC_UUID = "51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B"# '19b10000-e8f2-537e-d104768a1214'
+SERVICE_UUID:str = 'A07498CA-AD5B-474E-940D-16F1FBE7E8CD'  # "19b10100-e8f2-537e-d104768a1214"
+CHARACTERISTIC_UUID:str = '51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B' # '19b10101-e8f2-537e-d104768a1214' # 
 
 
 def setupBTAdapter():
@@ -53,14 +54,15 @@ def setupBTAdapter():
         BTAdapter.set_callback_on_scan_found(lambda peripheral: onDeviceFound(peripheral))
         isAdapterSet = True
 
-    # ====== PYBLUEZ2 - SERVER =======
+    # ====== BLESS - SERVER =======
     global logger, trigger
     
     print("Starting BLESS ...")
-    logging.basicConfig(level=logging.DEBUG)
-    logger = logging.getLogger(name=__name__)
-    trigger = threading.Event()
+    # ~ logging.basicConfig(level=logging.DEBUG)
+    # ~ logger = logging.getLogger(name=__name__)
+    # ~ trigger = threading.Event()
     
+    # ~ asyncio.run( initServer() )
     initServer()
     
 #     server_port = server_sock.getsockname()[1]
@@ -71,18 +73,46 @@ def setupBTAdapter():
 #     
 #     advertiseBT( server_sock, server_name, service_uuid )
     
+
 def initServer():
-    global trigger, logger
-    
-    trigger.clear()
     print("Setting up BLE Server...")
     serviceName = "Golem Screen"
     server = BlessServer(name=serviceName)
     server.read_request_func = onReadRequest
     server.write_request_function = onWriteRequest
     
-    server.add_new_service(SERVICE_UUID)
-    server.add_new_characteristic( SERVICE_UUID,
+    try:
+        server.add_new_service(SERVICE_UUID)
+    except Exception as e:
+        print(f"Error adding Service: {e}")
+    try:
+        server.add_new_characteristic( SERVICE_UUID,
+                                   CHARACTERISTIC_UUID,
+                                   ( GATTCharacteristicProperties.read |
+                                     GATTCharacteristicProperties.write |
+                                     GATTCharacteristicProperties.notify ),
+                                    None,
+                                   ( GATTAttributePermissions.readable |
+                                     GATTAttributePermissions.writeable ) )
+    except Exception as e:
+        print(f"Error adding characteristic: {e}")
+    
+    print("End of INIT BLESS SERVER")
+    
+
+    
+async def initServerAsync():
+    global trigger, logger
+    
+    # ~ trigger.clear()
+    print("Setting up BLE Server...")
+    serviceName = "Golem Screen"
+    server = BlessServer(name=serviceName)
+    server.read_request_func = onReadRequest
+    server.write_request_function = onWriteRequest
+    
+    await server.add_new_service(SERVICE_UUID)
+    await server.add_new_characteristic( SERVICE_UUID,
                                    CHARACTERISTIC_UUID,
                                    ( GATTCharacteristicProperties.read |
                                      GATTCharacteristicProperties.write |
