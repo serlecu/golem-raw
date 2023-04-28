@@ -9,3 +9,4 @@ bleak==0.19.5
 dbus-fast==1.83
 dbus-next==0.2.2
 dbus-python==1.2.16
+grove.py==0.6
