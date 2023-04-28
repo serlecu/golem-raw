@@ -40,7 +40,7 @@ def setupBTAdapter():
 
     isAdapterSet = False
     while not isAdapterSet:
-        adaptersonDeviceFound = ble.Adapter.get_adapters() #type: ignore
+        adapters = ble.Adapter.get_adapters() #type: ignore
         if len(adapters) == 0:
           print("No adapters found")
           time.sleep(2)
@@ -48,11 +48,11 @@ def setupBTAdapter():
           for adapter in adapters:
               print(f"Adapter: {adapter.identifier()} [{adapter.address()}]")
 
-        BTAdapter = adapters[0] # I take the first adapter IDKW
-        BTAdapter.set_callback_on_scan_start(lambda: onScanStart() )
-        BTAdapter.set_callback_on_scan_stop(lambda: onScanStop() )
-        BTAdapter.set_callback_on_scan_found(lambda peripheral: onDeviceFound(peripheral))
-        isAdapterSet = True
+          BTAdapter = adapters[0] # I take the first adapter IDKW
+          BTAdapter.set_callback_on_scan_start(lambda: onScanStart() )
+          BTAdapter.set_callback_on_scan_stop(lambda: onScanStop() )
+          BTAdapter.set_callback_on_scan_found(lambda peripheral: onDeviceFound(peripheral))
+          isAdapterSet = True
 
     # ====== BLESS - SERVER =======
     global logger, trigger

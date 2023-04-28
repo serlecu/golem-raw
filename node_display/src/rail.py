@@ -5,6 +5,9 @@ from grove.motor import I2CStepperMotor
 import RPi.GPIO as GPIO
 import time
 
+import src.globals as g
+from src.globals import *
+
 
 driver : I2CStepperMotor
 loadArgs = {
@@ -65,7 +68,6 @@ def railTest():
         # ~ print(stepsTotal)
 
 def railControl():
-    import globals as g
     
     while not g.killRail:
         # Handle EndSwitches -> direction
@@ -92,7 +94,6 @@ def moveToOrigin():
     
 
 def handleEndSwitch():
-    import globals as g
     
     if readEndSwitch() and not g.lastEndSwitch:
         g.railDirection = not g.railDirection
