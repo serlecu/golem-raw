@@ -4,6 +4,7 @@ import time
 
 lastLoopTime: float
 
+# Bluetooth
 deviceInfo: str
 isScanning: bool
 scannCrono: float
@@ -11,6 +12,15 @@ scannFrequency: float
 foundDevices: list #str/bluetooth.Device
 matchedDevices: list
 
+# Rail
+killRail: bool = False
+lastEndSwitch: bool = False
+railDirection: bool = True
+railSpeed: int = 50
+railDelay: float = 1.0
+
+
+# Pygame
 screen: pygame.Surface
 
 def initGlobals():
