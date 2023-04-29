@@ -308,12 +308,12 @@ def onCharacNotified(data, deviceAddress):
 def handleBTData():
     global server
 
-    if endSwitchCounter > 1:
+    if g.endSwitchCounter > 1:
         print("BLESS: notify endSwitch")
         # get characteristic
         characteristic = server.get_characteristic(CHARACTERISTIC_UUID)
         
-        if characteristic not= None:
+        if characteristic is not None:
             # set characteristic
             characteristic.value([0x01])
             # update characteristic / trigger notifications
