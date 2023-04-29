@@ -22,6 +22,7 @@ def Setup():
   
 
   # Initialize Pygame
+  print("PYGAME INIT")
   os.environ["DISPLAY"] = ":0"
   pygame.init()
   
@@ -32,13 +33,23 @@ def Setup():
   if platform_os == "Darwin":
     g.screen = pygame.display.set_mode((480,480))
   else:
-    g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
-    # ~ g.screen = pygame.display.set_mode((480,480))
+    # ~ g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
+    g.screen = pygame.display.set_mode((480,480))
   pygame.display.set_caption("Golem: Display Node")
   pygame.mouse.set_visible(False)
 
-  # Initialize Bluetooth
+  # Initialize BLE Client
   setupBTAdapter()
+  
+  # Initialize BLE Server
+  asyncio.run(initServerAsync())
+  
+  # Dirty way of waiting
+  # ~ while not g.runningBLEserver:
+    # ~ time.sleep(0.5)
+  # This thread is blocking everything!!!!
+  # ~ bless_thread = threading.Thread(target=runBlessListener(), daemon=True)
+  # ~ bless_thread.start()
   
 
 # End of Setup() ========================================
@@ -68,6 +79,7 @@ def Update():
 
     # Handle Bluetooth connections and data
     handleBTConnections()
+    handleBTData()
 
     # Draw graphics on the screen
     DrawLoop()

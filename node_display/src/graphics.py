@@ -27,5 +27,5 @@ def test_text(screen, text, pos, color):
 
 
 def DrawLoop():
-    draw_background(g.screen, (50, 50, 50))
-    test_ellipse(g.screen, (200, 200, 200), 200, time.time())
+    draw_background(g.screen, (0, 0, 0))
+    test_ellipse(g.screen, (200, 200, 200, 100), 200, time.time())

@@ -63,13 +63,15 @@ def railTest():
         print(f"Direction: {direction}")
         # Perform Step
         stepRun(50, direction, 0.5)
-        
-        # ~ stepsTotal += 1
-        # ~ print(stepsTotal)
+        s
 
 def railControl():
     
     while not g.killRail:
+        if (g.syncState): #! Warning -> endSwitches
+            moveToOrigin()
+            syncState = False
+            continue
         # Handle EndSwitches -> direction
         handleEndSwitch()
         # Perform Step
@@ -97,6 +99,7 @@ def handleEndSwitch():
     
     if readEndSwitch() and not g.lastEndSwitch:
         g.railDirection = not g.railDirection
+        g.endSwitchCounter += 1
         g.lastEndSwitch = True
         print("RAIL: change direction !!")
     elif not readEndSwitch() and g.lastEndSwitch:

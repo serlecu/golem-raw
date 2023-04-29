@@ -17,27 +17,29 @@ from typing import Any
 import src.globals as g
 from src.globals import *
 
+# simpleBLe Client vars
 BTAdapter: ble.Adapter #type: ignore
 devicesChecked: bool = False
 connectingDevices = []
 matchedDevices = []
 
-logger: logging.Logger
-trigger: threading.Event
+TARGET_SERVICE = 'A07498CA-AD5B-474E-940D-16F1FBE7E8CD'
+
+# BLESS server vars
+server: BlessServer
+trigger: threading.Event = threading.Event()
+
+SERVICE_UUID:str = 'A07498CA-AD5B-474E-940D-16F1FBE7E8CD'
+CHARACTERISTIC_UUID:str = '51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B'
 
 
-TARGET_SERVICE = 'A07498CA-AD5B-474E-940D-16F1FBE7E8CD' # "19b10100-e8f2-537e-d104768a1214" # "19B10100-E8F2-537E-D104768A1214"
 
-# Define UUIDs for the service and characteristic
-# SERVICE_UUID = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
-SERVICE_UUID:str = 'A07498CA-AD5B-474E-940D-16F1FBE7E8CD'  # "19b10100-e8f2-537e-d104768a1214"
-CHARACTERISTIC_UUID:str = '51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B' # '19b10101-e8f2-537e-d104768a1214' # 
-
-
+# Booth libs
 def setupBTAdapter():
     global BTAdapter, server_sock
     print("Initializing Bluetooth...")
-
+    
+    # ====== simpleBLE - Client ======
     isAdapterSet = False
     while not isAdapterSet:
         adapters = ble.Adapter.get_adapters() #type: ignore
@@ -54,59 +56,29 @@ def setupBTAdapter():
           BTAdapter.set_callback_on_scan_found(lambda peripheral: onDeviceFound(peripheral))
           isAdapterSet = True
 
-    # ====== BLESS - SERVER =======
-    global logger, trigger
-
-    initServer()
-    
-#     server_port = server_sock.getsockname()[1]
-#     server_name = "GOLEM_NODE_" + ':'.join(server_sock.getsockname()[0].split(":")[2:])
-#     print(f"{server_name}")
-#     service_uuid = SERVICE_UUID
-#     g.deviceInfo = server_sock.getsockname()
-#     
-#     advertiseBT( server_sock, server_name, service_uuid )
+    # ====== BLESS - Server =======
+    # ~ loop = asyncio.get_event_loop()
+    # ~ loop.run_until_complete(initServerAsync(loop))
     
 
-def initServer():
-    print("Setting up BLE Server...")
-    serviceName = "Golem Screen"
-    server = BlessServer(name=serviceName)
-    server.read_request_func = onReadRequest
-    server.write_request_function = onWriteRequest
-    
-    try:
-        server.add_new_service(SERVICE_UUID)
-    except Exception as e:
-        print(f"Error adding Service: {e}")
-    try:
-        server.add_new_characteristic( SERVICE_UUID,
-                                   CHARACTERISTIC_UUID,
-                                   ( GATTCharacteristicProperties.read |
-                                     GATTCharacteristicProperties.write |
-                                     GATTCharacteristicProperties.notify ),
-                                    None,
-                                   ( GATTAttributePermissions.readable |
-                                     GATTAttributePermissions.writeable ) )
-    except Exception as e:
-        print(f"Error adding characteristic: {e}")
-    
-    print("End of INIT BLESS SERVER")
-    
-
-    
+# BLESS
 async def initServerAsync():
-    global trigger, logger
+    global trigger, server
+    # ~ print(f"BLESS asyncs loop: {asyncio.get_event_loop()}")
+    trigger.clear()
+    print("BLESS: Setting up BLE Server...")
     
-    # ~ trigger.clear()
-    print("Setting up BLE Server...")
-    serviceName = "Golem Screen"
-    server = BlessServer(name=serviceName)
+    serviceName = "Iron Ore Golem"
+    server = BlessServer(name=serviceName) #, loop=loop)
     server.read_request_func = onReadRequest
     server.write_request_function = onWriteRequest
     
-    await server.add_new_service(SERVICE_UUID)
-    await server.add_new_characteristic( SERVICE_UUID,
+    try:
+        await server.add_new_service(SERVICE_UUID)
+    except Exception as e:
+        print(f"BLESS: Error adding Service: {e}")
+    try:
+        await server.add_new_characteristic( SERVICE_UUID,
                                    CHARACTERISTIC_UUID,
                                    ( GATTCharacteristicProperties.read |
                                      GATTCharacteristicProperties.write |
@@ -114,28 +86,60 @@ async def initServerAsync():
                                     None,
                                    ( GATTAttributePermissions.readable |
                                      GATTAttributePermissions.writeable ) )
-    
-    print("Advertising BLE server...")
+    except Exception as e:
+        print(f"BLESS: Error adding characteristic: {e}")
+        
+    print("BLESS: Starting BLE server...")
     try:
-        server.start()
+        g.runningBLEserver = await server.start()
     except:
-        print("Error on advertising services")
+        print("BLESS: Error on advertising services")
+        return False
     else:
-        print("Advertising...")
+        g.runningBLEserver = True
+        print("BLESS: Advertising.")
+        
+        # ~ bless_thread = threading.Thread(target=runBlessListener(), daemon=True)
+        # ~ bless_thread.start()
+    print("BLESS: async done")
+
+# BLESS        
+def runBlessListener():
+    global trigger, server
+    
+    while g.runningBLEserver:
+        try:
+            print("BLESS: waiting requests.")
+            trigger.wait()
+            trigger.clear()
+            print("BLESS: back to listen.")
+        except Exception as e:
+            print(f"BLESS listener Error: {e}.")
+        
+    print("BLESS: end server")
+    loop.close()
+    server.stop()
+    
                                    
+# BLESS
+def onReadRequest_Other(conn_handle: int, attr_handle: int, value: bytes):
+    print(f"BLESS: received {value}")
 
 def onReadRequest( char: BlessGATTCharacteristic,
                    **kwargs
                    ) -> bytearray:
     global logger
     
-    logger.debug(f"Reading {characteristic.value}")
+    logger.debug(f"BLESS: Reading {characteristic.value}")
     return char.value
 
 def onWriteRequest( char: BlessGATTCharacteristic,
                     value: Any,
                    **kwargs ):
     global logger, trigger
+    
+    print(f"BLESS: Write request - {char} -> {value}")
+    
     
     char.value = value
     logger.debug(f"Char value set to { char.value}")
@@ -145,7 +149,7 @@ def onWriteRequest( char: BlessGATTCharacteristic,
 
 
 def scanBT():
-    BTAdapter.scan_for(4000)
+    BTAdapter.scan_for(2000)
     
     
 def onScanStart():
@@ -213,7 +217,7 @@ def handleBTConnections():
                         print(f"Already connecting to device [{device.address()}].")
     
                 
-
+# NOT USING - WHAT IS THIS??
 def handleClient(client, address):
     reqBytes = b'' + client.recv(1024)
     
@@ -222,6 +226,7 @@ def handleClient(client, address):
         client.close()
     reqString = reqBytes.decode()
     print(f"Received: {reqString}")
+
 
 def connectBT(device):
     global connectingDevices, matchedDevices
@@ -238,43 +243,18 @@ def connectBT(device):
             connectingDevices.remove(device)
 
 
+# simpleBLE - client
 def onConnectedDevice(device):
-    print(f"Connection success {device.address()}")
-    notifyToChars(device, getServiceCharPairs(device, TARGET_SERVICE))
-    #g.sensorDataList.append( VainaSensorNode(device.address(), device.identifier()) )
+    print(f"Connection success {device.identifier()} [{device.address()}]")
+    try:
+        notifyToChars(device, getServiceCharPairs(device, TARGET_SERVICE))
+    except Exception as e:
+        print(f"simpleBLE: Error on notify: {e}")
+        
     connectingDevices.remove(device)
     
     
-def onDisconnectedDevice(device):
-    print("Device {device.address()} disconnected")
-    if device in g.matchedDevices:
-        g.matchedDevices.remove(device)
-    if device in connectingDevices:
-        connectingDevices.remove(device)
-#     for sensorData in g.sensorDataList:
-#         if sensorData.deviceUUID == deviceaddress():
-#             g.sensorDataList.remov(sensorData)
-#             break
-   
-
-def notifyToChars(device, serviceCharPairs):
-    if len(serviceCharPairs) > 0:
-        print(f"Enabling notifications for {device.address()}...")
-        for service, char in serviceCharPairs:
-            try:
-                device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) )
-            except:
-                print(f"Failed to enable notifications for char[{char}] in service[{service}].")
-#                 print(f"Try again to subscribe to device {device.address()} ...")
-#                 notifyToChars(device,ServicePairs)   #! This is dangerous!!
-                device.disconnect()
-        print(f"... end enabling notifications for {device.address()}.")
-        
-
-def onCharacNotified(data, deviceAddress):
-    print(f"Recieved msg from {deviceAddress}: {data}")
-
-
+# simpleBLE - client
 def getServiceCharPairs(device, serviceUUID = None):
     serviceCharsPairs = []
     services = device.services()
@@ -291,25 +271,57 @@ def getServiceCharPairs(device, serviceUUID = None):
                 for char in chars:
                     serviceCharsPairs.append((service.uuid(), char.uuid()))
     return serviceCharsPairs
+    
+    
+# simpleBLE - client    
+def onDisconnectedDevice(device):
+    print(f"simpleBLE: Device {device.identifier()} [{device.address()}] disconnected")
+    if device in g.matchedDevices:
+        g.matchedDevices.remove(device)
+    if device in connectingDevices:
+        connectingDevices.remove(device)
+   
+   
+# simpleBLE - client
+def notifyToChars(device, serviceCharPairs):
+    if len(serviceCharPairs) > 0:
+        print(f"Enabling notifications for {device.address()}...")
+        for service, char in serviceCharPairs:
+            if service == TARGET_SERVICE and char == CHARACTERISTIC_UUID:
+                try:
+                    device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) )
+                except:
+                    print(f"Failed to enable notifications for char[{char}] in service[{service}].")
+                    print(f"Will try again to subscribe to device {device.address()} ...")
+                    g.failedNotifications.append( (device, service, char) )        
+
+        print(f"... end enabling notifications for {device.address()}.")
+        
+        
+# simpleBLE - client
+def onCharacNotified(data, deviceAddress):
+    print(f"Recieved msg from {deviceAddress}: {data}")
+    g.syncState = True
 
 
-def advertService(address):
-    pass
-    #from bluetooth import BluetoothSocket
-    #BTServer = BluetoothSocket( bt.Protocols.RFCOMM )
-    #BTServer.bind(("", bt.PORT_ANY))
-    # BTServer.listen(1)
-
-    # # Define the GATT server and characteristic
-    # gatt_server = bt.GATTServer()
-    # characteristic = bt.Characteristic(CHARACTERISTIC_UUID, ["read", "write"], value)
-
-    # # Define the service and add the characteristic to it
-    # service = bt.Service(SERVICE_UUID, [characteristic])
-
-    # # Add the service to the GATT server
-    # gatt_server.add_service(service)
-
-
+# BLESS - server
 def handleBTData():
-    pass
+    global server
+
+    if endSwitchCounter > 1:
+        print("BLESS: notify endSwitch")
+        # get characteristic
+        characteristic = server.get_characteristic(CHARACTERISTIC_UUID)
+        
+        if characteristic not= None:
+            # set characteristic
+            characteristic.value([0x01])
+            # update characteristic / trigger notifications
+            if server.update_value(SERVICE_UUID, CHARACTERISTIC_UUID): # returns bool
+                endSwitchCounter = 0
+                print("BLESS: characteristic updated and notified")
+            else:
+                print("BLESS error: couldn't update characteristic")
+        else:
+            print("BLESS error: couldn't get characteristic")
+        

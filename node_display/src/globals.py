@@ -11,6 +11,9 @@ scannCrono: float
 scannFrequency: float
 foundDevices: list #str/bluetooth.Device
 matchedDevices: list
+failedNotifications: list
+
+runningBLEserver: bool = False
 
 # Rail
 killRail: bool = False
@@ -18,6 +21,8 @@ lastEndSwitch: bool = False
 railDirection: bool = True
 railSpeed: int = 50
 railDelay: float = 1.0
+endSwitchCounter = 0
+syncState = False
 
 
 # Pygame
@@ -28,7 +33,7 @@ def initGlobals():
   lastLoopTime = time.time()
 
   scannCrono = 5
-  scannFrequency = 5
+  scannFrequency = 10
   isScanning = False
   foundDevices = []
   matchedDevices = []
