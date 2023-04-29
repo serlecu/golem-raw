@@ -10,7 +10,8 @@ from bless import (
     BlessServer,
     BlessGATTCharacteristic,
     GATTCharacteristicProperties,
-    GATTAttributePermissions)
+    GATTAttributePermissions
+    )
 import logging
 from typing import Any
 
@@ -28,13 +29,14 @@ TARGET_SERVICE = 'A07498CA-AD5B-474E-940D-16F1FBE7E8CD'
 # BLESS server vars
 server: BlessServer
 trigger: threading.Event = threading.Event()
+notifyChar: BlessGATTCharacteristic
 
 SERVICE_UUID:str = 'A07498CA-AD5B-474E-940D-16F1FBE7E8CD'
 CHARACTERISTIC_UUID:str = '51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B'
 
 
 
-# Booth libs
+# simpleBLE - Client
 def setupBTAdapter():
     global BTAdapter, server_sock
     print("Initializing Bluetooth...")
@@ -62,46 +64,65 @@ def setupBTAdapter():
     
 
 # BLESS
-async def initServerAsync():
+async def initServerAsync(loop):
     global trigger, server
-    # ~ print(f"BLESS asyncs loop: {asyncio.get_event_loop()}")
-    trigger.clear()
+    
     print("BLESS: Setting up BLE Server...")
     
-    serviceName = "Iron Ore Golem"
-    server = BlessServer(name=serviceName) #, loop=loop)
-    server.read_request_func = onReadRequest
-    server.write_request_function = onWriteRequest
+    gatt:Dict = {
+        SERVICE_UUID: {
+            CHARACTERISTIC_UUID:{
+                "Properties": GATTCharacteristicProperties.notify,
+                "Permissions": GATTAttributePermissions.readable,
+                "Value": str(g.nodeID+"00").encode()
+            },
+        }
+    }
     
-    try:
-        await server.add_new_service(SERVICE_UUID)
-    except Exception as e:
-        print(f"BLESS: Error adding Service: {e}")
-    try:
-        await server.add_new_characteristic( SERVICE_UUID,
-                                   CHARACTERISTIC_UUID,
-                                   ( GATTCharacteristicProperties.read |
-                                     GATTCharacteristicProperties.write |
-                                     GATTCharacteristicProperties.notify ),
-                                    None,
-                                   ( GATTAttributePermissions.readable |
-                                     GATTAttributePermissions.writeable ) )
-    except Exception as e:
-        print(f"BLESS: Error adding characteristic: {e}")
+    # ~ trigger.clear()
+    
+    serviceName = "Iron Ore Golem " + g.nodeID
+    
+    server = BlessServer(name=serviceName, name_overwrite=True, loop=loop)
+    # ~ server.read_request_func = onReadRequest
+    # ~ server.write_request_function = onWriteRequest
+    
+    await server.add_gatt(gatt)
+    await server.start()
+    
+    # ~ try:
+        # ~ await server.add_new_service(SERVICE_UUID)
+    # ~ except Exception as e:
+        # ~ print(f"BLESS: Error adding Service: {e}")
         
-    print("BLESS: Starting BLE server...")
-    try:
-        g.runningBLEserver = await server.start()
-    except:
-        print("BLESS: Error on advertising services")
-        return False
-    else:
-        g.runningBLEserver = True
-        print("BLESS: Advertising.")
+    # ~ try:
+        # ~ await server.add_new_characteristic( SERVICE_UUID,
+                                   # ~ CHARACTERISTIC_UUID,
+                                   # ~ ( GATTCharacteristicProperties.read |
+                                     # ~ GATTCharacteristicProperties.write |
+                                     # ~ GATTCharacteristicProperties.notify ),
+                                    # ~ g.nodeID+"00",
+                                   # ~ ( GATTAttributePermissions.readable |
+                                     # ~ GATTAttributePermissions.writeable ) )
+    # ~ except Exception as e:
+        # ~ print(f"BLESS: Error adding characteristic: {e}")
+    # ~ else:
+        # ~ notifyChar = server.get_characteristic(CHARACTERISTIC_UUID)
+        # ~ print(notifyChar)
+        
+    # ~ print("BLESS: Starting BLE server...")
+    # ~ try:
+        # ~ g.runningBLEserver = await server.start()
+    # ~ except:
+        # ~ print("BLESS: Error on advertising services")
+        # ~ return False
+    # ~ else:
+        # ~ g.runningBLEserver = True
+        # ~ print("BLESS: Advertising.")
         
         # ~ bless_thread = threading.Thread(target=runBlessListener(), daemon=True)
         # ~ bless_thread.start()
-    print("BLESS: async done")
+    # ~ print("BLESS: async done")
 
 # BLESS        
 def runBlessListener():
@@ -310,18 +331,15 @@ def handleBTData():
 
     if g.endSwitchCounter > 1:
         print("BLESS: notify endSwitch")
-        # get characteristic
-        characteristic = server.get_characteristic(CHARACTERISTIC_UUID)
-        
-        if characteristic is not None:
-            # set characteristic
-            characteristic.value([0x01])
-            # update characteristic / trigger notifications
-            if server.update_value(SERVICE_UUID, CHARACTERISTIC_UUID): # returns bool
-                endSwitchCounter = 0
-                print("BLESS: characteristic updated and notified")
-            else:
-                print("BLESS error: couldn't update characteristic")
+        try:
+            notify(server, g.nodeID+"01" )
+        except Exception as e:
+            print(f"BLESS ERROR: couldn't get characteristic. {e}")
         else:
-            print("BLESS error: couldn't get characteristic")
+            g.endSwitchCounter = 0
+
+            
+def notify(server, value:str):
+    server.get_characteristic(CHARACTERISTIC_UUID,).value = value.encode() 
+    server.update_value(SERVICE_UUID, CHARACTERISTIC_UUID)
         

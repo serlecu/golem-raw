@@ -33,8 +33,8 @@ def Setup():
   if platform_os == "Darwin":
     g.screen = pygame.display.set_mode((480,480))
   else:
-    # ~ g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
-    g.screen = pygame.display.set_mode((480,480))
+    g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
+    # ~ g.screen = pygame.display.set_mode((480,480))
   pygame.display.set_caption("Golem: Display Node")
   pygame.mouse.set_visible(False)
 
@@ -42,7 +42,8 @@ def Setup():
   setupBTAdapter()
   
   # Initialize BLE Server
-  asyncio.run(initServerAsync())
+  loop = asyncio.get_event_loop()
+  loop.run_until_complete(initServerAsync(loop))
   
   # Dirty way of waiting
   # ~ while not g.runningBLEserver:

@@ -1,8 +1,10 @@
 import simplepyble as ble
 import pygame
+import uuid
 import time
 
 lastLoopTime: float
+nodeID: str
 
 # Bluetooth
 deviceInfo: str
@@ -29,8 +31,9 @@ syncState = False
 screen: pygame.Surface
 
 def initGlobals():
-  global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices, deviceInfo
+  global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices, deviceInfo, nodeID
   lastLoopTime = time.time()
+  nodeID = str(uuid.uuid1()).split("-")[1]
 
   scannCrono = 5
   scannFrequency = 10
@@ -38,3 +41,5 @@ def initGlobals():
   foundDevices = []
   matchedDevices = []
   deviceInfo = ""
+  
+  print(f"Initialize Golem Node #{nodeID}")
