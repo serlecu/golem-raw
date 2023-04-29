@@ -1,4 +1,5 @@
 import simplepyble as ble
+# ~ from bleak import BLEDevice
 import pygame
 import uuid
 import time
@@ -12,6 +13,7 @@ isScanning: bool
 scannCrono: float
 scannFrequency: float
 foundDevices: list #str/bluetooth.Device
+foundDevicesBleak: list#[BLEDevice]
 matchedDevices: list
 failedNotifications: list
 
@@ -31,7 +33,7 @@ syncState = False
 screen: pygame.Surface
 
 def initGlobals():
-  global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices, deviceInfo, nodeID
+  global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices, deviceInfo, nodeID, foundDevicesBleak
   lastLoopTime = time.time()
   nodeID = str(uuid.uuid1()).split("-")[1]
 
@@ -39,6 +41,7 @@ def initGlobals():
   scannFrequency = 10
   isScanning = False
   foundDevices = []
+  foundDevicesBleak = []
   matchedDevices = []
   deviceInfo = ""
   

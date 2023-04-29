@@ -15,6 +15,9 @@ from bless import (
 import logging
 from typing import Any
 
+from bleak import BleakScanner
+from typing import Sequence
+
 import src.globals as g
 from src.globals import *
 
@@ -87,28 +90,30 @@ async def initServerAsync(loop):
     # ~ server.read_request_func = onReadRequest
     # ~ server.write_request_function = onWriteRequest
     
-    await server.add_gatt(gatt)
-    await server.start()
-    
-    # ~ try:
-        # ~ await server.add_new_service(SERVICE_UUID)
-    # ~ except Exception as e:
-        # ~ print(f"BLESS: Error adding Service: {e}")
+    # --- without gatt ---
+    try:
+        await server.add_new_service(SERVICE_UUID)
+    except Exception as e:
+        print(f"BLESS: Error adding Service: {e}")
+    else:
+        print(f"BLESS: service added {SERVICE_UUID}")
         
-    # ~ try:
-        # ~ await server.add_new_characteristic( SERVICE_UUID,
-                                   # ~ CHARACTERISTIC_UUID,
-                                   # ~ ( GATTCharacteristicProperties.read |
-                                     # ~ GATTCharacteristicProperties.write |
-                                     # ~ GATTCharacteristicProperties.notify ),
-                                    # ~ g.nodeID+"00",
-                                   # ~ ( GATTAttributePermissions.readable |
-                                     # ~ GATTAttributePermissions.writeable ) )
-    # ~ except Exception as e:
-        # ~ print(f"BLESS: Error adding characteristic: {e}")
-    # ~ else:
-        # ~ notifyChar = server.get_characteristic(CHARACTERISTIC_UUID)
-        # ~ print(notifyChar)
+    try:
+        await server.add_new_characteristic( SERVICE_UUID,
+                                   CHARACTERISTIC_UUID,
+                                   ( GATTCharacteristicProperties.read |
+                                     GATTCharacteristicProperties.write |
+                                     GATTCharacteristicProperties.notify ),
+                                    str(g.nodeID+"00").encode(),
+                                   ( GATTAttributePermissions.readable |
+                                     GATTAttributePermissions.writeable ) )
+    except Exception as e:
+        print(f"BLESS: Error adding characteristic: {e}")
+    else:
+        print(f"BLESS: characteristic added {CHARACTERISTIC_UUID}")
+        
+        notifyChar = server.get_characteristic(CHARACTERISTIC_UUID)
+        print(notifyChar)
         
     # ~ print("BLESS: Starting BLE server...")
     # ~ try:
@@ -123,6 +128,16 @@ async def initServerAsync(loop):
         # ~ bless_thread = threading.Thread(target=runBlessListener(), daemon=True)
         # ~ bless_thread.start()
     # ~ print("BLESS: async done")
+    await server.start()
+    
+    # --- With gatt ---
+    # ~ await server.add_gatt(gatt)
+    # ~ await server.start()
+    
+    if await server.is_advertising():
+        print("BLESS: server up and running!")
+    else:
+        print("BLESS ERROR: server not advertising")
 
 # BLESS        
 def runBlessListener():
@@ -169,15 +184,41 @@ def onWriteRequest( char: BlessGATTCharacteristic,
         trigger.set()
 
 
+# simpleBLE - Client
 def scanBT():
-    BTAdapter.scan_for(2000)
+    # ~ BTAdapter.scan_for(4000)
+    
+    asyncio.run(scanBTbleak())
     
     
+# BLEAK
+async def scanBTbleak():
+    #_onScanStart
+    g.isScanning = True
+    print("Scan started")
+    
+    scanner = BleakScanner() #service_uuids=[TARGET_SERVICE])
+    await scanner.start()
+    await asyncio.sleep(4.0)
+    await scanner.stop()
+    time.sleep(0.1)
+    g.foundDevicesBleak = scanner.discovered_devices
+    print(f"Found {len(scanner.discovered_devices)} devices")
+    
+    #_onScanStop
+    global devicesChecked
+    print("Scan complete")
+    for device in g.foundDevicesBleak :
+        print(f"{device.name} {device.address}")
+    devicesChecked = False
+    g.isScanning = False
+    
+# simpleBLE - Client
 def onScanStart():
     print("Scanning ...")
     g.isScanning = True
     
-    
+# simpleBLE - Client    
 def onScanStop():
     global devicesChecked
     print("Scan complete")
@@ -186,23 +227,13 @@ def onScanStop():
     g.isScanning = False
     
     
+# simpleBLE - Client   
 def onDeviceFound(device):
     print(f"Found device [{device.identifier()}] [{device.address}].")
     filterDevice(device, TARGET_SERVICE)
 
-def onDeviceFoundOther(device):
-    customUUID = "4A98xxxx-1CC4-E7C1-C757-F1267DD021E8"
-    print(f"Found: {device.identifier()} [{device.address()}]")
-    if device.is_connectable():
-        services = device.services()
-        for service in services:
-            for characteristic in service.characteristics():
-                if service.uuid() == customUUID:
-                    print("Found GOLEM service")
-                    connectBT(device)
-                    break
 
-
+# simpleBLE - Client  
 def filterDevice(device, targetService):
     global matchedDevices
     
@@ -210,6 +241,7 @@ def filterDevice(device, targetService):
         services = device.services()
         for service in services:
             if service.uuid() == targetService:
+                print("Found GOLEM service")
                 if (device in matchedDevices):
                     print(f"Device [{device.identifier()}] already stored.")
                 else:
