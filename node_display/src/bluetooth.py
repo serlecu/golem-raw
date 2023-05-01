@@ -138,11 +138,9 @@ async def connectBleak(client):
     while client:
         try:
             await client.connect()
-            print(f"BLEAK: {client.address} connected: {client.is_connected}")
         except Exception as e:
             print(f"BLEAK ERROR: Failed to connect to {client.address}. {e}")
-            if client in matchedClients:
-                matchedClients.remove(client)
+            client.disconnect()
             if client in connectingClients:
                 connectingClients.remove(client)
         else:
@@ -157,7 +155,6 @@ async def onConnectedDeviceBleak(device):
         await start_notify(char_specifier=CHARACTERISTIC_UUID, callback=onCharacNotified )
     except Exception as e:
         print(f"BLEAK ERROR: on notify. {e}")
-        
     connectingDevices.remove(client)
     
     
