@@ -34,8 +34,8 @@ def Setup():
   if platform_os == "Darwin":
     g.screen = pygame.display.set_mode((480,480))
   else:
-    g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
-    # ~ g.screen = pygame.display.set_mode((480,480))
+    # ~ g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
+    g.screen = pygame.display.set_mode((480,480))
   pygame.display.set_caption("Golem: Display Node")
   pygame.mouse.set_visible(False)
   g.setupPygame = True
@@ -47,20 +47,23 @@ def Setup():
   loop = asyncio.get_event_loop()
   loop.run_until_complete(initServerAsync(loop))
   
-
+  
 # End of Setup() ========================================
 
 
 def Update():
   import src.globals as g
+  
+  scan_thread = threading.Thread(target=bleakLoopThread, daemon=True)
+  scan_thread.start()
 
   while True:
     # Handle Bluetooth device scanning
-    if((g.isScanning == False) and (g.scannCrono <= 0)):
-      scan_thread = threading.Thread(target=scanBT, daemon=True)
-      scan_thread.start()
-      g.scannCrono = round(random.uniform(g.scannFrequency, g.scannFrequency+5.0), 2)
-      g.scannFrequency
+    # ~ if((g.isScanning == False) and (g.scannCrono <= 0)):
+      # ~ scan_thread = threading.Thread(target=scanBT, daemon=True)
+      # ~ scan_thread.start()
+      # ~ g.scannCrono = round(random.uniform(g.scannFrequency, g.scannFrequency+5.0), 2)
+      # ~ g.scannFrequency
        
     # Handle Pygame events
     for event in pygame.event.get():
@@ -75,9 +78,11 @@ def Update():
                 quit()
 
     # Handle Bluetooth connections
-    if (g.isConnecting == False) and (g.connectCrono <= 0) and (g.isScanning == False):
-      asyncio.run(handleBTConnections())
-      g.connectingCrono = round(random.uniform(g.connectFreq, g.connectFreq+5.0), 2)
+    # ~ if (g.isConnecting == False) and (g.connectCrono <= 0) and (g.isScanning == False):
+      # ~ connect_thread = threading.Thread(target=handleBTConnections(), daemon=True)
+      # ~ connect_thread.start()
+      # ~ asyncio.run(handleBTConnections())
+      # ~ g.connectingCrono = round(random.uniform(g.connectFreq, g.connectFreq+5.0), 2)
     
     # Handle Bluetooth notifications
     handleBTData()
@@ -91,12 +96,12 @@ def Update():
 
 
     # Update Timers
-    if(g.isScanning == False):
-      g.scannCrono -= (time.time() - g.lastLoopTime)
-    if (g.isConnecting == False):
-      g.connectCrono -= (time.time() - g.lastLoopTime)
+    # ~ if(g.isScanning == False):
+      # ~ g.scannCrono -= (time.time() - g.lastLoopTime)
+    # ~ if (g.isConnecting == False):
+      # ~ g.connectCrono -= (time.time() - g.lastLoopTime)
 
-    g.lastLoopTime = time.time()
+    # ~ g.lastLoopTime = time.time()
 
   # End of Update() ========================================
     

@@ -25,6 +25,7 @@ import src.globals as g
 # General BLE flags and arrays
 devicesChecked: bool = False
 matchedDevices = []
+connectedDevices = []
 connectingClients = []
 matchedClients = []
 
@@ -54,6 +55,57 @@ def setupBTAdapter():
     scanner = BleakScanner()
     
     g.setupBleak = True
+    
+
+def bleakLoopThread():
+    asyncio.run(bleakLoopAsync())
+
+    
+async def bleakLoopAsync():
+    killBleak = False
+    
+    while not killBleak:
+        # 1. Scann
+        if len(connectingClients) < 1:
+            try:
+                await scanBTbleak(scanner)
+            except Exception as e:
+                print(f"BLEAK 73: {e}")
+                
+        # 2. Connect
+        for d in matchedDevices:
+            async with BleakClient(d) as client:
+                print(f"BLEAK: Start Client {client.name}")
+                print(f"{client.name} is connected {client.is_connected}")
+                connectedDevices.append(d)
+                
+                # 3. Subscribe to notify
+                try:
+                    await client.start_notify(
+                                    char_specifier=CHARACTERISTIC_UUID, 
+                                    callback=onCharacNotified 
+                                    )
+                except Exception as e:
+                    print(f"BLEAK ERROR: on notify. {e}")
+                    counter -= 1
+                    await asyncio.sleep(3)
+                else:
+                    print(f"BLEAK: success subribing to {CHARACTERISTIC_UUID} of {client.address}")
+                    break
+                    
+                    keepConnected = true
+                    while keepConnected:
+                        await asyncio.sleep(2)
+                finally:
+                    try:
+                        await client.disconnect()
+                    except Exception as e:
+                        print(f"BLEAK ERROR: {e}")
+                    connectedDevices.remove(d)
+                    print(f"BLEAK: End Client {client.name}")
+                
+        
+        
 
 
 # BLEAK in-betweener
@@ -99,6 +151,8 @@ def filterDevice(device, targetService):
         # ~ client = BleakClient(device)
         if (device in matchedDevices):
             print(f"BLEAK alert: Device [{device.name}] already stored.")
+        elif (device in connectedDevices):
+            print(f"BLEAK alert: Device [{device.name}] already connected.")
         else:
             print(f"BLEAK: Match [{device.name}].")
             device.disconnected_callback = (lambda d=device: onDisconnectedDeviceBleak(d))
@@ -109,7 +163,7 @@ def filterDevice(device, targetService):
 # ========= HANDLE CONNECTIONS ===========
                     
 # BLEAK
-async def handleBTConnections():
+def handleBTConnections():
     global devicesChecked, matchedDevices, matchedClients, connectingClients 
     g.isConnecting = True
     print("Handling connections")
@@ -142,7 +196,7 @@ async def handleBTConnections():
                 #flag for duplicates        
                 checkMatched.append(device)
                 
-    await asyncio.sleep(10)
+    time.sleep(10)
     g.isConnecting = False
     
     
