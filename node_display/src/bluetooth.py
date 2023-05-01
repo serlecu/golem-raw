@@ -24,6 +24,7 @@ import src.globals as g
 
 # General BLE flags and arrays
 devicesChecked: bool = False
+matchedDevices = []
 connectingClients = []
 matchedClients = []
 
@@ -91,78 +92,103 @@ async def scanBTbleak(scanner):
                 
 # BLEAK 
 def filterDevice(device, targetService):
-    global matchedClients, serverName
+    global matchedDevices, matchedClients, serverName
     
-    print(f"BLESS: filter {device.name}")
+    # ~ print(f"BLESS: filter {device.name}")
     if ("Ore_GOLEM_" in device.name) and (device.name is not serverName):
-        client = BleakClient(device)
-        if (client in matchedClients):
+        # ~ client = BleakClient(device)
+        if (device in matchedDevices):
             print(f"BLEAK alert: Device [{device.name}] already stored.")
         else:
             print(f"BLEAK: Match [{device.name}].")
-            device.disconnected_callback = (lambda c=client: onDisconnectedDeviceBleak(c))
-            matchedClients.append(client)
+            device.disconnected_callback = (lambda d=device: onDisconnectedDeviceBleak(d))
+            matchedDevices.append(device)
+            # ~ matchedClients.append(client)
 
 
 # ========= HANDLE CONNECTIONS ===========
                     
 # BLEAK
-def handleBTConnections():
-    global devicesChecked, matchedClients, connectingClients 
-    
+async def handleBTConnections():
+    global devicesChecked, matchedDevices, matchedClients, connectingClients 
     g.isConnecting = True
-    # ~ print("Handling connections")
+    print("Handling connections")
     
     if (not g.isScanning) and (not devicesChecked):
-        if len(matchedClients) > 0:
-            for client in matchedClients:
+        if len(matchedDevices) > 0:  
+            checkMatched = []
+            for device in matchedDevices:
+                # Check and correct duplicates
+                if device in checkMatched:
+                    matchedClients.remove(device)
+                    continue
+                
+                client = BleakClient(device)
+                # Filter connected and connecting    
                 if client.is_connected:
                     print(f"BLEAK alert: Device [{client.address}] already connected.")
                 else:
                     if client in connectingClients:
                         print(f"BLEAK alert: Device [{client.address}] already connecting.")
                     else:
+                        # ~ try:
+                            # ~ await connectBleak(device)
+                        # ~ except Exception as e:
+                            # ~ print(f"BLEAK ERROR: 137 - {e}")
                         connectingClients.append(client)
-                        connect_thread = threading.Thread(target=lambda c=client: handleClientBleak(c), daemon=True)
+                        connect_thread = threading.Thread(target=lambda d=device: handleClientBleak(d), daemon=True)
                         connect_thread.start()
-                #! Problably i'll also need to check if paired
-
+                            
+                #flag for duplicates        
+                checkMatched.append(device)
+                
+    await asyncio.sleep(10)
     g.isConnecting = False
     
     
 # BLEAK - dirty async inside thread    
-def handleClientBleak(client):
-    asyncio.run(connectBleak(client))
+def handleClientBleak(device):
+    loop = asyncio.new_event_loop()
+    loop.run_until_complete(connectBleak(device))
     
 
 # BLEAK
-async def connectBleak(client):
+async def connectBleak(device):
     global connectingClients
     
-    print(f"BLEAK: Connecting to {client.address} ...")
-    await asyncio.sleep(1)
-
-    try:
-        await client.connect()
-    except Exception as e:
-        print(f"BLEAK ERROR: Failed to connect to {client.address}. {e}")
-        if client in connectingClients:
-            connectingClients.remove(client)
-    else:
-        await onConnectedDeviceBleak(client)
+    async with BleakClient(device) as client:
+        print(f"BLEAK: Connecting to {client.address} ...")
+        counter = 3
+        while counter > 0:
+            try:
+                await client.connect()
+            except Exception as e:
+                print(f"BLEAK ERROR: Failed to connect to {client.address}. {e}")
+                if client in connectingClients:
+                    connectingClients.remove(client)
+                    counter -= 1
+                    await asyncio.sleep(3)
+            else:
+                await onConnectedDeviceBleak(client)
+                break
     
 
 # BLEAK
 async def onConnectedDeviceBleak(client):
     print(f"BLEAK: Connection success {client.address}")
-    try:
-        # subscribe to the one characteristic notifications
-        await client.start_notify(char_specifier=CHARACTERISTIC_UUID, callback=onCharacNotified )
-    except Exception as e:
-        print(f"BLEAK ERROR: on notify. {e}")
-    else:
-        print(f"BLEAK: success subribing to {CHARACTERISTIC_UUID} of {client.address}")
-
+    
+    counter = 3
+    while counter > 0:
+        try:
+            # subscribe to the one characteristic notifications
+            await client.start_notify(char_specifier=CHARACTERISTIC_UUID, callback=onCharacNotified )
+        except Exception as e:
+            print(f"BLEAK ERROR: on notify. {e}")
+            counter -= 1
+            await asyncio.sleep(3)
+        else:
+            print(f"BLEAK: success subribing to {CHARACTERISTIC_UUID} of {client.address}")
+            break
     connectingClients.remove(client)
     
     
@@ -178,13 +204,11 @@ def onCharacNotified(char, byteArray):
 
 
 # BLEAK
-def onDisconnectedDeviceBleak(client):
+def onDisconnectedDeviceBleak(device):
     global connectingClients
-    print(f"BLEAK alert: Device {client.name} [{client.address}] disconnected")
-    if client in g.matchedClients:
-        g.matchedClients.remove(client)
-    if client in connectingClients:
-        connectingClients.remove(client)
+    print(f"BLEAK alert: Device[{device.address}] disconnected")
+    if device in g.matchedDevices:
+        g.matchedDevices.remove(device)
         
         
 # ======= BLESS server ======= #

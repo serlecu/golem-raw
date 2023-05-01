@@ -47,13 +47,6 @@ def Setup():
   loop = asyncio.get_event_loop()
   loop.run_until_complete(initServerAsync(loop))
   
-  # Dirty way of waiting
-  # ~ while not g.runningBLEserver:
-    # ~ time.sleep(0.5)
-  # This thread is blocking everything!!!!
-  # ~ bless_thread = threading.Thread(target=runBlessListener(), daemon=True)
-  # ~ bless_thread.start()
-  
 
 # End of Setup() ========================================
 
@@ -81,10 +74,12 @@ def Update():
                 pygame.quit()
                 quit()
 
-    # Handle Bluetooth connections and data
-    if (g.isConnecting == False) and (g.connectCrono <= 0):
-      handleBTConnections()
+    # Handle Bluetooth connections
+    if (g.isConnecting == False) and (g.connectCrono <= 0) and (g.isScanning == False):
+      asyncio.run(handleBTConnections())
       g.connectingCrono = round(random.uniform(g.connectFreq, g.connectFreq+5.0), 2)
+    
+    # Handle Bluetooth notifications
     handleBTData()
 
     # Draw graphics on the screen

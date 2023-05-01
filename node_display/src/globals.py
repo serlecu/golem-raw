@@ -20,7 +20,7 @@ foundDevicesBleak: list#[BLEDevice]
 
 isConnecting:bool = False
 connectCrono: float = 0.0
-connectFreq: float = 2.0
+connectFreq: float = 5.0
 failedNotifications: list
 
 runningBLEserver: bool = False
