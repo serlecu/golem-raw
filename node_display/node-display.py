@@ -6,7 +6,7 @@ import pygame
 from src.bluetooth import *
 from src.graphics import *
 from src.debug_display import *
-from src.rail import*
+from src.rail import *
 
 import simplepyble as ble
 
@@ -65,7 +65,8 @@ def Update():
     if((g.isScanning == False) and (g.scannCrono <= 0)):
       scan_thread = threading.Thread(target=scanBT, daemon=True)
       scan_thread.start()
-      g.scannCrono = g.scannFrequency
+      g.scannCrono = round(random.uniform(g.scannFrequency, g.scannFrequency+5.0), 2)
+      g.scannFrequency
        
     # Handle Pygame events
     for event in pygame.event.get():
@@ -82,6 +83,7 @@ def Update():
     # Handle Bluetooth connections and data
     if (g.isConnecting == False) and (g.connectCrono <= 0):
       handleBTConnections()
+      g.connectingCrono = round(random.uniform(g.connectFreq, g.connectFreq+5.0), 2)
     handleBTData()
 
     # Draw graphics on the screen

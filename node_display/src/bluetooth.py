@@ -45,7 +45,7 @@ CHARACTERISTIC_UUID:str = '51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B'
 # BLESS (BLE server) manages advertising and notification of characteristics
 
 
-# simpleBLE - Client
+
 def setupBTAdapter():
     global scanner
     print("Initializing Bluetooth...")
@@ -111,7 +111,7 @@ def handleBTConnections():
     global devicesChecked, matchedClients, connectingClients 
     
     g.isConnecting = True
-    print("Handling connections")
+    # ~ print("Handling connections")
     
     if (not g.isScanning) and (not devicesChecked):
         if len(matchedClients) > 0:
@@ -128,7 +128,6 @@ def handleBTConnections():
                 #! Problably i'll also need to check if paired
 
     g.isConnecting = False
-    g.connectingCrono = g.connectFreq
     
     
 # BLEAK - dirty async inside thread    
@@ -142,18 +141,15 @@ async def connectBleak(client):
     
     print(f"BLEAK: Connecting to {client.address} ...")
     await asyncio.sleep(1)
-    
-    while client:
-        try:
-            await client.connect()
-        except Exception as e:
-            print(f"BLEAK ERROR: Failed to connect to {client.address}. {e}")
-            if client in connectingClients:
-                connectingClients.remove(client)
-                break
-        else:
-            await onConnectedDeviceBleak(client)
-            break
+
+    try:
+        await client.connect()
+    except Exception as e:
+        print(f"BLEAK ERROR: Failed to connect to {client.address}. {e}")
+        if client in connectingClients:
+            connectingClients.remove(client)
+    else:
+        await onConnectedDeviceBleak(client)
     
 
 # BLEAK
