@@ -1,4 +1,5 @@
 import pygame
+from bleak import BleakClient
 
 import src.globals as g
 
@@ -10,27 +11,25 @@ def test_text(screen, text, pos, color):
     textpos.centery = pos[1]
     screen.blit(text, textpos)
 
-def debugScannedDevices(devices, screen):
+def debugScannedDevicesColor(devices, screen):
   ypos = 0
   for i, device in enumerate(devices):
-      textColor = (150, 150, 150)
-      if device.is_connected():
+      textColor = (100, 100, 100)
+      
+      if BleakClient(device).is_connected:
         textColor = (255, 255, 255)
-      elif not device.is_connectable():
-        #cannot be connected
-        textColor = (100, 100, 100)
 
-      text = "{}. {} -> {}".format(i, device.identifier(), device.address())
-      # text = "{}. {}".format(i, device)
+      text = f"{i}. {device.name} -> {device.address}"
       test_text(screen, text, (screen.get_width()/2, 100+ypos), textColor)
       ypos += 20
+      
       
 def debugScannedDevicesSimple(devices, screen):
   ypos = 0
   for i, device in enumerate(devices):
       textColor = (150, 150, 150)
 
-      test_text(screen, str(device.address), (screen.get_width()/2, 100+ypos), textColor)
+      test_text(screen, (f"{device.address}"), (screen.get_width()/2, 100+ypos), textColor)
       ypos += 20
 
 
@@ -45,6 +44,6 @@ def DrawDebugLayer():
         # ~ test_text(g.screen, "No devices found", (g.screen.get_width()/2, 100), (255, 255, 255))
         
     if(len(g.foundDevicesBleak) > 0):
-        debugScannedDevicesSimple(g.foundDevicesBleak, g.screen)
+        debugScannedDevicesColor(g.foundDevicesBleak, g.screen)
     else:
         test_text(g.screen, "No devices found", (g.screen.get_width()/2, 100), (255, 255, 255))

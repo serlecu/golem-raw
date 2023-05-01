@@ -15,9 +15,8 @@ deviceInfo: str
 isScanning: bool
 scannCrono: float
 scannFrequency: float
-foundDevices: list #str/bluetooth.Device
 foundDevicesBleak: list#[BLEDevice]
-matchedDevices: list
+# ~ matchedClients: list#[BleakClient]
 failedNotifications: list
 
 runningBLEserver: bool = False
@@ -45,7 +44,7 @@ def initGlobals():
   isScanning = False
   foundDevices = []
   foundDevicesBleak = []
-  matchedDevices = []
+  # ~ matchedClients = []
   deviceInfo = ""
   
   print(f"Initialize Golem Node #{nodeID}")

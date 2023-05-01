@@ -24,8 +24,8 @@ import src.globals as g
 
 # General BLE flags and arrays
 devicesChecked: bool = False
-connectingDevices = []
-matchedDevices = []
+connectingClients = []
+matchedClients = []
 
 # BLEAK scanner vars
 scanner: BleakScanner
@@ -57,7 +57,11 @@ def setupBTAdapter():
 
 # BLEAK in-betweener
 def scanBT():
-    global scanner
+    global scanner, connectingClients
+    
+    while len(connectingClients) > 0:
+        time.sleep(0.5)
+        
     asyncio.run(scanBTbleak(scanner))
     
 # BLEAK
@@ -89,68 +93,72 @@ async def scanBTbleak(scanner):
                 
 # BLEAK 
 def filterDevice(device, targetService):
-    global matchedDevices, serverName
+    global matchedClients, serverName
     
-    if "Ore_GOLEM_" in device.name and device.name is not serverName:
-        if (device in matchedDevices):
-            print(f"BLEAK alert: Device [{device.identifier()}] already stored.")
+    print(f"BLESS: filter {device.name}")
+    if ("Ore_GOLEM_" in device.name) and (device.name is not serverName):
+        client = BleakClient(device)
+        if (client in matchedClients):
+            print(f"BLEAK alert: Device [{device.name}] already stored.")
         else:
-            print(f"BLEAK: Match [{device.identifier()}].")
-            matchedDevices.append(device)
+            print(f"BLEAK: Match [{device.name}].")
+            device.disconnected_callback = (lambda c=client: onDisconnectedDeviceBleak(c))
+            if client.is_connected:
+                client.disconnect()
+            matchedClients.append(client)
 
 
 # ========= HANDLE CONNECTIONS ===========
                     
 # BLEAK
 def handleBTConnections():
-    global devicesChecked, matchedDevices, connectingDevices 
+    global devicesChecked, matchedClients, connectingClients 
     
 #     print("Handling connections")
     if (not g.isScanning) and (not devicesChecked):
-            for device in matchedDevices:
-                if (not device.is_connected()) and (device not in connectingDevices):
-                        connectingDevices.append(device)
-                        # ~ connect_thread = threading.Thread(target=lambda d=device: connectBleak(d), daemon=True)
-                        connect_thread = threading.Thread(target=lambda d=device: handleClientBleak(d), daemon=True)
+            for client in matchedClients:
+                if (not client.is_connected) and (client not in connectingClients):
+                        connectingClients.append(client)
+                        connect_thread = threading.Thread(target=lambda c=client: handleClientBleak(c), daemon=True)
                         connect_thread.start()
                 #! Problably i'll also need to check if paired
                 else:
-                    print(f"BLEAK alert: Device [{device.address()}] already connecting or connected.")
+                    print(f"BLEAK alert: Device [{client.address}] already connecting or connected.")
     
     
 # BLEAK - dirty async inside thread    
-def handleClientBleak(device):
-    asyncio.run(connectBleak(device))
+def handleClientBleak(client):
+    asyncio.run(connectBleak(client))
     
 
 # BLEAK
-async def connectBleak(device):
-    global connectingDevices, matchedDevices
-    print(f"BLEAK: Connecting to {device.address()} ...")
-    
-    try:
-        await device.connect()
-    except Exception as e:
-        print(f"BLEAK ERROR: Failed to connect to {device.address()}. {e}")
-        if device in matchedDevices:
-            matchedDevices.remove(device)
-        if device in connectingDevices:
-            connectingDevices.remove(device)
-    else:
-        device.disconnected_callback = (lambda d=device: onDisconnectedDeviceBleak(d))
-        await onConnectedDeviceBleak(device)
+async def connectBleak(client):
+    global connectingClients, matchedClients
+    print(f"BLEAK: Connecting to {client.address} ...")
+    while client:
+        try:
+            await client.connect()
+            print(f"BLEAK: {client.address} connected: {client.is_connected}")
+        except Exception as e:
+            print(f"BLEAK ERROR: Failed to connect to {client.address}. {e}")
+            if client in matchedClients:
+                matchedClients.remove(client)
+            if client in connectingClients:
+                connectingClients.remove(client)
+        else:
+            await onConnectedDeviceBleak(client)
     
 
 # BLEAK
 async def onConnectedDeviceBleak(device):
-    print(f"BLEAK: Connection success {device.name()} [{device.address()}]")
+    print(f"BLEAK: Connection success {client.name} [{client.address}]")
     try:
         # subscribe to the one characteristic notifications
         await start_notify(char_specifier=CHARACTERISTIC_UUID, callback=onCharacNotified )
     except Exception as e:
         print(f"BLEAK ERROR: on notify. {e}")
         
-    connectingDevices.remove(device)
+    connectingDevices.remove(client)
     
     
 # BLEAK
@@ -165,13 +173,10 @@ def onCharacNotified(char, byteArray):
 
 
 # BLEAK
-def onDisconnectedDeviceBleak(device):
-    print(f"BLEAK alert: Device {device.name()} [{device.address()}] disconnected")
-    if device in g.matchedDevices:
-        g.matchedDevices.remove(device)
-        
-    if device in connectingDevices:
-        connectingDevices.remove(device)
+def onDisconnectedDeviceBleak(client):
+    print(f"BLEAK alert: Device {client.name} [{client.address}] disconnected")
+    if client in g.matchedClients:
+        g.matchedClients.remove(client)
         
         
 # ======= BLESS server ======= #
@@ -195,6 +200,7 @@ async def initServerAsync(loop):
     # ~ trigger.clear()
     
     serverName = "Ore_GOLEM_" + g.nodeID
+    print(serverName)
     
     server = BlessServer(name=serverName, name_overwrite=True, loop=loop)
     

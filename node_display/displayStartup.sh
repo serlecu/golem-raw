@@ -22,3 +22,12 @@ python ~/Desktop/golem-node-screen/node_display/node-display.py
 
 # echo "run processing"
 #~/Desktop/golem-node-screen/node_display/application.linux-arm64/node_display &
+
+# == Do perform only once == wait...
+# add user to bluetooth group
+# ~ sudo usermod -a -G bluetooth $USER
+# previously add 'ExecStart=-/usr/lib/bluetooth/bluetoothd -- experimental'  to 'nano /etc/systemd/system/bluetooth.target.wants/bluetooth.service
+# restart bluetooth
+# ~ udo systemctl daemon-reload
+# ~ sudo systemctl restart bluetooth.service
+# ==========================
