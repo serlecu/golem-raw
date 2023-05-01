@@ -13,10 +13,14 @@ lastLoopTime: float
 # Bluetooth
 deviceInfo: str
 isScanning: bool
-scannCrono: float
-scannFrequency: float
+scannCrono: float = 3.0
+scannFrequency: float = 10.0
 foundDevicesBleak: list#[BLEDevice]
 # ~ matchedClients: list#[BleakClient]
+
+isConnecting:bool = False
+connectCrono: float = 0.0
+connectFreq: float = 2.0
 failedNotifications: list
 
 runningBLEserver: bool = False
@@ -40,7 +44,7 @@ def initGlobals():
   nodeID = str(uuid.uuid1()).split("-")[1]
 
   scannCrono = 5
-  scannFrequency = 10
+  # ~ scannFrequency = 10
   isScanning = False
   foundDevices = []
   foundDevicesBleak = []

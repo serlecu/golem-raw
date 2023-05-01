@@ -41,7 +41,7 @@ def initRail():
     moveToOrigin()
     
     print("RAIL: init end.")
-    time.sleep(2)
+    time.sleep(1)
     
     
 def railTest():

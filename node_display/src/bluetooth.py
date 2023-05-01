@@ -59,10 +59,8 @@ def setupBTAdapter():
 def scanBT():
     global scanner, connectingClients
     
-    while len(connectingClients) > 0:
-        time.sleep(0.5)
-        
-    asyncio.run(scanBTbleak(scanner))
+    if len(connectingClients) < 1:
+        asyncio.run(scanBTbleak(scanner))
     
 # BLEAK
 async def scanBTbleak(scanner):
@@ -74,7 +72,7 @@ async def scanBTbleak(scanner):
     await scanner.start()
     await asyncio.sleep(4.0)
     await scanner.stop()
-    time.sleep(0.1)
+    await asyncio.sleep(0.1)
     
     g.foundDevicesBleak = scanner.discovered_devices
     
@@ -103,8 +101,6 @@ def filterDevice(device, targetService):
         else:
             print(f"BLEAK: Match [{device.name}].")
             device.disconnected_callback = (lambda c=client: onDisconnectedDeviceBleak(c))
-            if client.is_connected:
-                client.disconnect()
             matchedClients.append(client)
 
 
@@ -114,16 +110,25 @@ def filterDevice(device, targetService):
 def handleBTConnections():
     global devicesChecked, matchedClients, connectingClients 
     
-#     print("Handling connections")
+    g.isConnecting = True
+    print("Handling connections")
+    
     if (not g.isScanning) and (not devicesChecked):
+        if len(matchedClients) > 0:
             for client in matchedClients:
-                if (not client.is_connected) and (client not in connectingClients):
+                if client.is_connected:
+                    print(f"BLEAK alert: Device [{client.address}] already connected.")
+                else:
+                    if client in connectingClients:
+                        print(f"BLEAK alert: Device [{client.address}] already connecting.")
+                    else:
                         connectingClients.append(client)
                         connect_thread = threading.Thread(target=lambda c=client: handleClientBleak(c), daemon=True)
                         connect_thread.start()
                 #! Problably i'll also need to check if paired
-                else:
-                    print(f"BLEAK alert: Device [{client.address}] already connecting or connected.")
+
+    g.isConnecting = False
+    g.connectingCrono = g.connectFreq
     
     
 # BLEAK - dirty async inside thread    
@@ -133,29 +138,36 @@ def handleClientBleak(client):
 
 # BLEAK
 async def connectBleak(client):
-    global connectingClients, matchedClients
+    global connectingClients
+    
     print(f"BLEAK: Connecting to {client.address} ...")
+    await asyncio.sleep(1)
+    
     while client:
         try:
             await client.connect()
         except Exception as e:
             print(f"BLEAK ERROR: Failed to connect to {client.address}. {e}")
-            client.disconnect()
             if client in connectingClients:
                 connectingClients.remove(client)
+                break
         else:
             await onConnectedDeviceBleak(client)
+            break
     
 
 # BLEAK
-async def onConnectedDeviceBleak(device):
-    print(f"BLEAK: Connection success {client.name} [{client.address}]")
+async def onConnectedDeviceBleak(client):
+    print(f"BLEAK: Connection success {client.address}")
     try:
         # subscribe to the one characteristic notifications
-        await start_notify(char_specifier=CHARACTERISTIC_UUID, callback=onCharacNotified )
+        await client.start_notify(char_specifier=CHARACTERISTIC_UUID, callback=onCharacNotified )
     except Exception as e:
         print(f"BLEAK ERROR: on notify. {e}")
-    connectingDevices.remove(client)
+    else:
+        print(f"BLEAK: success subribing to {CHARACTERISTIC_UUID} of {client.address}")
+
+    connectingClients.remove(client)
     
     
 # BLEAK
@@ -171,9 +183,12 @@ def onCharacNotified(char, byteArray):
 
 # BLEAK
 def onDisconnectedDeviceBleak(client):
+    global connectingClients
     print(f"BLEAK alert: Device {client.name} [{client.address}] disconnected")
     if client in g.matchedClients:
         g.matchedClients.remove(client)
+    if client in connectingClients:
+        connectingClients.remove(client)
         
         
 # ======= BLESS server ======= #
@@ -201,14 +216,6 @@ async def initServerAsync(loop):
     
     server = BlessServer(name=serverName, name_overwrite=True, loop=loop)
     
-    
-    # ~ adapterList = find_adapters(server.bus)
-    # ~ for a in adapterList:
-        # ~ print(a)
-    # ~ asyncio.sleep(10)
-    
-    # ~ server.read_request_func = onReadRequest
-    # ~ server.write_request_function = onWriteRequest
     
     # --- without gatt ---
     try:
