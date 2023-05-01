@@ -1,11 +1,14 @@
 import simplepyble as ble
-# ~ from bleak import BLEDevice
 import pygame
 import uuid
 import time
 
-lastLoopTime: float
 nodeID: str
+setupBleak: bool = False
+setupBless: bool = False
+setupPygame: bool = False
+lastLoopTime: float
+
 
 # Bluetooth
 deviceInfo: str
@@ -46,3 +49,4 @@ def initGlobals():
   deviceInfo = ""
   
   print(f"Initialize Golem Node #{nodeID}")
+  

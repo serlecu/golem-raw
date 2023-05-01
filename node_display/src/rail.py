@@ -6,7 +6,6 @@ import RPi.GPIO as GPIO
 import time
 
 import src.globals as g
-from src.globals import *
 
 
 driver : I2CStepperMotor
@@ -66,6 +65,10 @@ def railTest():
         s
 
 def railControl():
+    
+    # Wait for al setups to start running
+    while (not g.setupBleak) or (not g.setupBless) or (not g.setupPygame):
+        time.sleep(0.2) 
     
     while not g.killRail:
         if (g.syncState): #! Warning -> endSwitches

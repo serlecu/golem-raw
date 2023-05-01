@@ -33,15 +33,16 @@ def Setup():
   if platform_os == "Darwin":
     g.screen = pygame.display.set_mode((480,480))
   else:
-    g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
-    # ~ g.screen = pygame.display.set_mode((480,480))
+    # ~ g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
+    g.screen = pygame.display.set_mode((480,480))
   pygame.display.set_caption("Golem: Display Node")
   pygame.mouse.set_visible(False)
+  g.setupPygame = True
 
-  # Initialize BLE Client
+  # Initialize BLEAK Client
   setupBTAdapter()
   
-  # Initialize BLE Server
+  # Initialize BLESS Server
   loop = asyncio.get_event_loop()
   loop.run_until_complete(initServerAsync(loop))
   
