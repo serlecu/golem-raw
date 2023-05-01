@@ -2,6 +2,7 @@ import time
 import os
 import threading
 import pygame
+import random
 
 from src.bluetooth import *
 from src.graphics import *
