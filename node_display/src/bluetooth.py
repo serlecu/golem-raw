@@ -62,48 +62,70 @@ def bleakLoopThread():
 
     
 async def bleakLoopAsync():
+    global scanner
     killBleak = False
+    devices: Sequence[BLEDevice]
     
     while not killBleak:
-        # 1. Scann
-        if len(connectingClients) < 1:
-            try:
-                await scanBTbleak(scanner)
-            except Exception as e:
-                print(f"BLEAK 73: {e}")
-                
-        # 2. Connect
-        for d in matchedDevices:
-            async with BleakClient(d) as client:
-                print(f"BLEAK: Start Client {client.name}")
-                print(f"{client.name} is connected {client.is_connected}")
-                connectedDevices.append(d)
-                
-                # 3. Subscribe to notify
+        
+        async with BleakScanner() as scanner:
+            # 1. Scann
+            if len(connectingClients) < 1:
                 try:
-                    await client.start_notify(
-                                    char_specifier=CHARACTERISTIC_UUID, 
-                                    callback=onCharacNotified 
-                                    )
+                    # ~ await scanBTbleak(scanner)
+                    # ~ await scanner.start()
+                    await asyncio.sleep(5)
+                    # ~ devices = await scanner.discover(timeout=5.0)
+                    devices = scanner.discovered_devices
                 except Exception as e:
-                    print(f"BLEAK ERROR: on notify. {e}")
-                    counter -= 1
-                    await asyncio.sleep(3)
+                    print(f"BLEAK 73: {e}")
+                    await asyncio.sleep(5)
                 else:
-                    print(f"BLEAK: success subribing to {CHARACTERISTIC_UUID} of {client.address}")
-                    break
+                    g.foundDevicesBleak = list(devices)
+            await asyncio.sleep(2)
+            
+            # 2. Pick & Filter 
+            print("BLEAK: Filtering Found Devices...")
+            for device in g.foundDevicesBleak :
+                filterDevice(device, TARGET_SERVICE)
+            print("BLEAK: ...end filtering Found Devices.")
                     
-                    keepConnected = true
-                    while keepConnected:
-                        await asyncio.sleep(2)
-                finally:
-                    try:
-                        await client.disconnect()
-                    except Exception as e:
-                        print(f"BLEAK ERROR: {e}")
-                    connectedDevices.remove(d)
-                    print(f"BLEAK: End Client {client.name}")
-                
+            # 3. Connect
+            print("BLEAK: start connecting")
+            for d in matchedDevices:
+                if device in connectedDevices:
+                    continue
+                else:
+                    async with BleakClient(d) as client:
+                        print(f"BLEAK: Start Client {client.address}")
+                        print(f"{client.address} is connected {client.is_connected}")
+                        connectedDevices.append(d)
+                        
+                        # 4. Subscribe to notify
+                        try:
+                            await client.start_notify(
+                                            char_specifier=CHARACTERISTIC_UUID, 
+                                            callback=onCharacNotified 
+                                            )
+                        except Exception as e:
+                            print(f"BLEAK ERROR: on notify. {e}")
+                            counter -= 1
+                            await asyncio.sleep(3)
+                        else:
+                            print(f"BLEAK: success subribing to {CHARACTERISTIC_UUID} of {client.address}")
+                            break
+                            
+                            keepConnected = true
+                            while keepConnected:
+                                await asyncio.sleep(2)
+                        finally:
+                            try:
+                                await client.disconnect()
+                            except Exception as e:
+                                print(f"BLEAK ERROR: {e}")
+                            connectedDevices.remove(d)
+                            print(f"BLEAK: End Client {client.address}")   
+            # ~ await scanner.stop()
         
         
 
