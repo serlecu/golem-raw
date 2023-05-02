@@ -16,7 +16,7 @@ def debugScannedDevicesColor(devices, screen):
   for i, device in enumerate(devices):
       textColor = (100, 100, 100)
       
-      if "Ore_Golem_" in device.name:
+      if "SLAG_" in device.name:
         textColor = (255, 255, 255)
 
       text = f"{device.name} -> {device.address}"

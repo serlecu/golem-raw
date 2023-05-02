@@ -114,7 +114,7 @@ async def bleakLoopAsync():
                             await asyncio.sleep(3)
                         else:
                             print(f"BLEAK: success subribing to {CHARACTERISTIC_UUID} of {client.address}")
-                            keepConnected = true
+                            keepConnected = True
                             while keepConnected:
                                 await asyncio.sleep(10)
                                 await updateScanResoults(scanner)
@@ -147,7 +147,11 @@ async def updateScanResoults(scanner):
         else:
             g.foundDevicesBleak = list(devices)
             # ~ g.railSpeed = 50 + ( len(devices) * 5 )
-            g.railDelay = 1.0 - ( len(devices) * 0.07 )
+            # ~ g.railDelay = 1.0 - ( len(devices) * 0.07 )
+            if len(devices) > 0:
+                g.railDelay = 1.0 / len(devices)
+            else:
+                g.railDelay = 1.0
             
         await asyncio.sleep(2)
         print("BLEAK: end scanning")
@@ -196,7 +200,7 @@ def filterDevice(device, targetService):
     global matchedDevices, matchedClients, serverName
     
     # ~ print(f"BLESS: filter {device.name}")
-    if ("Ore_GOLEM_" in device.name) and (device.name is not serverName):
+    if ("SLAG_" in device.name) and (device.name is not serverName):
         # ~ client = BleakClient(device)
         if (device in matchedDevices):
             print(f"BLEAK alert: Device [{device.name}] already stored.")
@@ -298,7 +302,7 @@ async def onConnectedDeviceBleak(client):
 # BLEAK
 def onCharacNotified(char, byteArray):
     data = byteArray.decode()
-    clientName: str = "Ore_GOLEM_"+data[:3]
+    clientName: str = "SLAG_"+data[:3]
     print(f"BLEAK: Recieved msg from {clientName}: {data}")
     if data[-2:] == "01":
         g.syncState = True
@@ -334,7 +338,7 @@ async def initServerAsync(loop):
     
     # ~ trigger.clear()
     
-    serverName = "Ore_GOLEM_" + g.nodeID
+    serverName = "SLAG_" + g.nodeID
     print(serverName)
     
     server = BlessServer(name=serverName, name_overwrite=True, loop=loop)
