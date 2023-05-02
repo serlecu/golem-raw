@@ -16,10 +16,10 @@ def debugScannedDevicesColor(devices, screen):
   for i, device in enumerate(devices):
       textColor = (100, 100, 100)
       
-      if BleakClient(device).is_connected:
+      if "Ore_Golem_" in device.name:
         textColor = (255, 255, 255)
 
-      text = f"{i}. {device.name} -> {device.address}"
+      text = f"{device.name} -> {device.address}"
       test_text(screen, text, (screen.get_width()/2, 100+ypos), textColor)
       ypos += 20
       

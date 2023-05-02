@@ -15,6 +15,7 @@ deviceInfo: str
 isScanning: bool
 scannCrono: float = 3.0
 scannFrequency: float = 10.0
+killBleak: bool = False
 foundDevicesBleak: list#[BLEDevice]
 # ~ matchedClients: list#[BleakClient]
 

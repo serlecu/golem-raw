@@ -58,31 +58,33 @@ def setupBTAdapter():
     
 
 def bleakLoopThread():
+    # ~ loop = asyncio.new_event_loop()
+    # ~ loop.run_until_complete(bleakLoopAsync())
     asyncio.run(bleakLoopAsync())
 
     
 async def bleakLoopAsync():
     global scanner
-    killBleak = False
+    g.killBleak = False
     devices: Sequence[BLEDevice]
     
-    while not killBleak:
+    while not g.killBleak:
         
         async with BleakScanner() as scanner:
             # 1. Scann
-            if len(connectingClients) < 1:
-                try:
-                    # ~ await scanBTbleak(scanner)
-                    # ~ await scanner.start()
-                    await asyncio.sleep(5)
-                    # ~ devices = await scanner.discover(timeout=5.0)
-                    devices = scanner.discovered_devices
-                except Exception as e:
-                    print(f"BLEAK 73: {e}")
-                    await asyncio.sleep(5)
-                else:
-                    g.foundDevicesBleak = list(devices)
-            await asyncio.sleep(2)
+            await updateScanResoults(scanner)
+            # ~ if len(connectingClients) < 1:
+                # ~ try:
+                    # ~ await asyncio.sleep(5)
+                    # ~ devices = scanner.discovered_devices
+                # ~ except Exception as e:
+                    # ~ print(f"BLEAK 73: {e}")
+                    # ~ await asyncio.sleep(5)
+                # ~ else:
+                    # ~ g.foundDevicesBleak = list(devices)
+                    # ~ # g.railSpeed = 50 + ( len(devices) * 5 )
+                    # ~ g.railDelay = 1.0 - ( len(devices) * 0.07 )
+            # ~ await asyncio.sleep(2)
             
             # 2. Pick & Filter 
             print("BLEAK: Filtering Found Devices...")
@@ -109,25 +111,50 @@ async def bleakLoopAsync():
                                             )
                         except Exception as e:
                             print(f"BLEAK ERROR: on notify. {e}")
-                            counter -= 1
                             await asyncio.sleep(3)
                         else:
                             print(f"BLEAK: success subribing to {CHARACTERISTIC_UUID} of {client.address}")
-                            break
-                            
                             keepConnected = true
                             while keepConnected:
-                                await asyncio.sleep(2)
+                                await asyncio.sleep(10)
+                                await updateScanResoults(scanner)
+                                
                         finally:
                             try:
-                                await client.disconnect()
+                                await client.unpair()
                             except Exception as e:
                                 print(f"BLEAK ERROR: {e}")
-                            connectedDevices.remove(d)
-                            print(f"BLEAK: End Client {client.address}")   
+                            finally:
+                                connectedDevices.remove(d)
+                                print(f"BLEAK: End Client {client.address}")   
             # ~ await scanner.stop()
         
+async def updateScanResoults(scanner):
+    
+    if not g.isScanning:
+        print("BLEAK: start scanning")
+        g.isScanning = True
         
+        try:
+            # ~ await scanBTbleak(scanner)
+            # ~ await scanner.start()
+            await asyncio.sleep(5)
+            # ~ devices = await scanner.discover(timeout=5.0)
+            devices = scanner.discovered_devices
+        except Exception as e:
+            print(f"BLEAK 73: {e}")
+            await asyncio.sleep(5)
+        else:
+            g.foundDevicesBleak = list(devices)
+            # ~ g.railSpeed = 50 + ( len(devices) * 5 )
+            g.railDelay = 1.0 - ( len(devices) * 0.07 )
+            
+        await asyncio.sleep(2)
+        print("BLEAK: end scanning")
+        g.scannCrono = g.scannFrequency
+        g.isScanning = False
+        
+            
 
 
 # BLEAK in-betweener

@@ -34,8 +34,8 @@ def Setup():
   if platform_os == "Darwin":
     g.screen = pygame.display.set_mode((480,480))
   else:
-    # ~ g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
-    g.screen = pygame.display.set_mode((480,480))
+    g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
+    # ~ g.screen = pygame.display.set_mode((480,480))
   pygame.display.set_caption("Golem: Display Node")
   pygame.mouse.set_visible(False)
   g.setupPygame = True
@@ -96,8 +96,8 @@ def Update():
 
 
     # Update Timers
-    # ~ if(g.isScanning == False):
-      # ~ g.scannCrono -= (time.time() - g.lastLoopTime)
+    if(g.isScanning == False):
+      g.scannCrono -= (time.time() - g.lastLoopTime)
     # ~ if (g.isConnecting == False):
       # ~ g.connectCrono -= (time.time() - g.lastLoopTime)
 
