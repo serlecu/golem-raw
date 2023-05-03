@@ -142,7 +142,7 @@ def handleEndSwitch():
         
 def readEndSwitch():
     input_state: bool = GPIO.input(26)
-    return not input_state
+    return input_state
     
     
 def stepRun(speed, direction, sleep) :
