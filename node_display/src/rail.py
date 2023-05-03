@@ -62,25 +62,56 @@ def railTest():
         print(f"Direction: {direction}")
         # Perform Step
         stepRun(50, direction, 0.5)
-        s
+        
 
 def railControl():
     
     # Wait for al setups to start running
     while (not g.setupBleak) or (not g.setupBless) or (not g.setupPygame):
         time.sleep(0.2) 
-    
+        
+    while not g.i2cConnected:
+        try:
+            initRail()
+        except Exception as e:
+            print(e)
+            time.sleep(2)
+        else:
+            g.i2cConnected = True
+            
     while not g.killRail:
-        if (g.syncState): #! Warning -> endSwitches
-            moveToOrigin()
-            syncState = False
-            continue
-        # Handle EndSwitches -> direction
-        handleEndSwitch()
-        # Perform Step
-        stepRun(g.railSpeed, g.railDirection, g.railDelay)
-
-
+        if g.i2cConnected:
+            try:
+                if (g.syncState): #! Warning -> endSwitches
+                    moveToOrigin()
+                    syncState = False
+                    continue
+                # Handle EndSwitches -> direction
+                handleEndSwitch()
+                # Perform Step
+                stepRun(g.railSpeed, g.railDirection, g.railDelay)
+            except Exception as e:
+                print(e)
+                g.i2cConnected = False
+        else:
+            try:
+                # Setup End-Switches
+                GPIO.setmode(GPIO.BCM)
+                GPIO.setup(26, GPIO.IN)
+                
+                # Setup i2C-driver
+                driver = I2CStepperMotor(loadArgs)
+                driver.set_speed(0,0)
+                driver._rotate(0)
+                stepRun(0,0,1)
+                driver.enable(True)
+            except Exception as e:
+                print(e)
+                time.sleep(2)
+            else:
+                g.i2cConnected = True
+                
+                
 def moveToOrigin():
     onOrigin = False
     
@@ -111,7 +142,7 @@ def handleEndSwitch():
         
 def readEndSwitch():
     input_state: bool = GPIO.input(26)
-    return input_state
+    return not input_state
     
     
 def stepRun(speed, direction, sleep) :

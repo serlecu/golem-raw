@@ -17,7 +17,13 @@ def Setup():
   g.initGlobals()
   
   # Init Rail
-  initRail()
+  try:
+    initRail()
+  except Exception as e:
+    print(e)
+  else:
+    g.i2cConnected = True
+     
   rail_thread = threading.Thread(target=railControl, daemon=True)
   rail_thread.start()
   
@@ -34,8 +40,8 @@ def Setup():
   if platform_os == "Darwin":
     g.screen = pygame.display.set_mode((480,480))
   else:
-    g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
-    # ~ g.screen = pygame.display.set_mode((480,480))
+    # ~ g.screen = pygame.display.set_mode((480,480),pygame.FULLSCREEN)
+    g.screen = pygame.display.set_mode((480,480))
   pygame.display.set_caption("Golem: Display Node")
   pygame.mouse.set_visible(False)
   g.setupPygame = True

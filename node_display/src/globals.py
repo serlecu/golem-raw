@@ -27,6 +27,7 @@ failedNotifications: list
 runningBLEserver: bool = False
 
 # Rail
+i2cConnected = False
 killRail: bool = False
 lastEndSwitch: bool = False
 railDirection: bool = True
