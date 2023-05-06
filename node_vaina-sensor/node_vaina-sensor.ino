@@ -57,12 +57,23 @@ DigitalOut led1(LED1); // test against freeze
 
 // -- Sensors -- //
 bool sensorsUpdated = false;
+// update flags
+bool magnetUpdate = false;
+bool accelUpdate = false;
+bool gyroUpdate = false;
+bool lightUpdate = false;
+bool gestUpdate = false;
+bool proxUpdate = false;
+bool tempUpdate = false;
+bool humUpdate = false;
+bool pressUpdate = false;
+bool irUpdate = false;
 // Sensors - BMI270 & BMM150
 float magnetValues[3];
 float accelValues[3]; //miss
 float gyroValues[3]; //miss
 // Sensors - APD
-int lightValues[4];
+int lightValues[3];
 int valGesture;
 int valProximity;
 // Sensors - HS300x
@@ -112,6 +123,7 @@ double coutoffFrequencies[FREQUENCY_BANDS];
 volatile double resultsFFT[FREQUENCY_BANDS];
 
 // -- Bluetooth LE -- //
+BLEDevice central;
 bool wasConnected = false;
 uint8_t magnetBytes[512], accelBytes[512], gyroBytes[512];
 uint8_t lightBytes[512], gestBytes[512], proxBytes[512];
@@ -162,15 +174,12 @@ void setup() {
   // --- SERIAL ---
   inLedGreen(HIGH);
   Serial.begin(115200);
-  while (!Serial);
-  inLedGreen(LOW);  
-  delay(1000);
-  
-  // if (!Serial){
-  //   errorSequence(2);
-  // }
-  // inLedGreen(LOW);
-  // delay(1500);
+  delay(1500);
+  if (!Serial){
+    errorSequence(2);
+  }
+  inLedGreen(LOW);
+  delay(1500);
   
   // --- SENSORS ---
   inLedGreen(HIGH);
@@ -182,7 +191,10 @@ void setup() {
   inLedGreen(HIGH);
   // Initialize PDM and IR
   if(!setupIR()){
+    Serial.println( "starting IR failed!" );
+    // Serial.println( "Restarting..." );
     errorSequence(3);
+    // resetFunc(); // Reset if not succeded
   }
   inLedGreen(LOW);
   delay(1500);
@@ -218,5 +230,5 @@ void loop() {
   handleSensors();
   handleOLED();
 
-  delay(10);
+  delay(1);
 }
