@@ -57,3 +57,7 @@ void errorSequence(int loop = 2) {
     loop --;
   }
 }
+
+void blink(){
+    led1 = !led1;
+}

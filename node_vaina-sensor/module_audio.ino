@@ -1,4 +1,6 @@
 // ====== IN SETUP ======
+bool startedPDM = false;
+
 bool setupIR() {
 
   PDM.onReceive(onPDMdata);
@@ -6,13 +8,15 @@ bool setupIR() {
 
   if (!PDM.begin(1, 16000)) {
     errorOLED(30);
-    // Serial.println("Failed to start PDM!");
+    Serial.println("Failed to start PDM!");
     return false;
+  } else {
+    startedPDM = true;
   }
   
   // -- IMPULSE --
   // change pwm output freq for PWM_A
-  PWM_A.period(1.0/32080.0); // was 200k, I'm testing 32k80 for a 16k SampleRat
+   PWM_A.period(1.0/20000.0); // was 200k, I'm testing 32k80 for a 16k SampleRat
   // Start the Threads
   impulseThread.start( playImpulseThreadedLoop );
 
@@ -32,26 +36,28 @@ bool setupIR() {
 
 
 // ======= IN LOOP =======
-void handleIR() {
+void handleIR(bool canRun) {
+  if ( canRun ) {
 
-  if ( isIRon ) {
+    if ( isIRon ) {
 
-    takeSamplesPDMParallel();
-    computeFFT();
+      takeSamplesPDMParallel();
+      computeFFT();
 
-  } else {
-    if ( (millis() - IRtimer) > AUDIO_IMPULSE_FREQ ) {
-      launchIR = NOTIFICATION_BADGE_DECAY; // bang in OLED
-      
-      isIRon = true; // flag for start IR routine
-      //isPlaying = true;
-      canPlay = true;
-      isRecording = true;
+    } else {
+      if ( (millis() - IRtimer) > AUDIO_IMPULSE_FREQ ) {
+        launchIR = NOTIFICATION_BADGE_DECAY; // bang in OLED
         
-      IRtimer = millis();
+        isIRon = true; // flag for start IR routine
+        //isPlaying = true;
+        canPlay = true;
+        isRecording = true;
+          
+        IRtimer = millis();
+      }
     }
-  }
 
+  }
 }
 
 
@@ -71,23 +77,21 @@ void playImpulseThreadedLoop() {
     if (canPlay){
       isPlaying = true;
       playbackTimer = millis();
-      //Serial.println("Start Impulse ...");
+      Serial.println("Start Impulse ...");
 
       playingSample = 0;
-      audioTicker.attach(&outputSample, 1.0 / 16000.0);
-      
-      // int i = 0;
-      // int freq_A = 5;
+      // audioTicker.attach(&outputSample, 1.0 / 16000.0);
 
       while ( (millis() - playbackTimer) < IBUFFER_MILLIS ){
-        //Serial.println(String((millis() - playbackTimer))+" / "+String(IBUFFER_MILLIS));
+        Serial.println(String((millis() - playbackTimer))+" / "+String(IBUFFER_MILLIS));
         rtos::ThisThread::sleep_for(20);
       }
 
-      audioTicker.detach();
-      PWM_A = 0.0;
+      // audioTicker.detach();
+      // analogWrite(2, -1);
+      // PWM_A = 0.0;
 
-      //Serial.println("... end Impulse.");
+      Serial.println("... end Impulse.");
       isPlaying = false;
       canPlay = false;
     }
@@ -97,10 +101,13 @@ void playImpulseThreadedLoop() {
 
 // Record
 void takeSamplesPDMParallel() { // PDM lib version
-
   if (isRecording) {
     if (!wasRecording) {
-      // Serial.println("Start recording ...");
+      Serial.println("Start recording ...");
+      if (! startedPDM ) {
+        errorSequence(3);
+        Serial.println("PDM needs reboot");
+      }
       wasRecording = true;
       readingSample = 0;
     }
@@ -115,7 +122,7 @@ void takeSamplesPDMParallel() { // PDM lib version
         // Serial.println("GO! "+ String(freshSamplesChecked));
 
       } else if( freshSamples < 1 ){
-        // Serial.println("Recording: No samples available.");
+        Serial.println("Recording: No samples available.");
         return;
       }
 
@@ -131,7 +138,7 @@ void takeSamplesPDMParallel() { // PDM lib version
 
         } else {
           totalSamples = i;
-          // Serial.println( "Unexpected end" );
+          Serial.println( "Unexpected end" );
           break;
         }
       }
@@ -147,7 +154,7 @@ void takeSamplesPDMParallel() { // PDM lib version
 
   } else {
     if (wasRecording) {
-      // Serial.println("... end recording.");
+      Serial.println("... end recording.");
       wasRecording = false;
       isIRprocessing = 1;
     }
@@ -159,6 +166,7 @@ void takeSamplesPDMParallel() { // PDM lib version
 void computeFFT() {
   switch (isIRprocessing) {
     case 1:
+      Serial.println("Start Processing!");
       // compute FFT
       fft.DCRemoval();
       fft.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);
@@ -204,7 +212,7 @@ void computeFFT() {
         resultsFFT[index] = median[index]; 
       }
 
-      // Serial.println("Done Processing!");
+      Serial.println("Done Processing!");
       // for (int i = 0; i < FREQUENCY_BANDS; i++) {
       //    Serial.print( String(median[i])+", ");
       // }

@@ -3,6 +3,9 @@ void setupBLE() {
   String deviceName = "GOLEM_Vaina_" + BLE.address().substring(9); //last 3 bytes of the MAC address
   BLE.setDeviceName( deviceName.c_str() );
   BLE.setLocalName( deviceName.c_str() );
+  // BLE.setAdvertisingInterval(30); // 48 * 0.625
+  // BLE.setConnectionInterval(5, 10); // 7.5 ms minimum, 4 s maximum (* 1,25 )
+
   BLE.setAdvertisedService( customService );
   // add Custom Characteristics
   customService.addCharacteristic(mbMagChar);
@@ -17,6 +20,8 @@ void setupBLE() {
   customService.addCharacteristic(impulseResponseChar);
   // add Service
   BLE.addService( customService );
+
+  firstPublish();
   
   // set BLE event handlers
   BLE.setEventHandler( BLEConnected, blePeripheralConnectHandler );
@@ -31,13 +36,23 @@ void setupBLE() {
 }
 
 void handleBLE() {
-  BLEDevice central = BLE.central();
+  if (!BLE.connected()){
+    BLEDevice central = BLE.central();
+  }
   
   if (BLE.connected()) {
+    if( !wasConnected ){
+      // delay(100);
+      wasConnected = true;
+    }
 
     onConnected();
 
   } else {
+    if( wasConnected ){
+      // delay(100);
+      wasConnected = false;
+    }
 
     if ( (millis() - disconnectedTimer) > UNCONNECTED_BLINK_FREQ ) {
       waitForConnection();
@@ -72,6 +87,7 @@ void blePeripheralConnectHandler( BLEDevice central ) {
   inLedBlue(waitBleLed);
   Serial.print("Connected to: ");
   Serial.println(String(central.address()));
+  delay(10);
 }
 
 void blePeripheralDisconnectHandler( BLEDevice central ) {
@@ -79,6 +95,68 @@ void blePeripheralDisconnectHandler( BLEDevice central ) {
   inLedBlue(waitBleLed);
   Serial.print("Disconnected from: ");
   Serial.println(String(central.address()));
+  delay(10);
+}
+
+void firstPublish() {
+  stringValue = String(VAINA_ID);
+  stringValue += String(10);
+  stringValue.getBytes( magnetBytes, sizeof(magnetBytes) );
+  mbMagChar.writeValue( magnetBytes, sizeof(magnetBytes) );
+
+  // Accel
+  stringValue = String(VAINA_ID);
+  stringValue += String(10);
+  stringValue.getBytes( accelBytes, sizeof(accelBytes) );
+  mbAccelChar.writeValue( accelBytes, sizeof(accelBytes) );
+
+  // Gyro
+  stringValue = String(VAINA_ID);
+  stringValue += String(10);
+  stringValue.getBytes( gyroBytes, sizeof(gyroBytes) );
+  mbGyroChar.writeValue( gyroBytes, sizeof(gyroBytes) );
+
+  // Color & Light
+  stringValue = String(VAINA_ID);
+  stringValue += String(20);
+  stringValue.getBytes( lightBytes, sizeof(lightBytes) );
+  apdLightChar.writeValue( lightBytes, sizeof(lightBytes) );
+
+  // Gesture
+  stringValue = String(VAINA_ID);
+  stringValue += String(40);
+  stringValue.getBytes( gestBytes, sizeof(gestBytes) );
+  apdGestureChar.writeValue( gestBytes, sizeof(gestBytes) );
+  
+  // Proximity
+  stringValue = String(VAINA_ID);
+  stringValue += String(40);
+  stringValue.getBytes( proxBytes, sizeof(proxBytes) );
+  adpProxChar.writeValue( proxBytes, sizeof(proxBytes) );
+
+  // Temperature
+  stringValue = String(VAINA_ID);
+  stringValue += String(50);
+  stringValue.getBytes( tempBytes, sizeof(tempBytes) );
+  hs3TempChar.writeValue( tempBytes, sizeof(tempBytes) ); 
+  
+  // Humidity
+  stringValue = String(VAINA_ID);
+  stringValue += String(60);
+  stringValue.getBytes( humBytes, sizeof(humBytes) );
+  hs3HumChar.writeValue( humBytes, sizeof(humBytes) );
+  
+  //Presure
+  stringValue = String(VAINA_ID);
+  stringValue += String(70);
+  stringValue.getBytes( pressBytes, sizeof(pressBytes) );
+  lpsPressChar.writeValue( pressBytes, sizeof(pressBytes) );
+
+  // IR
+  stringValue = String(VAINA_ID);
+  stringValue += String(80);
+  stringValue.getBytes( irBytes, sizeof(irBytes) );
+  impulseResponseChar.writeValue(irBytes, sizeof(irBytes));
 }
 
 void publishValues() {
