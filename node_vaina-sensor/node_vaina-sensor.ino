@@ -52,6 +52,8 @@ bool isConnected = false; //miss
 bool waitBleLed = false; //Blue Blink while waiting for connection
 unsigned long disconnectedTimer;
 unsigned long mainTimer;
+Ticker tickerBlink; 
+DigitalOut led1(LED1); // test against freeze
 
 // -- Sensors -- //
 bool sensorsUpdated = false;
@@ -119,9 +121,9 @@ String stringValue, magnetValuesStr, accelValuesStr, gyroValuesStr, lightValuesS
 // Service
 BLEService customService("19B10000-E8F2-537E-4F6C-D104768A1214"); // create a custom service
 // Characteristics
-BLECharacteristic BMMagChar("19B10010-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
-BLECharacteristic BMAccelChar("19B10011-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
-BLECharacteristic BMGyroChar("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
+BLECharacteristic mbMagChar("19B10010-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512); // create a custom characteristic
+BLECharacteristic mbAccelChar("19B10011-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
+BLECharacteristic mbGyroChar("19B10012-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
 BLECharacteristic apdLightChar("19B10020-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
 BLECharacteristic apdGestureChar("19B10030-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
 BLECharacteristic adpProxChar("19B10040-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 512);
@@ -146,6 +148,7 @@ int displayErrorOLED = 0;
 
 void setup() {
   setupRGBLED();
+  tickerBlink.attach(&blink, 1);
 
   // --- OLED ---
   inLedGreen(HIGH);
@@ -159,14 +162,15 @@ void setup() {
   // --- SERIAL ---
   inLedGreen(HIGH);
   Serial.begin(115200);
+  while (!Serial);
   inLedGreen(LOW);  
-  delay(500);
+  delay(1000);
   
-  if (!Serial){
-    errorSequence(2);
-  }
-  inLedGreen(LOW);
-  delay(1500);
+  // if (!Serial){
+  //   errorSequence(2);
+  // }
+  // inLedGreen(LOW);
+  // delay(1500);
   
   // --- SENSORS ---
   inLedGreen(HIGH);
@@ -189,7 +193,7 @@ void setup() {
     inLedBlue(LOW);
     Serial.println( "starting Bluetooth® Low Energy module failed!" );
     Serial.println( "Restarting..." );
-    errorSequence(3);
+    errorSequence(4);
     resetFunc(); // Reset if not succeded
   }
   inLedBlue(LOW);
@@ -210,7 +214,7 @@ void setup() {
 void loop() {
 
   handleBLE();
-  handleIR();
+  handleIR(wasConnected);
   handleSensors();
   handleOLED();
 
