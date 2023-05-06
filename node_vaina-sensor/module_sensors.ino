@@ -62,18 +62,6 @@ void readSensors() {
   //APDS
   if ((APDS.colorAvailable()) && (lightUpdate == false)) {
     APDS.readColor(lightValues[0], lightValues[1], lightValues[2]);
-    lightValues[4] = (int)((lightValues[0]+lightValues[1]+lightValues[2]) * 0.33);
-
-    // lightValuesStr = "";
-    // for(int i = 0; i < sizeof(lightValues); i++) {
-    //   lightValuesStr += String(lightValues[i]);
-    //   if(i < (sizeof(lightValues)-1)) {
-    //     lightValuesStr += ",";
-    //   }
-    // }
-
-    // Serial.print("LIGHT value: ");
-    // Serial.println(lightValuesStr);
     lightUpdate = true;
   }
   if (APDS.gestureAvailable()) {

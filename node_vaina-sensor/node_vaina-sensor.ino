@@ -73,7 +73,7 @@ float magnetValues[3];
 float accelValues[3]; //miss
 float gyroValues[3]; //miss
 // Sensors - APD
-int lightValues[4] = {0,0,0,0};
+int lightValues[3];
 int valGesture;
 int valProximity;
 // Sensors - HS300x

@@ -251,19 +251,19 @@ void publishValues() {
   // Serial.println("publishValues: FLAG 3");
   // Color & Light
   if (lightUpdate) {
-  //   lightValuesStr = "";
-  //   for(int i = 0; i < 3; i++) {
-  //     lightValuesStr += String(lightValues[i]);
-  //     if(i < 2) {
-  //       lightValuesStr += ",";
-  //     }
-  //   }
-    // Serial.println(lightValuesStr);
-    // stringValue = String(VAINA_ID);
-    // stringValue += String(20);
-    // stringValue += lightValuesStr; // int[4][0-255]
-    // stringValue.getBytes( lightBytes, sizeof(lightBytes) );
-    // apdLightChar.writeValue( lightBytes, sizeof(lightBytes) );
+    lightValuesStr = "";
+    for(int i = 0; i < 3; i++) {
+      lightValuesStr += String(lightValues[i]);
+      if(i < 2) {
+        lightValuesStr += ",";
+      }
+    }
+    Serial.println(lightValuesStr);
+    stringValue = String(VAINA_ID);
+    stringValue += String(20);
+    stringValue += lightValuesStr; // int[4][0-255]
+    stringValue.getBytes( lightBytes, sizeof(lightBytes) );
+    apdLightChar.writeValue( lightBytes, sizeof(lightBytes) );
 
     lightUpdate = false;
   }
