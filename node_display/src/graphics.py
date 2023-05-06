@@ -13,7 +13,7 @@ def test_ellipse(screen, color, radius, angle):
     centerX = (int)(screen.get_width()/2)
     centerY = (int)(screen.get_height()/2)
     gfxdraw.aaellipse(screen, centerX, centerY, radius, radius, color)
-    gfxdraw.line(screen, centerX, centerY, centerX+(int)(radius*math.cos(angle)), centerY+(int)(radius*math.sin(angle)), (0,0,0))
+    gfxdraw.line(screen, centerX, centerY, centerX+(int)(radius*math.cos(angle)), centerY+(int)(radius*math.sin(angle)), (200,200,200))
 
 # testing text
 def test_text(screen, text, pos, color):
@@ -27,5 +27,5 @@ def test_text(screen, text, pos, color):
 
 
 def DrawLoop():
-    draw_background(g.screen, (50, 50, 50))
-    test_ellipse(g.screen, (200, 200, 200), 200, time.time())
+    draw_background(g.screen, (0, 0, 0))
+    test_ellipse(g.screen, (200, 200, 200, 100), 200, time.time())
