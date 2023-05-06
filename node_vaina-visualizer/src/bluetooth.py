@@ -76,12 +76,13 @@ def filterDevice(device, targetUUID):
             for service in services:
                 if service.uuid() == targetUUID:
                     # print(f"Matching target service {service.uuid()}")
-                    if not (device in g.matchedDevices):
-                        print(f"New matched {device.identifier()} [{device.address()}].")
-                        g.matchedDevices.append(device)
-                    else:
-                        print(f"Device {device.identifier()} already stored.")
-                    break
+                    if not device.is_connected():
+                        if not (device in g.matchedDevices):
+                            print(f"New matched {device.identifier()} [{device.address()}].")
+                            g.matchedDevices.append(device)
+                        else:
+                            print(f"Device {device.identifier()} already stored.")
+                        break
                 else:
                     print(f"Service not matching target")
 
@@ -145,7 +146,7 @@ def retryNotificationSubscription():
                         asyncio.run( device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) ) )
                         # device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) )
                     except:
-                        print(f" - Failed to subscribe to {device.identifier()} [{device.address()}]")
+                        print(f" - Failed to subscribe {char} in {device.identifier()} [{device.address()}]")
                     else:
                         g.failedNotifications.remove((device, service, char))
                     time.sleep(1)
