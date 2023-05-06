@@ -36,7 +36,7 @@ def initGlobals():
   global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices, matchedDevices, sensorDataList, screen
   lastLoopTime = time.time()
 
-  scannCrono = 5
+  scannCrono = 2
   scannFrequency = 5
   isScanning = False
   foundDevices = []
