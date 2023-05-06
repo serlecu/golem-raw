@@ -29,7 +29,8 @@ def setupBTAdapter():
           BTAdapter = adapters[0] # I take the first adapter IDKW                   
           BTAdapter.set_callback_on_scan_start( lambda: onScanStart() )      
           BTAdapter.set_callback_on_scan_stop( lambda: onScanStop() )
-          BTAdapter.set_callback_on_scan_found(lambda peripheral: filterDevice(peripheral, TARGET_UUID) )
+          # This can be a source of problems when connecting, let's check
+          # BTAdapter.set_callback_on_scan_found(lambda peripheral: filterDevice(peripheral, TARGET_UUID) )
           isAdapterSet = True
 
 
@@ -46,44 +47,65 @@ def onScanStart():
 def onScanStop():
     global devicesChecked, BTAdapter
     print("Scan complete.")
-    devicesChecked = False
+    filterDevices(BTAdapter.scan_get_results(), TARGET_UUID)
+    # devicesChecked = False
     g.isScanning = False
+
+
+def filterDevices(devices, targetUUID):
+    global devicesChecked
+    for device in devices:
+        filterDevice(device, targetUUID)
+    devicesChecked = False
 
 
 def filterDevice(device, targetUUID):
     if device.is_connectable():
-        services = device.services()
-        for service in services:
-            if service.uuid() == targetUUID:
-                # print(f"Matching target service {service.uuid()}")
-                if (device in g.matchedDevices):
-                    print(f"Device {device.identifier()} already stored.")
+        try:
+            services = device.services()
+        except Exception as e:
+            print(f"Error: {e}")
+        else:
+            for service in services:
+                if service.uuid() == targetUUID:
+                    # print(f"Matching target service {service.uuid()}")
+                    if (device not in g.matchedDevices):
+                        print(f"New matched {device.identifier()} [{device.address()}].")
+                        g.matchedDevices.append(device)
+                    else:
+                        print(f"Device {device.identifier()} already stored.")
+                    break
                 else:
-                    # print(f"Matched {device.identifier()} [{device.address()}].")
-                    g.matchedDevices.append(device)
-                break
-            else:
-                print(f"Service not matching target")
+                    print(f"Service not matching target")
+    #Check for duplicates
+
 
 
 # =================== handleBTConnections() ===================                     
 
 def handleBTConnections(frequecy = 3000):
     global BTAdapter, devicesChecked, connectingDevices, retryinNotifications
-    if( not BTAdapter.scan_is_active() ): 
+    if( not BTAdapter.scan_is_active() ):
+
+        # Establish Connections
         if( not devicesChecked ):
             for device in g.matchedDevices:
                 if not device.is_connected():
-                    if device not in connectingDevices:
-                        connectingDevices.append(device)
-                        connect_thread = threading.Thread(target=lambda d=device: connectBT(d), daemon=True)
-                        connect_thread.start()
+                    if device.is_connectable():
+                        if device not in connectingDevices:
+                            connectingDevices.append(device)
+                            connect_thread = threading.Thread(target=lambda d=device: connectBT(d), daemon=True)
+                            connect_thread.start()
+                        else:
+                            print(f" - Device {device.identifier()} [{device.address()}] already connecting.")
                     else:
-                        print(f" - Device {device.identifier()} [{device.address()}] already connecting.")
+                        print(f"Device {device.identifier()} not connectable")
+                        g.matchedDevices.remove(device)
                 else:
                     print(f" - Device {device.identifier()} [{device.address()}] already connected.")
             devicesChecked = True
 
+        # Retry Notifications
         if( len(g.failedNotifications) > 0 ):
             if ( connectingDevices == [] ):
                 if( not retryinNotifications ):
@@ -101,12 +123,10 @@ def connectBT(device):
     try:
         device.connect()
     except Exception as e:
-        print(f" - Failed to connect to {device.identifier()}")
-        print(e)
-        if device in g.matchedDevices:
-            g.matchedDevices.remove(device)
+        device.disconnect()
         if device in connectingDevices:
             connectingDevices.remove(device)
+        print(f" - Failed to connect to {device.identifier()}. Error: {e}")
 
 
 def retryNotificationSubscription():
@@ -148,33 +168,36 @@ def notifyToChars(device, serviceCharsPairs):
 
 def onConnectedDevice(device):
     print(f"Connected to {device.address()}.")
+    g.sensorDataList.append( VainaSensorNode(device.address(), device.identifier()) )
     pairsList = getServiceCharPairs(device)
     notifyToChars(device, pairsList)
-    g.sensorDataList.append( VainaSensorNode(device.address(), device.identifier()) )
     connectingDevices.remove(device)
     
 def onDisconnectedDevice(device):
     print(f"Disconnected from {device.address()}.")
-    # Unsubscribe from notifications
-    for service in device.services():
-        for char in service.characteristics():
-            try:
-                device.unsubscribe(service, char)
-            except Exception as e:
-                print(f" - Failed to unsubscribe from {device.identifier()}")
-            else:
-                print(f"Unsubscribed from {device.identifier()} [{device.address()}]")
-    # Remove device from lists
+    # Remove device from matched list (will find again)
     if device in g.matchedDevices:
         g.matchedDevices.remove(device)
-    if device in connectingDevices:
-        connectingDevices.remove(device)
-    for sensorData in g.sensorDataList:
-        if sensorData.deviceUUID == device.address():
-            g.sensorDataList.remove(sensorData)
+    # Cancel liked notificate retry    
     for failedNotification in g.failedNotifications:
         if failedNotification[0] == device:
             g.failedNotifications.remove(failedNotification)
+    # Remove linked sensor object
+    for sensorData in g.sensorDataList:
+        if sensorData.deviceUUID == device.address():
+            g.sensorDataList.remove(sensorData)
+    # 
+    # if device in connectingDevices:
+    #     connectingDevices.remove(device)
+    # Unsubscribe from notifications
+    # for service in device.services():
+    #     for char in service.characteristics():
+    #         try:
+    #             device.unsubscribe(service, char)
+    #         except Exception as e:
+    #             print(f" - Failed to unsubscribe from {device.identifier()}")
+    #         else:
+    #             print(f"Unsubscribed from {device.identifier()} [{device.address()}]")
 
 
 def onCharacNotified(data, deviceAddres): #! sensorData.deviceUUID == MAC address
@@ -182,7 +205,7 @@ def onCharacNotified(data, deviceAddres): #! sensorData.deviceUUID == MAC addres
         parsedData = parseBTData(data)
         #deviceUUID = extractSensorUUID(parsedData) #service UUID
         characUUID = extractCharacUUID(parsedData)
-        characValue = extractCHaracValue(parsedData)
+        characValue = extractCharacValue(parsedData)
         # print(f"Received from [{deviceAddres}]: {characUUID}")
         for sensorData in g.sensorDataList:
             if sensorData.deviceUUID == deviceAddres:
@@ -220,7 +243,7 @@ def extractCharacUUID(data):
     return uuid
 
 
-def extractCHaracValue(data):
+def extractCharacValue(data):
     return data[3:]
 
 
