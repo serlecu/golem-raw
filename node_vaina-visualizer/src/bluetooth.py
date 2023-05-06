@@ -36,7 +36,7 @@ def setupBTAdapter():
 
 def scanBT():
     global BTAdapter
-    BTAdapter.scan_for(4000)
+    BTAdapter.scan_for(3000)
 
 
 def onScanStart():
@@ -48,15 +48,22 @@ def onScanStop():
     global devicesChecked, BTAdapter
     print("Scan complete.")
     filterDevices(BTAdapter.scan_get_results(), TARGET_UUID)
-    # devicesChecked = False
+    devicesChecked = False
     g.isScanning = False
 
 
 def filterDevices(devices, targetUUID):
     global devicesChecked
+
+    # filter devices
     for device in devices:
         filterDevice(device, targetUUID)
-    devicesChecked = False
+    
+    # check for duplicates
+    for device in g.matchedDevices:
+        if g.matchedDevices.count(device) > 1:
+            g.matchedDevices.remove(device)
+            print(f"Removed duplicate {device.identifier()} [{device.address()}].")
 
 
 def filterDevice(device, targetUUID):
@@ -69,7 +76,7 @@ def filterDevice(device, targetUUID):
             for service in services:
                 if service.uuid() == targetUUID:
                     # print(f"Matching target service {service.uuid()}")
-                    if (device not in g.matchedDevices):
+                    if not (device in g.matchedDevices):
                         print(f"New matched {device.identifier()} [{device.address()}].")
                         g.matchedDevices.append(device)
                     else:
@@ -77,7 +84,6 @@ def filterDevice(device, targetUUID):
                     break
                 else:
                     print(f"Service not matching target")
-    #Check for duplicates
 
 
 
@@ -162,7 +168,7 @@ def notifyToChars(device, serviceCharsPairs):
             else:
                 print(f" - [{index}] Notifications enabled for char[{char}] of {device.identifier()}.")
             index += 1
-            time.sleep(1)
+            time.sleep(0.5)
         print("... end of notifications enabling.")
 
 
