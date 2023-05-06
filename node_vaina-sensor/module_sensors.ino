@@ -48,33 +48,53 @@ void readSensors() {
   //IMU  
   if(IMU.magneticFieldAvailable()) {
     IMU.readMagneticField(magnetValues[0], magnetValues[1], magnetValues[2]);
+    magnetUpdate = true;
   }
   if (IMU.accelerationAvailable()) {
     IMU.readAcceleration(accelValues[0], accelValues[1], accelValues[2]);
+    accelUpdate = true;
   }
   if (IMU.gyroscopeAvailable()) {
     IMU.readGyroscope(gyroValues[0], gyroValues[1], gyroValues[2]);
+    gyroUpdate = true;
   }
 
   //APDS
-  if (APDS.colorAvailable()) {
+  if ((APDS.colorAvailable()) && (lightUpdate == false)) {
     APDS.readColor(lightValues[0], lightValues[1], lightValues[2]);
-    lightValues[4] = (int)((lightValues[0]+lightValues[1]+lightValues[2]) / 3);
+    lightValues[4] = (int)((lightValues[0]+lightValues[1]+lightValues[2]) * 0.33);
+
+    // lightValuesStr = "";
+    // for(int i = 0; i < sizeof(lightValues); i++) {
+    //   lightValuesStr += String(lightValues[i]);
+    //   if(i < (sizeof(lightValues)-1)) {
+    //     lightValuesStr += ",";
+    //   }
+    // }
+
+    // Serial.print("LIGHT value: ");
+    // Serial.println(lightValuesStr);
+    lightUpdate = true;
   }
   if (APDS.gestureAvailable()) {
     valGesture = APDS.readGesture();
+    gestUpdate = true;
   }
   if (APDS.proximityAvailable()) {
     valProximity = APDS.readProximity();
+    proxUpdate = true;
   }
 
   //HS300
   valTemperature = HS300x.readTemperature();
+  tempUpdate = true;
+
   valHumidity = HS300x.readHumidity();
+  humUpdate = true;
 
   //LPS
   valPressure = BARO.readPressure();
-
+  pressUpdate = true;
 }
 
 void printValuesToSerial() {

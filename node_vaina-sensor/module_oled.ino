@@ -125,7 +125,7 @@ static const unsigned char PROGMEM bitmapAlert[] = // 128x32px
 void errorOLED(int error) {
   display.clearDisplay();
   // Draw an ALERT ICON
-  display.drawGrayscaleBitmap(0, 0, bitmapAlert, 128, 32);
+  //display.drawGrayscaleBitmap(0, 0, bitmapAlert, 128, 32);
   // Print Error Code
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);

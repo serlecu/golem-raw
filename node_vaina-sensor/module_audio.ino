@@ -16,7 +16,7 @@ bool setupIR() {
   
   // -- IMPULSE --
   // change pwm output freq for PWM_A
-   PWM_A.period(1.0/20000.0); // was 200k, I'm testing 32k80 for a 16k SampleRat
+  PWM_A.period(1.0/20000.0); // was 200k, I'm testing 32k80 for a 16k SampleRat
   // Start the Threads
   impulseThread.start( playImpulseThreadedLoop );
 
@@ -80,16 +80,16 @@ void playImpulseThreadedLoop() {
       Serial.println("Start Impulse ...");
 
       playingSample = 0;
-      // audioTicker.attach(&outputSample, 1.0 / 16000.0);
+      audioTicker.attach(&outputSample, 1.0 / 16000.0);
 
       while ( (millis() - playbackTimer) < IBUFFER_MILLIS ){
         Serial.println(String((millis() - playbackTimer))+" / "+String(IBUFFER_MILLIS));
         rtos::ThisThread::sleep_for(20);
       }
 
-      // audioTicker.detach();
+      audioTicker.detach();
       // analogWrite(2, -1);
-      // PWM_A = 0.0;
+      PWM_A = 0.0;
 
       Serial.println("... end Impulse.");
       isPlaying = false;
