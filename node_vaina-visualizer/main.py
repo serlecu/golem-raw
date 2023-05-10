@@ -15,11 +15,8 @@ def Setup():
     g.initGlobals()
 
     # Initialize Pygame
-    pygame.init()
-
-    g.screen = pygame.display.set_mode((1080,720))
-    pygame.display.set_caption("Golem: Vaina Visualizer")
-    pygame.mouse.set_visible(False)
+    # setupSimplePygame(g.screen)
+    setupScreens()
 
     # Initialize Bluetooth
     setupBTAdapter()
@@ -35,18 +32,9 @@ def Update():
             scan_thread = threading.Thread(target=scanBT, daemon=True)
             scan_thread.start()
             g.scannCrono = g.scannFrequency
-            
+
         # Handle Pygame events
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                # Quit the application if the X button is pressed
-                pygame.quit()
-                quit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    # Quit if the 'esc' key is pressed
-                    pygame.quit()
-                    quit()
+        handlePygameInteraction()
 
         # Handle Bluetooth connections and data
         handleBTConnections()
@@ -54,10 +42,10 @@ def Update():
 
         # Draw graphics on the screen
         DrawLoop()
-        DrawDebugLayer()
+        # DrawDebugLayer()
 
         # Update the Pygame display
-        pygame.display.update()
+        #pygame.display.update()
 
 
         # Update Timers
