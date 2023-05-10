@@ -47,7 +47,7 @@ def setupScreens():
     # -- WINDOW A -- (proyector)
     winA = Window("1st window",
                 size=(1440,900),
-                position=(0, 400) )
+                position=(0, 0) )
     winA.set_fullscreen(True)
     rendererA = Renderer(winA)
 
@@ -63,7 +63,7 @@ def setupScreens():
     # -- WINDOW B -- (TV)
     winB = Window("2nd window",
                 size=(3840, 2160), # 4K UHD
-                position=(1441, 400) )
+                position=(1441, 0) )
     winB.set_fullscreen(True)
     rendererB = Renderer(winB)
 
@@ -117,8 +117,8 @@ def updateDashboard(renderer, surface):
     # draw graphics into surface
     # test_text(surface, str(f"WIN_2 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
     viz_raw.lineasCirculo(surface)
-    dr = 2 * math.pi / 18 #TODO: get this from globals
-    viz_raw.dibujoForma(surface,18, 80, dr) # en forma_movi //id = 18, upSp = 80, dr = 2 * math.pi / id
+    dr = 2 * math.pi / 18 #TODO: get this from globals || do only once
+    viz_raw.dibujoForma(surface, (1920, 1080), size=(400,250), stroke=5) # en forma_movi id=18, upSp=80, dr=(2 * math.pi / id)
     viz_raw.dib_diagrama(surface)
     viz_raw.dib_barras(surface)
     viz_raw.dib_numero(surface)
@@ -139,7 +139,7 @@ def updateProyector(renderer, surface):
     surface.fill([0,0,0,255])
     # draw graphics into surface
     # test_text(surface, str(f"WIN_1 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
-    # viz_raw.dib_imag_estructura(surface)
+    viz_raw.dib_imag_estructura(surface)
     # create texture from surface and render it to its window
     texture = Texture.from_surface(renderer, surface)
     renderer.clear()
