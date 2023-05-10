@@ -66,7 +66,7 @@ def lineasCirculo(v, values:list, pos:tuple[int,int]=(0,0), size:tuple[int,int]=
 
     # draw circles on transparent surface
     for i in range(0,ilen):
-        pygame.draw.circle(surface1,(255,255,255,128),(values[i],pos[1]+(vertSpacing*i)),pointSize)
+        pygame.draw.circle(surface1,(255,255,255,128),(pos[0]+values[i],pos[1]+(vertSpacing*i)),pointSize)
         pygame.time.delay(10)
 
     # draw transparent surface on main surface

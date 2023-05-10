@@ -123,7 +123,7 @@ def updateDashboard(renderer, surface):
 
     randList_1 = random.sample(range(0, 9), 2)
     viz_raw.dib_numero( surface, num=randList_1, pos=(150,200), size=(400,400), spacing=100 )
-    randList_2 = random.sample(range(100,800), 5)
+    randList_2 = random.sample(range(0,800), 5)
     viz_raw.lineasCirculo(surface, values=randList_2, pos=(200,900), size=(800,350), pointSize=10)
     randList_3 = random.sample(range(0,100), 8)
     viz_raw.dib_barras(surface, values=randList_3, pos=(200, 1500), maxWidth=800, stroke=20, spacing=20)
@@ -151,7 +151,8 @@ def updateDashboard(renderer, surface):
         #random.sample(range(60,80), 4)
     viz_raw.dib_particulas(surface, pos=(2700, 800), size=(900, 400), stroke=1, newParticle=randList_7)
     randList_8 = random.sample(range(60,80), 4)
-    viz_raw.dib_diagrama(surface)
+    randList_4 = random.sample(range(0, 255), 10)
+    viz_raw.dib_diagrama(surface, values=randList_4)
 
     # create texture from surface and render it to its window
     texture = Texture.from_surface(renderer, surface)
