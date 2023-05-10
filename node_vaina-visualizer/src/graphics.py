@@ -25,6 +25,8 @@ tempSurfaceB : Surface
 onlyOnce = True
 running = True
 
+randList_9: list[int]
+
 
 # ====== SETUP ====== #
 
@@ -83,14 +85,16 @@ def setupScreens():
 # ====== MAIN GRAPHICS LOOP ====== #
 
 def DrawLoop():
-    global onlyOnce, rendererA, rendererB, tempSurfaceA, tempSurfaceB
+    global onlyOnce, clock, rendererA, rendererB, tempSurfaceA, tempSurfaceB
 
     if(onlyOnce):
-        onlyOnce = False
+        pass
 
     clock.tick()
     updateDashboard(rendererB, tempSurfaceB)
     updateProyector(rendererA, tempSurfaceA)
+    
+    onlyOnce = False
 
 
 # ====== LOOP FUNCS ====== #
@@ -138,13 +142,20 @@ def updateDashboard(renderer, surface):
 
 
 def updateProyector(renderer, surface):
-    global clock
+    global clock, onlyOnce, randList_9
+
+    if(onlyOnce):
+        randList_9 = random.sample(range(0, 100), 2)
 
     # clean background
     surface.fill([0,0,0,255])
     # draw graphics into surface
-    # test_text(surface, str(f"WIN_1 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
-    viz_raw.dib_imag_estructura(surface)
+    test_text(surface, str(f"WIN_1 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
+
+    for i in range(len(randList_9)):
+        if random.randint(0,100) < 5:
+            randList_9[i] = random.randint(0,100)
+    viz_raw.dib_imag_estructura(surface, values=randList_9 ,pos=(700,100), size=(600,600), spacing=100, mode=1)
     # create texture from surface and render it to its window
     texture = Texture.from_surface(renderer, surface)
     renderer.clear()
