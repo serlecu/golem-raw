@@ -120,6 +120,7 @@ def updateDashboard(renderer, surface):
     surface.fill([0,0,0,255])
     # draw graphics into surface
     # test_text(surface, str(f"WIN_2 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
+
     randList_1 = random.sample(range(0, 9), 2)
     viz_raw.dib_numero( surface, num=randList_1, pos=(50,200), size=(400,400), spacing=100 )
     randList_2 = random.sample(range(100,800), 5)
@@ -128,13 +129,16 @@ def updateDashboard(renderer, surface):
     viz_raw.dib_barras(surface, values=randList_3, pos=(50, 1700), maxWidth=800, stroke=80)
 
     randList_4 = random.sample(range(0, 100), 18)
-    viz_raw.dibujoForma(surface, values=randList_4, pos=(1920, 1080), size=(900,300), stroke=20)
+    viz_raw.dibujoForma(surface, values=randList_4, pos=(1920, 1080), size=(400,200), stroke=20)
     viz_raw.dib_circulorotos(surface)
 
     randList_5 = random.sample(range(60,80), 4)
-    viz_raw.dib_lineapuntos(surface, values=randList_4, pos=(2200, 400), size=(800,400) )
-    viz_raw.dib_particulas(surface)
+    viz_raw.dib_lineapuntos(surface, values=randList_4, pos=(2700, 400), size=(800,400) )
+    randList_5 = random.sample(range(60,80), 4)
+    viz_raw.dib_particulas(surface, pos=(2600, 1080), size=(2700, 400), stroke=1)
+    randList_5 = random.sample(range(60,80), 4)
     viz_raw.dib_diagrama(surface)
+    
     # create texture from surface and render it to its window
     texture = Texture.from_surface(renderer, surface)
     renderer.clear()
