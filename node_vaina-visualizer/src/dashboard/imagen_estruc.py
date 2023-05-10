@@ -29,7 +29,6 @@ def dib_imag_estructura(ventana, values:list[int], pos:tuple=(0,0), size:tuple=(
 
     for i in range(0, ilen):
         filename:str = files[values[i] % len(files)]
-        print(filename)
 
         img = pygame.image.load("node_vaina-visualizer/estructura_img/"+ filename )
         surface = pygame.transform.scale( img, (size[0], size[1]) )
