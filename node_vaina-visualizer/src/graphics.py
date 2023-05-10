@@ -117,12 +117,13 @@ def updateDashboard(renderer, surface):
     # draw graphics into surface
     # test_text(surface, str(f"WIN_2 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
     randList_1 = random.sample(range(0, 9), 2)
-    viz_raw.dib_numero(surface, randList_1, (50,200), (400,400), 100)
-    viz_raw.lineasCirculo(surface)
+    viz_raw.dib_numero( surface, num=randList_1, pos=(50,200), size=(400,400), spacing=100 )
+    randList_2 = random.sample(range(100,800), 5)
+    viz_raw.lineasCirculo(surface, values=randList_2, pos=(50,1080), size=(800,400), pointSize=10)
     viz_raw.dib_barras(surface)
 
-    randList_2 = random.sample(range(0, 100), 18)
-    viz_raw.dibujoForma(surface, randList_2, (1920, 1080), size=(400,250), stroke=20)
+    randList_4 = random.sample(range(0, 100), 18)
+    viz_raw.dibujoForma(surface, values=randList_4, pos=(1920, 1080), size=(400,250), stroke=20)
     viz_raw.dib_lineapuntos(surface)
 
     viz_raw.dib_circulorotos(surface)

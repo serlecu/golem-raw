@@ -1,5 +1,6 @@
 import pygame, sys
 from pygame.locals import *
+from pygame import Surface
 import random
 # import math
 # import noise
@@ -49,34 +50,56 @@ def eventTeclado():
 # fin del evento
 
 
-def lineasCirculo(v=None):
-    if v == None:
-        v = ventana
-    pygame.draw.aaline(v,(255,255,255),(100,500),(500,500),1)
-    pygame.draw.aaline(v,(255,255,255),(100,550),(500,550),1)
-    pygame.draw.aaline(v,(255,255,255),(100,600),(500,600),1)
-    pygame.draw.aaline(v,(255,255,255),(100,650),(500,650),1)
-    pygame.draw.aaline(v,(255,255,255),(100,700),(500,700),1)
-    #circulos en alpha
+def lineasCirculo(v, values:list, pos:tuple[int,int]=(0,0), size:tuple[int,int]=(100,100), pointSize:int=10 ):
+    # if v == None:
+    #     v = ventana
+    ilen = len(values)
+    vertSpacing = size[1] / ilen
 
-    surface1 = v.convert_alpha()
+    # draw horizontal lines
+    for i in range(0,ilen):
+        pygame.draw.aaline(v,(255,255,255),(pos[0],pos[1]+(vertSpacing*i)),(pos[0]+size[0],pos[1]+(vertSpacing*i)),1)
+
+    # create a transparent surface
+    surface1 = v.convert_alpha() # Surface(size) #! OJO era: surface1 = v.convert_alpha()
     surface1.fill([0,0,0,0])
-    valorSensor= random.randint(100,500)
-    pygame.draw.circle(surface1,(255,255,255,128),(valorSensor,500),6)
-    pygame.time.delay(10)
-    valorSensor= random.randint(100,500)
-    pygame.draw.circle(surface1,(255,255,255,128),(valorSensor,550),6)
-    pygame.time.delay(10)
-    valorSensor= random.randint(100,500)
-    pygame.draw.circle(surface1,(255,255,255,128),(valorSensor,600),6)
-    pygame.time.delay(10)
-    valorSensor= random.randint(100,500)
-    pygame.draw.circle(surface1,(255,255,255,128),(valorSensor,650),6)
-    pygame.time.delay(10)
-    valorSensor= random.randint(100,500)
-    pygame.draw.circle(surface1,(255,255,255,128),(valorSensor,700),6)
-    pygame.time.delay(10)    
+
+    # draw circles on transparent surface
+    for i in range(0,ilen):
+        pygame.draw.circle(surface1,(255,255,255,128),(values[i],pos[1]+(vertSpacing*i)),pointSize)
+        pygame.time.delay(10)
+
+    # draw transparent surface on main surface
     v.blit(surface1, (0,0))
+
+
+
+    # # === ORIGINAL === #
+    # pygame.draw.aaline(v,(255,255,255),(100,500),(500,500),1)
+    # pygame.draw.aaline(v,(255,255,255),(100,550),(500,550),1)
+    # pygame.draw.aaline(v,(255,255,255),(100,600),(500,600),1)
+    # pygame.draw.aaline(v,(255,255,255),(100,650),(500,650),1)
+    # pygame.draw.aaline(v,(255,255,255),(100,700),(500,700),1)
+    # #circulos en alpha
+
+    # surface1 = v.convert_alpha()
+    # surface1.fill([0,0,0,0])
+    # valorSensor= random.randint(100,500)
+    # pygame.draw.circle(surface1,(255,255,255,128),(valorSensor,500),6)
+    # pygame.time.delay(10)
+    # valorSensor= random.randint(100,500)
+    # pygame.draw.circle(surface1,(255,255,255,128),(valorSensor,550),6)
+    # pygame.time.delay(10)
+    # valorSensor= random.randint(100,500)
+    # pygame.draw.circle(surface1,(255,255,255,128),(valorSensor,600),6)
+    # pygame.time.delay(10)
+    # valorSensor= random.randint(100,500)
+    # pygame.draw.circle(surface1,(255,255,255,128),(valorSensor,650),6)
+    # pygame.time.delay(10)
+    # valorSensor= random.randint(100,500)
+    # pygame.draw.circle(surface1,(255,255,255,128),(valorSensor,700),6)
+    # pygame.time.delay(10)    
+    # v.blit(surface1, (0,0))
 
     
 # # bucle principal
