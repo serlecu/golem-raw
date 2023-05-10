@@ -116,15 +116,18 @@ def updateDashboard(renderer, surface):
     surface.fill([0,0,0,255])
     # draw graphics into surface
     # test_text(surface, str(f"WIN_2 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
+    randList_1 = random.sample(range(0, 9), 2)
+    viz_raw.dib_numero(surface, randList_1, (50,200), (400,400), 100)
     viz_raw.lineasCirculo(surface)
-    dr = 2 * math.pi / 18 #TODO: get this from globals || do only once
-    viz_raw.dibujoForma(surface, (1920, 1080), size=(400,250), stroke=5) # en forma_movi id=18, upSp=80, dr=(2 * math.pi / id)
-    viz_raw.dib_diagrama(surface)
     viz_raw.dib_barras(surface)
-    viz_raw.dib_numero(surface)
-    viz_raw.dib_particulas(surface)
+
+    randList_2 = random.sample(range(0, 100), 18)
+    viz_raw.dibujoForma(surface, randList_2, (1920, 1080), size=(400,250), stroke=20)
     viz_raw.dib_lineapuntos(surface)
+
     viz_raw.dib_circulorotos(surface)
+    viz_raw.dib_particulas(surface)
+    viz_raw.dib_diagrama(surface)
     # create texture from surface and render it to its window
     texture = Texture.from_surface(renderer, surface)
     renderer.clear()
