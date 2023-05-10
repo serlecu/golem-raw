@@ -120,7 +120,8 @@ def updateDashboard(renderer, surface):
     viz_raw.dib_numero( surface, num=randList_1, pos=(50,200), size=(400,400), spacing=100 )
     randList_2 = random.sample(range(100,800), 5)
     viz_raw.lineasCirculo(surface, values=randList_2, pos=(50,1080), size=(800,400), pointSize=10)
-    viz_raw.dib_barras(surface)
+    randList_3 = random.sample(range(0,100), 3)
+    viz_raw.dib_barras(surface, values=randList_3, pos=(50, 1700), maxWidth=800, stroke=80)
 
     randList_4 = random.sample(range(0, 100), 18)
     viz_raw.dibujoForma(surface, values=randList_4, pos=(1920, 1080), size=(400,250), stroke=20)
