@@ -17,8 +17,8 @@ def dib_particulas(ventana, pos:tuple[int,int], size:tuple[int,int], stroke:int,
     colorAxis = (255,255,255)
 
     if newParticle[0] != -1.0:
-        mx = newParticle[0]
-        my = newParticle[1]
+        mx = newParticle[0] * (size[0]-100) + pos[0] + 100
+        my = newParticle[1] * size[1] + pos[1]
         vel = newParticle[2]
         lifeTime = newParticle[3]
         particles.append([[mx, my], [vel - 1, -2], lifeTime])

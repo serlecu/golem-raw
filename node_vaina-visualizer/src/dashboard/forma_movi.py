@@ -1,5 +1,5 @@
 import pygame
-# import random
+import random
 import math
 import noise
 from pygame.locals import *
@@ -16,15 +16,17 @@ def dibujoForma(ventana, values:list[int], pos:tuple[int,int], size:tuple[int,in
     id = len(values)
     dr = 2 * math.pi / id
 
-    for j in range(0,stroke):
+    for j in range(0, stroke):
         points = []
-        for i in range(0, id+1): #range(0, id+5):
+        for i in range(0, id+5): #range(0, id+5):
             ind = i%id
             # angle
             a = dr * ind
             # diameter (size[0]=outer, size[1]=inner)
-            #d = (size[0] + noise.pnoise1(h/upSp + ind, octaves=4) * size[1]  +  math.cos(ind) * 7) + j
-            d = (size[0] + (values[ind]/100) * size[1]  +  math.cos(ind) * 7) + j
+            # d = (size[0] + noise.pnoise1(h/upSp + ind, octaves=4) * size[1]  +  math.cos(ind) * 7) + j # original
+            d = (size[0] + noise.pnoise1(h/upSp + ind, octaves=4) * size[1]  +  math.cos(ind) * 7) + j
+            # d = (size[0] + noise.pnoise1(h/upSp + ind, octaves=4) * size[1]  +  math.cos(ind) * values[ind]) + j
+            # d = (size[0] + (values[ind]/100) * size[1]  +  math.cos(ind) * 7) - j*random.randint(1, 10)
             # position
             x = math.cos(a)*d + pos[0]
             y = math.sin(a)*d + pos[1]

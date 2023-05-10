@@ -122,23 +122,37 @@ def updateDashboard(renderer, surface):
     # test_text(surface, str(f"WIN_2 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
 
     randList_1 = random.sample(range(0, 9), 2)
-    viz_raw.dib_numero( surface, num=randList_1, pos=(50,200), size=(400,400), spacing=100 )
+    viz_raw.dib_numero( surface, num=randList_1, pos=(150,200), size=(400,400), spacing=100 )
     randList_2 = random.sample(range(100,800), 5)
-    viz_raw.lineasCirculo(surface, values=randList_2, pos=(50,1080), size=(800,400), pointSize=10)
-    randList_3 = random.sample(range(0,100), 3)
-    viz_raw.dib_barras(surface, values=randList_3, pos=(50, 1700), maxWidth=800, stroke=80)
+    viz_raw.lineasCirculo(surface, values=randList_2, pos=(200,900), size=(800,350), pointSize=10)
+    randList_3 = random.sample(range(0,100), 8)
+    viz_raw.dib_barras(surface, values=randList_3, pos=(200, 1500), maxWidth=800, stroke=20, spacing=20)
 
-    randList_4 = random.sample(range(0, 100), 18)
-    viz_raw.dibujoForma(surface, values=randList_4, pos=(1920, 1080), size=(400,200), stroke=20)
-    viz_raw.dib_circulorotos(surface)
+    randList_4 = random.sample(range(20, 100), 14)
+    viz_raw.dibujoForma(surface, values=randList_4, pos=(1920, 1080), size=(300,56), stroke=3)
+    randList_5 = []
+    for i in range(4):
+        randList_5.append([ random.randint(0,1),
+                            random.randint(0,1),
+                            random.randint(0,1),
+                            random.randint(0,1) ])
+                            # random.choice([True, False]),
+                            # random.choice([True, False]),
+                            # random.choice([True, False]),
+                            # random.choice([True, False]) ])
+    viz_raw.dib_circulorotos(surface, values=randList_5, pos=(1510, 1600), size=(900,136), spacer=125)
 
-    randList_5 = random.sample(range(60,80), 4)
-    viz_raw.dib_lineapuntos(surface, values=randList_4, pos=(2700, 400), size=(800,400) )
-    randList_5 = random.sample(range(60,80), 4)
-    viz_raw.dib_particulas(surface, pos=(2600, 1080), size=(2700, 400), stroke=1)
-    randList_5 = random.sample(range(60,80), 4)
+    randList_6 = random.sample(range(60,80), 4)
+    viz_raw.dib_lineapuntos(surface, values=randList_6, pos=(2700, 200), size=(800,400) )
+    randList_7 = ( random.randint(0,100)/100,
+                   random.randint(0,100)/100,
+                   random.randint(0,100)/100,
+                   random.randint(2,5) )
+        #random.sample(range(60,80), 4)
+    viz_raw.dib_particulas(surface, pos=(2700, 800), size=(900, 400), stroke=1, newParticle=randList_7)
+    randList_8 = random.sample(range(60,80), 4)
     viz_raw.dib_diagrama(surface)
-    
+
     # create texture from surface and render it to its window
     texture = Texture.from_surface(renderer, surface)
     renderer.clear()
@@ -150,7 +164,7 @@ def updateProyector(renderer, surface):
     global clock, onlyOnce, randList_9
 
     if(onlyOnce):
-        randList_9 = random.sample(range(0, 100), 2)
+        randList_9 = random.sample(range(0, 100), 1)
 
     # clean background
     surface.fill([0,0,0,255])

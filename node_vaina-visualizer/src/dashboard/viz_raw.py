@@ -58,7 +58,7 @@ def lineasCirculo(v, values:list, pos:tuple[int,int]=(0,0), size:tuple[int,int]=
 
     # draw horizontal lines
     for i in range(0,ilen):
-        pygame.draw.aaline(v,(255,255,255),(pos[0],pos[1]+(vertSpacing*i)),(pos[0]+size[0],pos[1]+(vertSpacing*i)),1)
+        pygame.draw.aaline(v,(100,100,100),(pos[0],pos[1]+(vertSpacing*i)),(pos[0]+size[0],pos[1]+(vertSpacing*i)),1)
 
     # create a transparent surface
     surface1 = v.convert_alpha() # Surface(size) #! OJO era: surface1 = v.convert_alpha()
