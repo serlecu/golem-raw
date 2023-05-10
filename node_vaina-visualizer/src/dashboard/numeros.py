@@ -7,9 +7,7 @@ import os
 
 pygame.init()
 
-def dib_numero(ventana):
-        print(os.getcwd())
-   
+def dib_numero(ventana): 
         num0:str = str(random.randint(0,9))
         num1:str = str(random.randint(0,9))
         numero_carga1 = pygame.transform.scale(pygame.image.load("node_vaina-visualizer/numeros_img/num"+num0+".jpg"), (200, 200))

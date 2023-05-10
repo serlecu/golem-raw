@@ -44,33 +44,40 @@ def setupScreens():
     pygame.display.init()
     pygame.key.set_repeat(1000, 10)
 
-    # -- WINDOW 1 --
+    # -- WINDOW A -- (proyector)
     winA = Window("1st window",
                 size=(1440,900),
                 position=(0, 400) )
     winA.set_fullscreen(True)
     rendererA = Renderer(winA)
 
-    rendererA.draw_color = (0,0,0,255)
+    tempSurfaceA = Surface((1440,900))
+    tempSurfaceA.fill([255,0,0,255])
+    # will use Texture.from_surface() + Texture.draw() to create textures from this surface
+
+    texture = Texture.from_surface(rendererA, tempSurfaceA)
     rendererA.clear()
+    texture.draw()
     rendererA.present()
 
-    # -- WINDOW 2 --
+    # -- WINDOW B -- (TV)
     winB = Window("2nd window",
-                size=(2560, 1440),
+                size=(3840, 2160), # 4K UHD
                 position=(1441, 400) )
     winB.set_fullscreen(True)
     rendererB = Renderer(winB)
 
-    rendererB.draw_color = (0,0,0,0)
+    tempSurfaceB = Surface((3840, 2160))
+    tempSurfaceB.fill([0,255,0,255])
+    # will use Texture.from_surface() + Texture.draw() to create textures from this surface
+
+    texture = Texture.from_surface(rendererB, tempSurfaceB)
     rendererB.clear()
+    texture.draw()
     rendererB.present()
 
-    tempSurfaceA = Surface((1440,900))
-    tempSurfaceA.fill([0,0,0,])
-    tempSurfaceB = Surface((2560,1440))
-    tempSurfaceB.fill([0,0,0,])
-    # will use Texture.from_surface() + Texture.draw() to create textures from this surface
+
+    
 
 
 # ====== MAIN GRAPHICS LOOP ====== #
@@ -108,9 +115,10 @@ def updateDashboard(renderer, surface):
     # clean background
     surface.fill([0,0,0,255])
     # draw graphics into surface
-    test_text(surface, str(f"WIN_2 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
+    # test_text(surface, str(f"WIN_2 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
     viz_raw.lineasCirculo(surface)
-    # # viz_raw.dibujoForma(ventana,fm.id, fm.upSp, fm.dr) # en forma_movi
+    dr = 2 * math.pi / 18 #TODO: get this from globals
+    viz_raw.dibujoForma(surface,18, 80, dr) # en forma_movi //id = 18, upSp = 80, dr = 2 * math.pi / id
     viz_raw.dib_diagrama(surface)
     viz_raw.dib_barras(surface)
     viz_raw.dib_numero(surface)
@@ -130,7 +138,7 @@ def updateProyector(renderer, surface):
     # clean background
     surface.fill([0,0,0,255])
     # draw graphics into surface
-    test_text(surface, str(f"WIN_1 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
+    # test_text(surface, str(f"WIN_1 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
     # viz_raw.dib_imag_estructura(surface)
     # create texture from surface and render it to its window
     texture = Texture.from_surface(renderer, surface)

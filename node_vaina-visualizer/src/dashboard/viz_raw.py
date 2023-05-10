@@ -4,8 +4,8 @@ import random
 # import math
 # import noise
 # import forma_movi
-# from forma_movi import dibujoForma # necesita noise
-# import forma_movi as fm # necesita noise
+# import forma_movi as fm
+from .forma_movi import dibujoForma
 # import diagrama_datos as dd
 from .diagrama_datos import dib_diagrama
 # import barras as bb
