@@ -11,6 +11,7 @@ import time
 import random
 
 import src.globals as g # global variables
+from src.dashboard import * # raw visualization functions
 
 # global variables
 clock = pygame.time.Clock()
@@ -84,10 +85,6 @@ def DrawLoop():
     updateDashboard(rendererB, tempSurfaceB)
     updateProyector(rendererA, tempSurfaceA)
 
-    # draw_background(g.screen, (50, 50, 50))
-    # test_ellipse(g.screen, (200, 200, 200), 200, time.time())
-    # UpdateUnknownPleasure(g.screen)
-
 
 # ====== LOOP FUNCS ====== #
 
@@ -112,14 +109,14 @@ def updateDashboard(renderer, surface):
     surface.fill([0,0,0,255])
     # draw graphics into surface
     test_text(surface, str(f"WIN_2 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
-    # viz_raw.lineasCirculo(surface)
+    viz_raw.lineasCirculo(surface)
     # # viz_raw.dibujoForma(ventana,fm.id, fm.upSp, fm.dr) # en forma_movi
-    # viz_raw.dib_diagrama(surface)
-    # viz_raw.dib_barras(surface)
-    # viz_raw.dib_numero(surface)
-    # viz_raw.dib_particulas(surface)
-    # viz_raw.dib_lineapuntos(surface)
-    # viz_raw.dib_circulorotos(surface)
+    viz_raw.dib_diagrama(surface)
+    viz_raw.dib_barras(surface)
+    viz_raw.dib_numero(surface)
+    viz_raw.dib_particulas(surface)
+    viz_raw.dib_lineapuntos(surface)
+    viz_raw.dib_circulorotos(surface)
     # create texture from surface and render it to its window
     texture = Texture.from_surface(renderer, surface)
     renderer.clear()
