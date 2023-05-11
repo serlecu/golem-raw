@@ -132,27 +132,15 @@ def updateDashboard(renderer, surface):
     viz_raw.dibujoForma(surface, values=randList_4, pos=(1920, 1080), size=(300,56), stroke=3)
     randList_5 = []
     for i in range(4):
-        randList_5.append([ random.randint(0,1),
-                            random.randint(0,1),
-                            random.randint(0,1),
-                            random.randint(0,1) ])
-                            # random.choice([True, False]),
-                            # random.choice([True, False]),
-                            # random.choice([True, False]),
-                            # random.choice([True, False]) ])
+        randList_5.append([ random.randint(0,1), random.randint(0,1), random.randint(0,1), random.randint(0,1) ])
     viz_raw.dib_circulorotos(surface, values=randList_5, pos=(1510, 1600), size=(900,136), spacer=125)
 
     randList_6 = random.sample(range(60,80), 4)
     viz_raw.dib_lineapuntos(surface, values=randList_6, pos=(2700, 200), size=(800,400) )
-    randList_7 = ( random.randint(0,100)/100,
-                   random.randint(0,100)/100,
-                   random.randint(0,100)/100,
-                   random.randint(2,5) )
-        #random.sample(range(60,80), 4)
+    randList_7 = ( random.randint(0,100)/100, random.randint(0,100)/100, random.randint(0,100)/100, random.randint(2,5) )
     viz_raw.dib_particulas(surface, pos=(2700, 800), size=(900, 400), stroke=1, newParticle=randList_7)
-    randList_8 = random.sample(range(60,80), 4)
-    randList_4 = random.sample(range(0, 255), 10)
-    viz_raw.dib_diagrama(surface, values=randList_4)
+    randList_8 = random.sample(range(0, 255), 10)
+    viz_raw.dib_diagrama(surface, values=randList_8, pos=(2900, 1400), size=(600, 400), radius=70, stroke=1)
 
     # create texture from surface and render it to its window
     texture = Texture.from_surface(renderer, surface)
@@ -170,12 +158,47 @@ def updateProyector(renderer, surface):
     # clean background
     surface.fill([0,0,0,255])
     # draw graphics into surface
-    test_text(surface, str(f"WIN_1 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
+    # test_text(surface, str(f"WIN_1 FPS: {round(clock.get_fps(),2)}") , (200,200), (255,255,255))
 
     for i in range(len(randList_9)):
         if random.randint(0,100) < 5:
             randList_9[i] = random.randint(0,100)
     viz_raw.dib_imag_estructura(surface, values=randList_9 ,pos=(700,100), size=(600,600), spacing=100, mode=1)
+
+    # draw numbers
+    xpos = 100
+    ypos = 300
+    vSapcing= 30
+    font = pygame.font.SysFont("Arial", 16)
+    # MAGNETICO, ACCELEROMETRO, GIROSCOPIO, LUZ, PROXIMIDAD, TEMPERATURA, HUMEDAD, PRESION ATMOSFERICA, RESPUESTA IMPULSO AUDIO
+    sensor_list = ["MAG", "ACC", "GYR", "LIG", "PRO", "TEM", "HUM", "ATM", "IRE"]
+    for i in range(len(sensor_list)):
+        sensor = font.render(str(sensor_list[i]),True,(128,128,128) )
+        surface.blit( sensor, (xpos, ypos) )
+        ypos += vSapcing
+    sensor = font.render("S1",True,(128,128,128) )
+    surface.blit( sensor, (200, 270) )
+    sensor = font.render("S2",True,(128,128,128) )
+    surface.blit( sensor, (250, 270) )
+    
+
+    xpos = 200      
+    ypos = 300
+    randList_10 = random.sample(range(0, 255), 9)
+    for i in range(len(randList_10)):
+        sensor = font.render( str(randList_10[i]),True,(255,255,255) )
+        surface.blit( sensor, (xpos, ypos) )
+        ypos += vSapcing
+
+    xpos = 250      
+    ypos = 300    
+    randList_11 = random.sample(range(0, 255), 9)  
+    for i in range(len(randList_11)):
+        sensor = font.render( str(randList_10[i]),True,(255,255,255) )
+        surface.blit( sensor, (xpos, ypos) )
+        ypos += vSapcing
+    
+
     # create texture from surface and render it to its window
     texture = Texture.from_surface(renderer, surface)
     renderer.clear()
