@@ -21,6 +21,10 @@ from pygame.locals import *
 pygame.init()
 
 def dib_diagrama( ventana, values:list, pos:tuple[int,int]=(0,0), size:tuple[int,int]=(600,400), radius:int=60, stroke:int=1, color:tuple[int,int,int]=(100,100,100) ):
+    ilen = len(values)
+    if ilen < 6:
+      for i in range(6-len(values)):
+            values.append(0)
     #arriba
     posi_circulo1X:int = int( pos[0])
     posi_circulo1Y:int = int( pos[1])
@@ -53,27 +57,70 @@ def dib_diagrama( ventana, values:list, pos:tuple[int,int]=(0,0), size:tuple[int
     #fuente
     miFuente = pygame.font.SysFont("Arial", 16)
     minum1 = miFuente.render(str(values[0]),True,(255,255,255))
-    minum2 = miFuente.render(str(values[1]),True,(255,255,255))
+    minum2 = miFuente.render(str(values[3]),True,(255,255,255))
     minum3 = miFuente.render(str(values[2]),True,(255,255,255))
-    minum4 = miFuente.render(str(values[3]),True,(255,255,255))
-    minum5 = miFuente.render(str(values[4]),True,(255,255,255))
-    minum6 = miFuente.render(str(values[5]),True,(255,255,255))
-    minum7 = miFuente.render(str(values[6]),True,(255,255,255))
-    minum8 = miFuente.render(str(values[7]),True,(255,255,255))
-    minum9 = miFuente.render(str(values[8]),True,(255,255,255))
-    minum10 = miFuente.render(str(values[9]),True,(255,255,255))
+    minum4 = miFuente.render(str(values[5]),True,(255,255,255))
+    minum5 = miFuente.render(str(values[1]),True,(255,255,255))
+    minum6 = miFuente.render(str(values[4]),True,(255,255,255))
+    minum7 = miFuente.render(str(round(round(float(values[2])+float(values[0])/2.0,2))),True,(255,255,255))
+    minum8 = miFuente.render(str(round(round(float(values[5])+float(values[3])/2,2))),True,(255,255,255))
+    minum9 = miFuente.render(str(round(round(float(values[2])+float(values[1])/2,2))),True,(255,255,255))
+    minum10 = miFuente.render(str(round(round(float(values[5])+float(values[4])/2,2))),True,(255,255,255))
+
+
+
     # numero bola 1
-    ventana.blit( minum1, (posi_circulo1X+radius*0.8, posi_circulo1Y+radius*0.6 ) )
-    ventana.blit( minum2, (posi_circulo1X+radius*0.8, posi_circulo1Y+radius) )
+    textpos = minum1.get_rect()
+    textpos.centerx = int(posi_circulo1X+radius*1.0)
+    textpos.centery = int(posi_circulo1Y+radius*0.7)
+    ventana.blit( minum1, textpos )
+    textpos = minum2.get_rect()
+    textpos.centerx = int(posi_circulo1X+radius*1.0)
+    textpos.centery = int(posi_circulo1Y+radius*1.2)
+    ventana.blit( minum2, textpos)
     # numero bola 2
-    ventana.blit( minum3, (posi_circulo2X+radius*0.8, posi_circulo2Y+radius*0.6 ) )
-    ventana.blit( minum4, (posi_circulo2X+radius*0.8, posi_circulo2Y+radius ) )
+    textpos = minum3.get_rect()
+    textpos.centerx = int(posi_circulo2X+radius*1.0)
+    textpos.centery = int(posi_circulo2Y+radius*0.7)
+    ventana.blit( minum3, textpos )
+    textpos = minum4.get_rect()
+    textpos.centerx = int(posi_circulo2X+radius*1.0)
+    textpos.centery = int(posi_circulo2Y+radius*1.2)
+    ventana.blit( minum4, textpos )
       # numero bo
-    ventana.blit( minum5, (posi_circulo3X+radius*0.8, posi_circulo3Y+radius*0.6 ) )
-    ventana.blit( minum6, (posi_circulo3X+radius*0.8, posi_circulo3Y+radius ) )
+    textpos = minum5.get_rect()
+    textpos.centerx = int(posi_circulo3X+radius*1.0)
+    textpos.centery =  int(posi_circulo3Y+radius*0.7)
+    ventana.blit( minum5, textpos)
+    textpos = minum6.get_rect()
+    textpos.centerx = int(posi_circulo3X+radius*1.0)
+    textpos.centery = int(posi_circulo3Y+radius*1.2)
+    ventana.blit( minum6, textpos )
     # numero bola 4
-    ventana.blit( minum7, (posi_circulo4X+radius*0.8, posi_circulo4Y+radius*0.6 ) )
-    ventana.blit( minum8, (posi_circulo4X+radius*0.8, posi_circulo4Y+radius ) )
+    textpos = minum7.get_rect()
+    textpos.centerx = int(posi_circulo4X+radius*1.0)
+    textpos.centery =  int(posi_circulo4Y+radius*0.7)
+    ventana.blit( minum7, textpos)
+    textpos = minum8.get_rect()
+    textpos.centerx = int(posi_circulo4X+radius*1.0)
+    textpos.centery = int(posi_circulo4Y+radius*1.2)
+    ventana.blit( minum8, textpos )
      # numero bola 5
-    ventana.blit( minum9, (posi_circulo5X+radius*0.8, posi_circulo5Y+radius*0.6 ) )
-    ventana.blit( minum10, (posi_circulo5X+radius*0.8, posi_circulo5Y+radius ) )
+    textpos = minum9.get_rect()
+    textpos.centerx = int(posi_circulo5X+radius*1.0)
+    textpos.centery = int(posi_circulo5Y+radius*0.7)
+    ventana.blit( minum9, textpos )
+    textpos = minum10.get_rect()
+    textpos.centerx = int(posi_circulo5X+radius*1.0)
+    textpos.centery = int(posi_circulo5Y+radius*1.2)
+    ventana.blit( minum10, textpos )
+
+
+    # def test_text(screen, text, pos, color):
+    # font = pygame.font.Font(None, 12)
+    # text = text.replace('\x00','')
+    # text = font.render(text, True, color)
+    # textpos = text.get_rect()
+    # textpos.centerx = pos[0]
+    # textpos.centery = pos[1]
+    # screen.blit(text, textpos)

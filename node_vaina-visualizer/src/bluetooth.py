@@ -35,8 +35,9 @@ def setupBTAdapter():
 
 
 def scanBT():
-    global BTAdapter
-    BTAdapter.scan_for(3000)
+    global BTAdapter, connectingDevices
+    if len(connectingDevices) < 1:
+        BTAdapter.scan_for(3000)
 
 
 def onScanStart():
@@ -109,16 +110,26 @@ def handleBTConnections(frequecy = 3000):
                         print(f"Device {device.identifier()} not connectable")
                         g.matchedDevices.remove(device)
                 else:
+                    # if connected get RSSI
+                    try:
+                        rssi = device.rssi()
+                    except Exception as e:
+                        print(f"Error: {e}")
+                    else:
+                        for sensor in g.sensorDataList:
+                            if sensor.deviceUUID == device.address():
+                                sensor.setRSSI(rssi)
+                                break
                     print(f" - Device {device.identifier()} [{device.address()}] already connected.")
             devicesChecked = True
 
         # Retry Notifications
         if( len(g.failedNotifications) > 0 ):
-            if ( connectingDevices == [] ):
+            if ( len(connectingDevices) < 1 ):
                 if( not retryinNotifications ):
+                    retryinNotifications = True
                     retryNotification_thread = threading.Thread(target=retryNotificationSubscription, daemon=True)
                     retryNotification_thread.start()
-                    retryinNotifications = True
 
 
 def connectBT(device):
@@ -129,27 +140,48 @@ def connectBT(device):
     time.sleep(0.5)
     try:
         device.connect()
+        time.sleep(2)
     except Exception as e:
-        device.disconnect()
-        if device in connectingDevices:
-            connectingDevices.remove(device)
         print(f" - Failed to connect to {device.identifier()}. Error: {e}")
+        time.sleep(2)
+        if not device.is_connected():
+            device.disconnect()
+            if device in connectingDevices:
+                connectingDevices.remove(device)
+        else:
+            print(f" - {device.identifier()} [{device.address()}] en realidad está conectado.")
+            time.sleep(2)
+            connectBT(device)
+    finally:
+        pass
 
 
 def retryNotificationSubscription():
     global retryinNotifications
-
-    for device, service, char in g.failedNotifications:
-                if device.is_connected():
-                    print(f"Retry failed notifications of {device.identifier()} [{device.address()}]...")
-                    try:
-                        asyncio.run( device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) ) )
-                        # device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) )
-                    except:
-                        print(f" - Failed to subscribe {char} in {device.identifier()} [{device.address()}]")
-                    else:
-                        g.failedNotifications.remove((device, service, char))
-                    time.sleep(1)
+    if len(g.failedNotifications) > 0:
+        deleteIndexes = []
+        for i in range(0,len(g.failedNotifications)):  #device, service, char, times in g.failedNotifications:
+            device, service, char, times = g.failedNotifications[i]
+            if device.is_connected():
+                print(f"Retry failed notifications of {device.identifier()} [{device.address()}]...")
+                try:
+                    loop = asyncio.get_event_loop()
+                    loop.run_until_complete( device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) ) )
+                    time.sleep(0.5)
+                    # device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) )
+                except:
+                    print(f" - Failed to subscribe {char} in {device.identifier()} [{device.address()}]")
+                    times += 1
+                    g.failedNotifications[i][3] = times
+                    if times > 1:
+                        print(f" - {device.identifier()} [{device.address()}] removed from failed notifications list.")
+                        deleteIndexes.append(i)     
+                else:
+                    g.failedNotifications.remove([device, service, char, times])
+                finally:
+                    time.sleep(3)
+        for i in range(len(deleteIndexes)):
+            del g.failedNotifications[deleteIndexes[i]-i]
     retryinNotifications = False
 
 
@@ -157,19 +189,23 @@ def notifyToChars(device, serviceCharsPairs):
     if len(serviceCharsPairs) > 0:
         print(f"Enabling notifications for {device.identifier()} ...")
         index = 0
+
         for service, char in serviceCharsPairs:
             try:
+                # loop = asyncio.get_event_loop()
+                # loop.run_until_complete( device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) ) )
                 device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) )
                 # device.notify(service, char, lambda data, d=device: onCharacNotified(data, d.address()) )
                 # https://simpleble.readthedocs.io/en/latest/simpleble/api.html#_CPPv4N9SimpleBLE4Safe10Peripheral6notifyERK13BluetoothUUIDRK13BluetoothUUIDNSt8functionIFv9ByteArrayEEE
+                time.sleep(0.5)
             except Exception as e:
                 print(f" - [{index}] Failed to enable notifications for char[{char}] in service[{service}] - {device.identifier()} - Will try later.")
                 print(f" - {e}. {device.identifier()}")
-                g.failedNotifications.append((device, service, char))
+                g.failedNotifications.append([device, service, char, 0])
             else:
                 print(f" - [{index}] Notifications enabled for char[{char}] of {device.identifier()}.")
             index += 1
-            time.sleep(0.5)
+            # time.sleep(0.5)
         print("... end of notifications enabling.")
 
 
@@ -177,7 +213,9 @@ def onConnectedDevice(device):
     print(f"Connected to {device.address()}.")
     g.sensorDataList.append( VainaSensorNode(device.address(), device.identifier()) )
     pairsList = getServiceCharPairs(device)
-    notifyToChars(device, pairsList)
+    notifyThread  = threading.Thread( target=notifyToChars(device, pairsList), daemon=True )
+    notifyThread.start()
+    notifyThread.join()
     connectingDevices.remove(device)
     
 def onDisconnectedDevice(device):
@@ -216,7 +254,7 @@ def onCharacNotified(data, deviceAddres): #! sensorData.deviceUUID == MAC addres
         # print(f"Received from [{deviceAddres}]: {characUUID}")
         for sensorData in g.sensorDataList:
             if sensorData.deviceUUID == deviceAddres:
-                sensorData.updateSensorDataFromUUID(characUUID, characValue)
+                sensorData.updateSensorDataFromUUID(characUUID, characValue.replace('\x00',''))
                 # Check:
                 #print(f"Updated {sensorData.deviceUUID}.")
                 break

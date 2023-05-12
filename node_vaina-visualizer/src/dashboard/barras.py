@@ -1,12 +1,6 @@
 import pygame
-from pygame.locals import *
-import math
-#import noise
-import random
 
-pygame.init()
-colorBarras = (255,255,255)
-AltoBarras = 6
+# pygame.init()
 
 
 def dib_barras(ventana, 
@@ -16,13 +10,17 @@ def dib_barras(ventana,
                stroke:int=60,
                spacing:int=10 ):
    
+   if len(values) < 6:
+      for i in range(6-len(values)):
+            values.append(0)
    ilen = len(values)
    xpos = pos[0]
    ypos = pos[1]
    
    for i in range(0,ilen):
+      pygame.draw.aaline(ventana,(100,100,100),(pos[0],ypos + stroke + spacing),(pos[0],ypos + 2*stroke + spacing),1)
       # draw bars
-      rect = pygame.Rect(pos[0], ypos + stroke + spacing, values[i]/100 * maxWidth, stroke)
+      rect = pygame.Rect(pos[0], ypos + stroke + spacing, values[i]/255 * maxWidth, stroke)
       pygame.draw.rect(ventana, (255,255,255), rect, 0)
 
       # draw numbers

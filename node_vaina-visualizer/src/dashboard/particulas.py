@@ -1,5 +1,5 @@
-import pygame, sys, random
- 
+import pygame
+
 # a particle is...
 # a thing that exists at a location
 # typically moves around
@@ -9,19 +9,32 @@ import pygame, sys, random
 particles = []
  
 # Loop ------------------------------------------------------- #
-def dib_particulas(ventana, pos:tuple[int,int], size:tuple[int,int], stroke:int, newParticle:tuple[float,float,float,int] = (-1.0,-1.0,-1.0,-1)):
+def dib_particulas(ventana, values:list, pos:tuple[int,int], size:tuple[int,int], stroke:int, scale:tuple[float,float]=(1.0,1.0)): #newParticle:tuple[float,float,float,int] = (-1.0,-1.0,-1.0,-1)):
     global particles
 
     centerY = pos[1] + size[1]*0.5
     centerX = pos[0] + size[0]*0.5
     colorAxis = (255,255,255)
 
-    if newParticle[0] != -1.0:
-        mx = newParticle[0] * (size[0]-100) + pos[0] + 100
-        my = newParticle[1] * size[1] + pos[1]
-        vel = newParticle[2]
-        lifeTime = newParticle[3]
-        particles.append([[mx, my], [vel - 1, -2], lifeTime])
+    if len(values) > 0:
+        print(values)
+        vel = -1
+        for group in values:
+            if len(group) < 1:
+                continue
+            mx = group[0] * size[0] * scale[0] + pos[0]
+            my = group[1] * size[1] * scale[1] + pos[1]
+            #vel = group[2]
+            lifeTime = group[2] * 20
+            particles.append([[mx, my], [vel, -2], lifeTime])
+            vel *= -1
+
+    # if newParticle[0] != -1.0:
+    #     mx = newParticle[0] * (size[0]-100) + pos[0] + 100
+    #     my = newParticle[1] * size[1] + pos[1]
+    #     vel = newParticle[2]
+    #     lifeTime = newParticle[3]
+    #     particles.append([[mx, my], [vel - 1, -2], lifeTime])
 
     # horizont
     for i in range(stroke):
@@ -31,14 +44,14 @@ def dib_particulas(ventana, pos:tuple[int,int], size:tuple[int,int], stroke:int,
                            1)
    
     # boundaries
-    len = 50
+    length = 50
     for i in range(stroke):
         # verticals
-        pygame.draw.aaline(ventana,(colorAxis), (pos[0], centerY-len*0.5), (pos[0], centerY+len*0.5), 1)
-        pygame.draw.aaline(ventana,(colorAxis), (pos[0]+size[0], centerY-len*0.5), (pos[0]+size[0], centerY+len*0.5),1)
+        pygame.draw.aaline(ventana,(colorAxis), (pos[0], centerY-length*0.5), (pos[0], centerY+length*0.5), 1)
+        pygame.draw.aaline(ventana,(colorAxis), (pos[0]+size[0], centerY-length*0.5), (pos[0]+size[0], centerY+length*0.5),1)
         # horizontals
-        pygame.draw.aaline(ventana,(colorAxis), (centerX-len*0.5, pos[1]), (centerX+len*0.5, pos[1]),1)
-        pygame.draw.aaline(ventana,(colorAxis), (centerX-len*0.5, pos[1]+size[1]), (centerX+len*0.5, pos[1]+size[1]),1)
+        pygame.draw.aaline(ventana,(colorAxis), (centerX-length*0.5, pos[1]), (centerX+length*0.5, pos[1]),1)
+        pygame.draw.aaline(ventana,(colorAxis), (centerX-length*0.5, pos[1]+size[1]), (centerX+length*0.5, pos[1]+size[1]),1)
     
 
     # pygame.draw.aaline(ventana,(colorAxis),(ventana.get_width()/2+250,ventana.get_height()/2-165),(ventana.get_width()/2+250,ventana.get_height()/2-135),1)

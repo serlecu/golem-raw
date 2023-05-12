@@ -4,14 +4,14 @@ import time
 
 lastLoopTime: float
 
-
+noDataMode: bool = False
 
 isScanning: bool
 scannCrono: float
 scannFrequency: float
 foundDevices: list #str/bluetooth.Device
 matchedDevices: list
-failedNotifications: list = []
+failedNotifications: list[list] = []
 
 screen: Surface
 
@@ -36,8 +36,8 @@ def initGlobals():
   global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices, matchedDevices, sensorDataList, screen
   lastLoopTime = time.time()
 
-  scannCrono = 2
-  scannFrequency = 5
+  scannCrono = 0
+  scannFrequency = 10
   isScanning = False
   foundDevices = []
   matchedDevices = []
@@ -50,6 +50,8 @@ class VainaSensorNode: #! UUID is actually the MAC address
   def __init__(self, _uuid: str, _name: str = ""):
     self.deviceUUID = _uuid
     self.deviceName = _name
+    self.rssi: int = 0
+
     self.mag: list = []
     self.accel: list = []
     self.gyro: list = []
@@ -61,6 +63,9 @@ class VainaSensorNode: #! UUID is actually the MAC address
     self.pressure: float = 0
     self.impulseResponse: list = []
 
+    self.reading: bool = False
+    self.writeing: bool = False
+
   def __str__(self):
     return f"VainaSensorNode({self.deviceUUID})"
   
@@ -71,6 +76,8 @@ class VainaSensorNode: #! UUID is actually the MAC address
     return hash(self.deviceUUID)
 
   def getSensorData(self):
+    while self.writeing:
+      time.sleep(0.01)
     return {
       'uuid': self.deviceUUID,
       'mag': self.mag,
@@ -86,6 +93,8 @@ class VainaSensorNode: #! UUID is actually the MAC address
     }
 
   def updateSensorData(self, data: dict):
+    self.writeing = True
+
     self.mag = data['mag']
     self.accel = data['accel']
     self.magZ = data['gyro']
@@ -97,7 +106,11 @@ class VainaSensorNode: #! UUID is actually the MAC address
     self.pressure = data['pressure']
     self.impulseResponse = data['impulseResponse']
 
+    self.writeing = False
+
   def updateSensorDataFromUUID(self, uuid: str, data):
+    self.writeing = True
+
     if uuid == UUID_MAG:
       self.mag = data
     elif uuid == UUID_ACCEL:
@@ -120,8 +133,20 @@ class VainaSensorNode: #! UUID is actually the MAC address
       self.impulseResponse = data
     else:
       print(f"UUID {uuid} not found")
+      
+      self.writeing = False
+
+  def setRSSI(self, rssi: int):
+    self.writeing = True
+
+    self.rssi = rssi
+
+    self.writeing = False
 
   def getSensorDataByUUID(self, uuid: str):
+    while self.writeing:
+      time.sleep(0.01)
+
     if uuid == UUID_MAG:
       return self.mag
     elif uuid == UUID_ACCEL:
@@ -146,37 +171,104 @@ class VainaSensorNode: #! UUID is actually the MAC address
       print(f"UUID {uuid} not found")
 
   def getDeviceUUID(self):
+    while self.writeing:
+      time.sleep(0.01)
+
     return self.deviceUUID
   
   def getDeviceName(self):
+    while self.writeing:
+      time.sleep(0.01)
+
     return self.deviceName
+  
+  def getRSSI(self):
+    while self.writeing:
+      time.sleep(0.01)
+
+    return self.rssi
 
   def getMagnetometer(self):
-    return self.mag
+    while self.writeing:
+      time.sleep(0.01)
+
+    if type(self.mag) == list:
+      return self.mag
+    if type(self.mag) == str:
+      return list(map(float, self.mag.split(',')))
+    else:
+      return [0, 0, 0]
 
   def getAccelerometer(self):
-    return self.accel
+    while self.writeing:
+      time.sleep(0.01)
+
+    if type(self.accel) == list:
+      return self.accel
+    if type(self.accel) == str:
+      return list(map(float, self.accel.split(',')))
+    else:
+      return [0, 0, 0]
 
   def getGyroscope(self):
-    return self.gyro
+    while self.writeing:
+      time.sleep(0.01)
+
+    if type(self.gyro) == list:
+      return self.gyro
+    if type(self.gyro) == str:
+      return list(map(float, self.gyro.split(',')))
+    else:
+      return [0, 0, 0]
 
   def getLight(self):
-    return self.light
+    while self.writeing:
+      time.sleep(0.01)
+
+    if type(self.light) == list:
+      return self.light
+    if type(self.light) == str:
+      return list(map(float, self.light.split(',')))
+    else:
+      return [0, 0, 0]
 
   def getGesture(self):
+    while self.writeing:
+      time.sleep(0.01)
+
     return self.gest
 
   def getProximity(self):
-    return self.proximity
+    while self.writeing:
+      time.sleep(0.01)
+
+    return int(self.proximity)
 
   def getTemp(self):
+    while self.writeing:
+      time.sleep(0.01)
+
     return self.temp
 
   def getHumidity(self):
+    while self.writeing:
+      time.sleep(0.01)
+
     return self.humidity
 
   def getPressure(self):
+    while self.writeing:
+      time.sleep(0.01)
+
     return self.pressure
 
   def getImpulseResponse(self):
-    return self.impulseResponse
+    while self.writeing:
+      time.sleep(0.01)
+
+    if type(self.impulseResponse) == list:
+      return self.impulseResponse
+    if type(self.impulseResponse) == str:
+      return list(map(float, self.impulseResponse.split(',')))
+    else:
+      return [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0] 

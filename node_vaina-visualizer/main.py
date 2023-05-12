@@ -28,10 +28,10 @@ def Update():
 
     while True:
         # Handle Bluetooth device scanning
-        if((g.isScanning == False) and (g.scannCrono <= 0)):
+        if((g.isScanning == False) and (g.scannCrono >= g.scannFrequency) and (len(g.sensorDataList)<2)):
             scan_thread = threading.Thread(target=scanBT, daemon=True)
             scan_thread.start()
-            g.scannCrono = g.scannFrequency
+            g.scannCrono = 0
 
         # Handle Pygame events
         handlePygameInteraction()
@@ -50,9 +50,12 @@ def Update():
 
         # Update Timers
         if(g.isScanning == False):
-            g.scannCrono -= (time.time() - g.lastLoopTime)
+            if(g.scannCrono < 99):
+                g.scannCrono += (time.time() - g.lastLoopTime)
+            else:
+                g.scannCrono = 0
 
-        g.lastLoopTime = time.time()
+            g.lastLoopTime = time.time()
 
   # End of Update() ========================================
 
