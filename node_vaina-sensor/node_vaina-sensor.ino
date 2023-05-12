@@ -41,6 +41,7 @@ void handleBLE(void);
 void handleIR(void);
 void handleSensors(void);
 void handleOLED(void);
+void handleSerial(void);
 
 // ====== VARAIBLES ======
 
@@ -225,9 +226,10 @@ void setup() {
 
 void loop() {
 
-  handleBLE();
+  // handleBLE();
   handleIR(wasConnected);
   handleSensors();
+  handleSerial();
   handleOLED();
 
   delay(1);
