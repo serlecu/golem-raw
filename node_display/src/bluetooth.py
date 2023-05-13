@@ -2,7 +2,7 @@ import time
 import threading
 import asyncio
 
-import bluetooth as bt
+# import bluetooth as bt
 import simplepyble as ble
 
 import bless
