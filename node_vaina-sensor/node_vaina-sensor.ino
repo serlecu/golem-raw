@@ -148,7 +148,7 @@ BLECharacteristic impulseResponseChar("19B10080-E8F2-537E-4F6C-D104768A1214", BL
 // -- OLED -- //
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
-#define NOTIFICATION_BADGE_DECAY 5
+#define NOTIFICATION_BADGE_DECAY 3
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 int justNotified = 0;
 int launchIR = 0;
