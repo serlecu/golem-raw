@@ -27,7 +27,7 @@ def debugScannedDevicesColor(devices, screen):
 def DrawDebugLayer():
     test_text(g.screen, (f"[ {g.deviceInfo} ]"), (g.screen.get_width()/2, 20), (255, 255, 255))
     test_text(g.screen, (f"IsScanning: {not g.isScanning}"), (g.screen.get_width()/2, 40), (255, 255, 255))
-    test_text(g.screen, (f"ScanCrono: {g.scannCrono}"), (g.screen.get_width()/2, 60), (255, 255, 255))
+    # test_text(g.screen, (f"ScanCrono: {g.scannCrono}"), (g.screen.get_width()/2, 60), (255, 255, 255))
   
     # ~ if(len(g.foundDevices) > 0):
         # ~ debugScannedDevices(g.foundDevices, g.screen)

@@ -102,8 +102,8 @@ def Update():
 
 
     # Update Timers
-    if(g.isScanning == False):
-      g.scannCrono -= (time.time() - g.lastLoopTime)
+    # if(g.isScanning == False):
+    #   g.scannCrono -= (time.time() - g.lastLoopTime)
     # ~ if (g.isConnecting == False):
       # ~ g.connectCrono -= (time.time() - g.lastLoopTime)
 
