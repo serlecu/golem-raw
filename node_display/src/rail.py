@@ -38,7 +38,7 @@ def initRail():
     driver.enable(True)
     
     #Move Rail to left
-    moveToOrigin()
+    #moveToOrigin()
     
     print("RAIL: init end.")
     time.sleep(1)
@@ -61,7 +61,7 @@ def railTest():
         
         print(f"Direction: {direction}")
         # Perform Step
-        stepRun(50, direction, 0.5)
+        stepRun(60, direction, 0.5)
         
 
 def railControl():
