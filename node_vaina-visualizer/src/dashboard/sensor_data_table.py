@@ -2,7 +2,7 @@ import pygame
 
 
 def sensor_table(surface, values:list, pos:tuple, spacing:tuple, serialMode:bool = False):
-    xpos = pos[0] + spacing[0]
+    xpos = pos[0] + spacing[0]*0.3
     ypos = pos[1] 
     font = pygame.font.SysFont("Arial", 16)
 

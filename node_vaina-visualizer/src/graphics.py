@@ -194,7 +194,7 @@ def updateDashboard(renderer, surface):
         for sensor in g.sensorDataList:
             mapValue = abs(sensor.getRSSI()) / 120.0 # map to 0.-1.
             rssi_data.append(mapValue)
-    db.dibujoForma(surface, values=rssi_data, pos=(1920, 1000), size=300, amp=56, stroke=3)
+    db.dibujoForma(surface, values=rssi_data, pos=(1920, 1000), size=300, amp=56, stroke=1)
     
     ire_data = []
     if g.noDataMode:
@@ -204,10 +204,11 @@ def updateDashboard(renderer, surface):
         sensors = []
         sensors.append(g.irVaina1)
         sensors.append(g.irVaina2)
+        ire_data = sensors
     else:
         for sensor in g.sensorDataList:
             ire_data.append(sensor.getImpulseResponse())
-    db.dib_circulorotos(surface, values=ire_data, threshold=200, pos=(1510, 1600), size=(900,136), spacer=125)
+    db.dib_circulorotos(surface, values=ire_data, thresholds=(10000,1000000), pos=(1510, 1600), size=(900,136), spacer=125)
 
     # --- COLUMNA 3 --- #
     gyro_data = []
@@ -243,7 +244,7 @@ def updateDashboard(renderer, surface):
             mapValue = float((value+100.0)/200.0) # map -100./+100 to 0./100
             vaina2.append(mapValue)
         magnet_data.append(vaina2)
-        db.dib_particulas(surface, values=magnet_data, pos=(2700, 800), size=(900, 400), scale=(0.5,0.9), stroke=1)
+        db.dib_particulas(surface, values=magnet_data, pos=(2700, 800), size=(900, 400), scale=(0.9,0.9), stroke=1)
 
     else:
         for sensor in g.sensorDataList:
@@ -298,7 +299,7 @@ def updateProyector(renderer, surface):
         if len(slidesUrn) >= totalSlides:
             slidesUrn = []
         slidesCrono = 0
-    db.dib_imag_estructura(surface, values=slideNumber, pos=(surface.get_width(),0), size=(600,600), spacing=50, mode=2)
+    db.dib_imag_estructura(surface, values=slideNumber, pos=(surface.get_width(),0), size=(600,600), spacing=120, mode=2)
     if g.serialMode:
         sensors = []
         vaina1:list[str] = []
@@ -312,8 +313,10 @@ def updateProyector(renderer, surface):
         vaina1.append(str(g.tempVaina1))
         vaina1.append(str(g.humVaina1))
         vaina1.append(str(g.pressVaina1))
-        vaina1.append(str(g.irVaina2[:4]))
-        vaina1.append(str(g.irVaina2[4:]))
+        vaina1.append(str(g.irVaina2[:2]))
+        vaina1.append(str(g.irVaina2[2:4]))
+        vaina1.append(str(g.irVaina2[4:6]))
+        vaina1.append(str(g.irVaina2[6:8]))
         sensors.append(vaina1)
 
         vaina2.append(str(g.magVaina2))
@@ -324,8 +327,10 @@ def updateProyector(renderer, surface):
         vaina2.append(str(g.tempVaina2))
         vaina2.append(str(g.humVaina2))
         vaina2.append(str(g.pressVaina2))
-        vaina2.append(str(g.irVaina2[:4]))
-        vaina2.append(str(g.irVaina2[4:]))
+        vaina2.append(str(g.irVaina2[:2]))
+        vaina2.append(str(g.irVaina2[2:4]))
+        vaina2.append(str(g.irVaina2[4:6]))
+        vaina2.append(str(g.irVaina2[6:8]))
         sensors.append(vaina2)
 
         db.sensor_table(surface, values=sensors, pos=(0, 0), spacing=(200,30), serialMode=True)

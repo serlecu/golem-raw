@@ -3,7 +3,7 @@ import random
 
 pygame.init()
 
-def dib_circulorotos(ventana, values:list, threshold:int, pos:tuple[int,int], size:tuple[int,int], spacer:int=125):
+def dib_circulorotos(ventana, values:list, thresholds:tuple[int,int], pos:tuple[int,int], size:tuple[int,int], spacer:int=125):
     colorCircle = (255,255,255)
     colorNumeros = (255,255,255)
     miFuente = pygame.font.SysFont("Arial", 11)
@@ -29,15 +29,13 @@ def dib_circulorotos(ventana, values:list, threshold:int, pos:tuple[int,int], si
         # línea vertical
         pygame.draw.aaline(ventana,(100,100,100),(posx,posy-size[1]*0.5),(posx,posy+size[1]*0.5),1)
         
-        # círculo
+        #texto
         if i == 0:
             sectorX:int
             sectorY:int
-            for j in range(0, len(values[i])):
-                val = True
-                if values[i][j] <= threshold:
-                    values[i][j] = False
-                valorText = miFuente.render(str(values[i][j]),True,(colorNumeros))
+            for j in range(0, 4):
+                val = random.randint(0,1)
+                valorText = miFuente.render(str(val),True,(colorNumeros))
                 if j == 0:
                     sectorX = int(posx-size[1]*0.25)
                     sectorY = int(posy+size[1]*0.25)
@@ -52,8 +50,14 @@ def dib_circulorotos(ventana, values:list, threshold:int, pos:tuple[int,int], si
                     sectorY = int(posy-size[1]*0.25)
                 ventana.blit(valorText,(sectorX, sectorY))
 
+        # ellipse 1/2
         apareceCirculo = random.randrange(-1,2)
         pygame.draw.circle(ventana, colorCircle, (posx, posy), size[1]*0.5, apareceCirculo, bool(values[i][0]), bool(values[i][1]), bool(values[i][2]), bool(values[i][3]))
+        posx += size[1]+spacer
+        
+        # ellipse 2/2
+        apareceCirculo = random.randrange(-1,2)
+        pygame.draw.circle(ventana, colorCircle, (posx, posy), size[1]*0.5, apareceCirculo, bool(values[i][4]), bool(values[i][5]), bool(values[i][6]), bool(values[i][7]))
         posx += size[1]+spacer
 
     #linea horizontal

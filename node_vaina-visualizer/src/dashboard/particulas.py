@@ -24,8 +24,8 @@ def dib_particulas(ventana, values:list, pos:tuple[int,int], size:tuple[int,int]
                 continue
             mx = group[0] * size[0] * scale[0] + pos[0]
             my = group[1] * size[1] * scale[1] + pos[1]
-            #vel = group[2]
-            lifeTime = group[2] * 20
+            vel = group[2] * 2 -1
+            lifeTime = group[2] * 10
             particles.append([[mx, my], [vel, -2], lifeTime])
             vel *= -1
 
@@ -65,7 +65,7 @@ def dib_particulas(ventana, values:list, pos:tuple[int,int], size:tuple[int,int]
         particle[0][0] += particle[1][1]
         """particle[0][0] += particle[1][0]
         particle[0][1] += particle[1][1]"""
-        particle[2] -= 0.03
+        particle[2] -= 0.05
         particle[1][1] += 0.03
         pygame.draw.circle(ventana, (128, 128, 128), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
         if particle[2] <= 0:

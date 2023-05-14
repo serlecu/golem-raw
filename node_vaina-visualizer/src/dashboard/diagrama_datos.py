@@ -26,9 +26,9 @@ def dib_diagrama( ventana, values:list, pos:tuple[int,int]=(0,0), size:tuple[int
       for i in range(6-len(values)):
             values.append(0)
     else:
-      for value in values:
-          if value == '':
-              value = 0
+      for i in range(6):
+          if values[i] == '' or values[i] == None:
+              values[i] = 0
     #arriba
     posi_circulo1X:int = int( pos[0])
     posi_circulo1Y:int = int( pos[1])
