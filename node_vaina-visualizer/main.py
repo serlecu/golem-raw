@@ -4,11 +4,15 @@ import threading
 from src.golemSerial import *
 from src.graphics import *
 from src.debugInDisplay import *
+from src.golemAudio import *
 
 def Setup():
     import src.globals as g
 
     g.initGlobals()
+
+    threadAudio = threading.Thread(target=hiloAudio, daemon=True)
+    threadAudio.start()
 
     # Open Serial Port
     openSerial()

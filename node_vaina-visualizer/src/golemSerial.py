@@ -6,6 +6,8 @@ import noise
 import struct
 from . import globals as g
 
+import src.golemAudio as audio
+
 twodevices = False
 vaina1Port = '/dev/cu.usbmodem14201'
 vaina2Port = '/dev/cu.usbmodem14101'
@@ -84,7 +86,6 @@ def openSerial():
         vaina1Port = ""
         # time.sleep(5)
     else:
-        g.sensorDataList.append( g.VainaSensorNode("vaina1" ))
         vaina1Connected = True
         print("Connected to vaina1.")
     
@@ -98,7 +99,6 @@ def openSerial():
         vaina2Port = ""
         # time.sleep(5)
     else:
-        g.sensorDataList.append( g.VainaSensorNode("vaina2" ))
         vaina2Connected = True
         print("Connected to vaina2.")
 
@@ -118,7 +118,6 @@ def reconnectSerial():
             vaina1Connected = False
             vaina1Port = ""
         else:
-            g.sensorDataList.append( g.VainaSensorNode("vaina1"))
             vaina1Connected = True
             print("Connected to vaina1.")
 
@@ -131,7 +130,6 @@ def reconnectSerial():
             vaina2Connected = False
             vaina2Port = ""
         else:
-            g.sensorDataList.append( g.VainaSensorNode("vaina2"))
             vaina2Connected = True
             print("Connected to vaina2.")
 
@@ -167,9 +165,6 @@ def readSerial():
                     print(e)
                     vaina1Connected = False
                     vaina1Port = ""
-                    for device in g.sensorDataList:
-                        if device.getDeviceUUID() == "vaina1":
-                            g.sensorDataList.remove(device)
                 else:
                     print(f"VAINA1 in: {data1}")
                     if data1 != b'\x00' and b'$' in data1 and b'\n' in data1:
@@ -324,6 +319,12 @@ def readSerial():
             elif header1 == "12":
                 g.gyroVaina1 = value1
             elif header1 == "20":
+                # if value1[0] < g.lightVaina1[0]:  # type: ignore
+                #     audio.cambioLuz()
+                # elif value1[0] > g.lightVaina1[0]: # type: ignore
+                #     audio.cambioLuz()
+                # else:
+                #     audio.noCambioLuz()
                 g.lightVaina1 = value1
             elif header1 == "40":
                 g.proxVaina1 = value1
