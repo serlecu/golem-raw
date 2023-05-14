@@ -19,10 +19,13 @@ void handleOLED() {
     statusRect(64, 24, 15, 6, (isIRprocessing > 0) ); //Recording
     
     notifyRect(82, 24, 3, 6, justNotified);
-
+    
     datagram(96, 24, 6, resultsFFT, FREQUENCY_BANDS, 0, 800000000);
 
     headerText(BLE.address(), 12, 0);
+
+    display.fillRect(0, 20, 2, 40, SSD1306_BLACK);    
+    display.fillRect(0, 20, 2, lightValues[0] /255 * 40, SSD1306_WHITE);
 
     //scrollingMAC();
     display.display();

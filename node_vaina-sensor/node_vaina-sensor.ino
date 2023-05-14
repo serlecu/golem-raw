@@ -86,7 +86,7 @@ float valPressure;
 bool isReadLPS = false; //miss
 
 // -- Audio -- //
-#define AUDIO_IMPULSE_FREQ 10000
+#define AUDIO_IMPULSE_FREQ 5000
 unsigned long IRtimer = 0;
 volatile bool isIRon = false;
 volatile bool isPlaying = false;
