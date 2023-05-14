@@ -1,4 +1,5 @@
 import time
+import threading
 
 from src.golemSerial import *
 from src.graphics import *
@@ -14,9 +15,13 @@ def Setup():
 
     # Initialize Pygame
     # setupSimplePygame(g.screen)
-    # setupScreens()
+    setupScreens()
+
+    serialThread = threading.Thread(target=handleSerialThread, daemon=True)
+    serialThread.start()
 
     # End of Setup() ========================================
+
 
 def Update():
     import src.globals as g
@@ -24,15 +29,18 @@ def Update():
     while True:
 
         # Handle Pygame events
-        # handlePygameInteraction()
+        handlePygameInteraction()
 
         # Handle Serial Reading
-        readSerial()
+        # handleSerial()
 
         # Draw graphics on the screen
-        # DrawLoop()
+        DrawLoop()
         # DrawDebugLayer()
 
+        g.dashboardCrono += time.time() - g.lastLoopTime
+        if(g.dashboardCrono > 99):
+            g.dashboardCrono = 0
         g.lastLoopTime = time.time()
 
   # End of Update() ========================================

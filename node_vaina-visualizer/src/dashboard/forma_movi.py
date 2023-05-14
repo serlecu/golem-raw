@@ -1,5 +1,4 @@
 import pygame
-import random
 import math
 import noise
 
@@ -13,7 +12,7 @@ dr = 2 * math.pi / id
 def dibujoForma(ventana, values:list[float], pos:tuple[int,int], size:int=150, amp:int = 56, stroke:int=1, upSp=80):
     global h
     if len(values) < 2:
-        for i in range(2-len(values)):
+        for i in range(0, 2-len(values)):
             values.append(0.0)
 
     d = 0

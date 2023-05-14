@@ -17,7 +17,7 @@ def dib_particulas(ventana, values:list, pos:tuple[int,int], size:tuple[int,int]
     colorAxis = (255,255,255)
 
     if len(values) > 0:
-        print(values)
+        # print(values)
         vel = -1
         for group in values:
             if len(group) < 1:

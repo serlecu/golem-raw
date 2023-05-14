@@ -135,6 +135,8 @@ def updateDashboard(renderer, surface):
     digitsList = []
     if g.noDataMode:
         digitsList = random.sample(range(0, 9), 2)
+    elif g.serialMode:
+            digitsList = [int(i) for i in f"{int(g.dashboardCrono):02d}"]
     else:
         digitsList = [int(i) for i in f"{int(g.scannCrono):02d}"]
     db.dib_numero( surface, num=digitsList[:2], pos=(150,200), size=(400,400), spacing=100 )
@@ -142,6 +144,13 @@ def updateDashboard(renderer, surface):
     accel_data = []
     if g.noDataMode:
         accel_data = random.sample(range(0,800), 5)
+    elif g.serialMode:
+        for value in g.accelVaina1:
+                mapValue = abs(value)  # form -1./+1. to 0./+1.
+                accel_data.append(mapValue)
+        for value in g.accelVaina2:
+                mapValue = abs(value)
+                accel_data.append(mapValue)
     else:
         for sensor in g.sensorDataList:
             for value in sensor.getAccelerometer():
@@ -152,6 +161,11 @@ def updateDashboard(renderer, surface):
     lux_data = []
     if g.noDataMode:
         lux_data = random.sample(range(0,255), 8)
+    elif g.serialMode:
+        for value in g.lightVaina1:
+                lux_data.append(value)
+        for value in g.lightVaina2:
+                lux_data.append(value)
     else:
         for sensor in g.sensorDataList:
             for value in sensor.getLight():
@@ -162,6 +176,9 @@ def updateDashboard(renderer, surface):
     proximity_data = []
     if g.noDataMode:
         proximity_data = random.sample(range(0, 300), 3)
+    elif g.serialMode:
+        proximity_data.append(g.proxVaina1)
+        proximity_data.append(g.proxVaina2)
     else:
         for sensor in g.sensorDataList:
             proximity_data.append(sensor.getProximity())
@@ -170,6 +187,9 @@ def updateDashboard(renderer, surface):
     rssi_data:list[float] = []
     if g.noDataMode:
         rssi_data = random.sample(range(20, 100), 2)
+    elif g.serialMode:
+        rssi_data.append(random.randint(60, 100)/120)
+        rssi_data.append(random.randint(60, 100)/120)
     else:
         for sensor in g.sensorDataList:
             mapValue = abs(sensor.getRSSI()) / 120.0 # map to 0.-1.
@@ -180,6 +200,10 @@ def updateDashboard(renderer, surface):
     if g.noDataMode:
         for i in range(4):
             ire_data.append([ random.randint(0,1), random.randint(0,1), random.randint(0,1), random.randint(0,1) ])
+    elif g.serialMode:
+        sensors = []
+        sensors.append(g.irVaina1)
+        sensors.append(g.irVaina2)
     else:
         for sensor in g.sensorDataList:
             ire_data.append(sensor.getImpulseResponse())
@@ -189,6 +213,13 @@ def updateDashboard(renderer, surface):
     gyro_data = []
     if g.noDataMode:
         gyro_data = random.sample(range(60,80), 4)
+    elif g.serialMode:
+        for value in g.gyroVaina1:
+                mapValue = (value+0.5)*100
+                gyro_data.append(mapValue)
+        for value in g.gyroVaina2:
+                mapValue = (value+0.5)*100
+                gyro_data.append(mapValue)
     else:
         for sensor in g.sensorDataList:
             for value in sensor.getGyroscope():
@@ -200,18 +231,39 @@ def updateDashboard(renderer, surface):
     if g.noDataMode:
         magnet_data.append( [ float(random.randint(0,100)/100.0), float(random.randint(0,100)/100.0), float(random.randint(0,100)/100.0) ] )
         magnet_data.append( [ float(random.randint(0,100)/100.0), float(random.randint(0,100)/100.0), float(random.randint(0,100)/100.0) ] )
+    elif g.serialMode:
+        vaina1 = []
+        for value in g.magVaina1:
+            mapValue = float((value+100.0)/200)
+            vaina1.append(mapValue)
+        magnet_data.append(vaina1)
+
+        vaina2 = []
+        for value in g.magVaina2:
+            mapValue = float((value+100.0)/200.0) # map -100./+100 to 0./100
+            vaina2.append(mapValue)
+        magnet_data.append(vaina2)
+        db.dib_particulas(surface, values=magnet_data, pos=(2700, 800), size=(900, 400), scale=(0.5,0.9), stroke=1)
+
     else:
         for sensor in g.sensorDataList:
             mapData:list = []
             for value in sensor.getMagnetometer():
-                mapValue = float((value+100.0)/200) # map -100./+100 to 0.-100
+                mapValue = float((value+100.0)/200) # map -100./+100 to 0./100
                 mapData.append(mapValue)
             magnet_data.append(mapData)
-    db.dib_particulas(surface, values=magnet_data, pos=(2700, 800), size=(900, 400), scale=(1.0,1.0), stroke=1)
+        db.dib_particulas(surface, values=magnet_data, pos=(2700, 800), size=(900, 400), scale=(1.0,1.0), stroke=1)
 
     atmos_data = []
     if g.noDataMode:
         atmos_data = random.sample(range(0, 255), 10)
+    elif g.serialMode:
+        atmos_data.append(g.tempVaina1)
+        atmos_data.append(g.humVaina1)
+        atmos_data.append(g.pressVaina1)
+        atmos_data.append(g.tempVaina2)
+        atmos_data.append(g.humVaina2)
+        atmos_data.append(g.pressVaina2)
     else:
         for sensor in g.sensorDataList:
             atmos_data.append(sensor.getTemp())
@@ -247,7 +299,38 @@ def updateProyector(renderer, surface):
             slidesUrn = []
         slidesCrono = 0
     db.dib_imag_estructura(surface, values=slideNumber, pos=(surface.get_width(),0), size=(600,600), spacing=50, mode=2)
-    db.sensor_table(surface, values=g.sensorDataList, pos=(0, 0), spacing=(200,30))
+    if g.serialMode:
+        sensors = []
+        vaina1:list[str] = []
+        vaina2:list[str] = []
+
+        vaina1.append(str(g.magVaina1))
+        vaina1.append(str(g.accelVaina1))
+        vaina1.append(str(g.gyroVaina1))
+        vaina1.append(str(g.lightVaina1))
+        vaina1.append(str(g.proxVaina1))
+        vaina1.append(str(g.tempVaina1))
+        vaina1.append(str(g.humVaina1))
+        vaina1.append(str(g.pressVaina1))
+        vaina1.append(str(g.irVaina2[:4]))
+        vaina1.append(str(g.irVaina2[4:]))
+        sensors.append(vaina1)
+
+        vaina2.append(str(g.magVaina2))
+        vaina2.append(str(g.accelVaina2))
+        vaina2.append(str(g.gyroVaina2))
+        vaina2.append(str(g.lightVaina2))
+        vaina2.append(str(g.proxVaina2))
+        vaina2.append(str(g.tempVaina2))
+        vaina2.append(str(g.humVaina2))
+        vaina2.append(str(g.pressVaina2))
+        vaina2.append(str(g.irVaina2[:4]))
+        vaina2.append(str(g.irVaina2[4:]))
+        sensors.append(vaina2)
+
+        db.sensor_table(surface, values=sensors, pos=(0, 0), spacing=(200,30), serialMode=True)
+    else:
+        db.sensor_table(surface, values=g.sensorDataList, pos=(0, 0), spacing=(200,30))
 
     # create texture from surface and render it to its window
     texture = Texture.from_surface(renderer, surface)

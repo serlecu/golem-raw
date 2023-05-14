@@ -1,7 +1,7 @@
 import pygame
 
 
-def sensor_table(surface, values:list, pos:tuple, spacing:tuple,):
+def sensor_table(surface, values:list, pos:tuple, spacing:tuple, serialMode:bool = False):
     xpos = pos[0] + spacing[0]
     ypos = pos[1] 
     font = pygame.font.SysFont("Arial", 16)
@@ -21,15 +21,22 @@ def sensor_table(surface, values:list, pos:tuple, spacing:tuple,):
         surface.blit( sensorName, (xpos, ypos) )
         ypos += spacing[1]
 
-        for key, value in sensor.getSensorData().items(): # returns a dict (key, value)
-            if not (key == 'uuid' or key == 'gest'):
-                if not value == None:
-                    pytext = str(value).replace('\x00','')
-                    pytext = font.render( pytext,True,(255,255,255) )
-                else:
-                    pytext = font.render( str("NaN"),True,(255,255,255) )
+        if serialMode:
+            # Sensor values
+            for value in sensor:
+                pytext = font.render( value,True,(255,255,255) )
                 surface.blit( pytext, (xpos, ypos) )
                 ypos += spacing[1]
+        else:
+            for key, value in sensor.getSensorData().items(): # returns a dict (key, value)
+                if not (key == 'uuid' or key == 'gest'):
+                    if not value == None:
+                        pytext = str(value).replace('\x00','')
+                        pytext = font.render( pytext,True,(255,255,255) )
+                    else:
+                        pytext = font.render( str("NaN"),True,(255,255,255) )
+                    surface.blit( pytext, (xpos, ypos) )
+                    ypos += spacing[1]
         xpos += spacing[0]
         ypos = pos[1]
         i += 1
