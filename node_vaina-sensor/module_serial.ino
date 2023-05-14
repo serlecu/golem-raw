@@ -24,7 +24,8 @@ void publishValuesSerial() {
         magnetValuesStr += ",";
       }
     }
-
+        
+    stringValue += "$";
     stringValue += String(10);
     stringValue += magnetValuesStr; // float[3][-400,400]uT
     stringValue += "\n";
@@ -32,6 +33,7 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
+    delay(500);
 
     magnetUpdate = false;
   }
@@ -47,6 +49,7 @@ void publishValuesSerial() {
       }
     }    
 
+    stringValue += "$";
     stringValue += String(11);
     stringValue += accelValuesStr; // float[3][-4, +4]g
     stringValue += "\n";
@@ -54,7 +57,8 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
-
+    delay(500);
+    
     accelUpdate = false;
   }
 
@@ -69,6 +73,7 @@ void publishValuesSerial() {
       }
     }
 
+    stringValue += "$";
     stringValue += String(12);
     stringValue += gyroValuesStr; // float[3][-2000, +2000]dps
     stringValue += "\n";
@@ -76,7 +81,8 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );  
-
+    delay(500);
+    
     gyroUpdate = false;
   }
 
@@ -91,6 +97,7 @@ void publishValuesSerial() {
       }
     }
 
+    stringValue += "$";
     stringValue += String(20);
     stringValue += lightValuesStr; // int[4][0-255]
     stringValue += "\n";
@@ -98,13 +105,15 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
-
+    delay(500);
+    
     lightUpdate = false;
   }
 
   // Serial.println("publishValues: FLAG 4");
   // Gesture
   if (gestUpdate) {
+    stringValue += "$";
     stringValue += String(40);
     stringValue += valGesture; // int[0-3]
     stringValue += "\n";
@@ -112,13 +121,15 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
-
+    delay(500);
+    
     gestUpdate = false;
   }
   
   // Serial.println("publishValues: FLAG 5");
   // Proximity
   if (proxUpdate) {
+    stringValue += "$";
     stringValue += String(40);
     stringValue += valProximity; // int[0-255]
     stringValue += "\n";
@@ -126,13 +137,15 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
-
+    delay(500);
+    
     proxUpdate = false;
   }
 
   // Serial.println("publishValues: FLAG 6");
   // Temperature
   if (tempUpdate) {
+    stringValue += "$";
     stringValue += String(50);
     stringValue += valTemperature; // float[-40,120]ºC
     stringValue += "\n";
@@ -140,13 +153,15 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() ); 
-
+    delay(500);
+    
     tempUpdate = false;
   }
   
   // Serial.println("publishValues: FLAG 7");
   // Humidity
   if (humUpdate) {
+    stringValue += "$";
     stringValue += String(60);
     stringValue += valHumidity; // float [0-100]%
     stringValue += "\n";
@@ -154,13 +169,15 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
-
+    delay(500);
+    
     humUpdate = false;
   }
   
   // Serial.println("publishValues: FLAG 8");
   //Presure
   if (pressUpdate) {
+    stringValue += "$";
     stringValue += String(70);
     stringValue += valPressure; // ???
     stringValue += "\n";
@@ -168,13 +185,14 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
-
+    delay(500);
+    
     pressUpdate = false;
   }
 
   // Serial.println("publishValues: FLAG 9");
   // IR
-  if (irUpdate) {
+  if (IRupdated) {
     irValuesStr = "";
     for(int i = 0; i < FREQUENCY_BANDS; i++) {
       irValuesStr += String(resultsFFT[i], 2);
@@ -183,6 +201,7 @@ void publishValuesSerial() {
       }
     }
 
+    stringValue += "$";
     stringValue += String(80);
     stringValue += irValuesStr; // ???
     stringValue += "\n";
@@ -190,7 +209,9 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
-     irUpdate = false;
+    delay(500);
+
+    IRupdated = false;
   }
 
   justNotified = NOTIFICATION_BADGE_DECAY;

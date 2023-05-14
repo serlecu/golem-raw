@@ -46,9 +46,10 @@ void handleSerial(void);
 // ====== VARAIBLES ======
 
 // -- Main -- //
+#define SERIAL_MODE false
 #define VAINA_ID 0 // DONT REMEMBER IF USED ON CLIENT
 #define UNCONNECTED_BLINK_FREQ 1000
-#define FREQ_BROADCAST 250
+#define FREQ_BROADCAST 1000
 bool isConnected = false; //miss
 bool waitBleLed = false; //Blue Blink while waiting for connection
 unsigned long disconnectedTimer;
@@ -104,6 +105,7 @@ rtos::Thread impulseThread;
 Ticker audioTicker;
 PwmOut PWM_A( digitalPinToPinName( 2 ) );
 volatile int playingSample = 0;
+volatile bool endSample = false;
 // Record: PDM
 static const char channels = 1; // default number of output channels
 static const int frequency = 16000; // default PCM output frequency
@@ -115,7 +117,7 @@ int readingSample = 0;
 #define SAMPLES 1024 // power of 2
 #define SAMPLING_FREQ 24000 // 12 kHz Fmax = sampleF /2 
 #define AMPLITUDE 100 // sensitivity
-#define FREQUENCY_BANDS 14
+#define FREQUENCY_BANDS 8
 double vImag[SAMPLES];
 double vReal[SAMPLES];
 arduinoFFT fft = arduinoFFT(vReal, vImag, SAMPLES, SAMPLING_FREQ);
@@ -176,6 +178,7 @@ void setup() {
   inLedGreen(HIGH);
   Serial.begin(115200);
   delay(1500);
+  while (!Serial && SERIAL_MODE);
   if (!Serial){
     errorSequence(2);
   }
@@ -227,7 +230,7 @@ void setup() {
 void loop() {
 
   // handleBLE();
-  handleIR(wasConnected);
+  handleIR(true);//wasConnected);
   handleSensors();
   handleSerial();
   handleOLED();

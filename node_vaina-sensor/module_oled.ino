@@ -12,14 +12,15 @@ void handleOLED() {
     display.clearDisplay();
     
     notifyRect(12, 24, 15, 6, launchIR);
+    
     statusRect(28, 24, 15, 6, isIRon ); //Playing
     statusRect(40, 24, 15, 6, isPlaying ); //Playing
     statusRect(52, 24, 15, 6, isRecording ); //Recording
     statusRect(64, 24, 15, 6, (isIRprocessing > 0) ); //Recording
     
-    notifyRect(84, 24, 3, 6, justNotified);
+    notifyRect(82, 24, 3, 6, justNotified);
 
-    datagram(104, 24, 6);
+    datagram(96, 24, 6, resultsFFT, FREQUENCY_BANDS, 0, 800000000);
 
     headerText(BLE.address(), 12, 0);
 
@@ -82,11 +83,13 @@ void circleFilled(int16_t posX, int16_t posY, int16_t radius) {
   // }
 }
 
-void datagram(int16_t posX, int16_t posY, int16_t height, double[] data, float dataMin, float dataMax) { //+data array
-  display.fillRect(posX, posY, 2*data.lenght(), height, SSD1306_BLACK)
-  for (int i=0; i<data.lenght(); i++) {
-    display.fillRect(posX, int(posY-height/2), 2, int(height * ((data[i]-dataMin)/(dataMax-dataMin))), SSD1306_WHITE);
-    posX+=2
+void datagram(int16_t posX, int16_t posY, int16_t height, volatile double data[], int numBands, float dataMin, float dataMax) { //+data array
+  display.fillRect(posX, posY, (2*numBands), height, SSD1306_BLACK);
+  
+  for (int i=0; i < numBands; i++) {
+    int16_t newHeight = height * ( (data[i] - dataMin) / (dataMax - dataMin) );
+    display.fillRect(posX, int16_t(posY-height/2), 2, newHeight, SSD1306_WHITE);
+    posX+=2;
   }
 }
 

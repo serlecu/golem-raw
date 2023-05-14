@@ -16,7 +16,7 @@ bool setupIR() {
   
   // -- IMPULSE --
   // change pwm output freq for PWM_A
-  PWM_A.period(1.0/20000.0); // was 200k, I'm testing 32k80 for a 16k SampleRat
+  PWM_A.period(1.0/32000.0); // was 20k, I'm testing 32k80 for a 16k SampleRat
   // Start the Threads
   impulseThread.start( playImpulseThreadedLoop );
 
@@ -65,8 +65,11 @@ void handleIR(bool canRun) {
 
 void outputSample() {
     // PWM_A = (float)(moogTest[playingSample] + 128) / 255; // buffer size = 512
-    PWM_A = (float)(noiseBuffer[playingSample] + 128) / 255.0;
-    playingSample = (playingSample + 1) % IBUFFER_SIZE;
+    if ( playingSample < IBUFFER_SIZE ) {
+      PWM_A = (float)(noiseBuffer[playingSample] + 128) / 255.0;
+      playingSample++;
+      // playingSample = (playingSample + 1) % IBUFFER_SIZE;
+    }
 }
 
 void playImpulseThreadedLoop() {
@@ -80,6 +83,7 @@ void playImpulseThreadedLoop() {
       Serial.println("Start Impulse ...");
 
       playingSample = 0;
+      endSample = false;
       audioTicker.attach(&outputSample, 1.0 / 16000.0);
 
       while ( (millis() - playbackTimer) < IBUFFER_MILLIS ){
@@ -88,7 +92,6 @@ void playImpulseThreadedLoop() {
       }
 
       audioTicker.detach();
-      // analogWrite(2, -1);
       PWM_A = 0.0;
 
       Serial.println("... end Impulse.");
@@ -209,7 +212,7 @@ void computeFFT() {
         if (median[index] > maxinband) {
           maxinband = median[index];
         }
-        resultsFFT[index] = median[index]; 
+        resultsFFT[index] = 20 * log10(median[index]); 
       }
 
       Serial.println("Done Processing!");
