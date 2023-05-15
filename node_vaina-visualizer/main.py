@@ -2,7 +2,7 @@ import time
 import threading
 
 #import simplepyble as ble
-import bluetooth as bluez
+# import bluetooth as bluez
 import pygame
 
 from src.bluetooth import *
@@ -17,7 +17,7 @@ def Setup():
     # Initialize Pygame
     pygame.init()
 
-    g.screen = pygame.display.set_mode((480,480))
+    g.screen = pygame.display.set_mode((1080,720))
     pygame.display.set_caption("Golem: Vaina Visualizer")
     pygame.mouse.set_visible(False)
 

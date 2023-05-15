@@ -11,6 +11,7 @@ scannCrono: float
 scannFrequency: float
 foundDevices: list #str/bluetooth.Device
 matchedDevices: list
+failedNotifications: list = []
 
 screen: Surface
 
@@ -19,13 +20,11 @@ sensorDataList: list #of VainaSensorNode
 TARGET_UUID = '19b10000-e8f2-537e-4f6c-d104768a1214'
 
 # Characteristics UUIDs
-UUID_MAGX = '19b10010-e8f2-537e-4f6c-d104768a1214'
-UUID_MAGY = '19b10011-e8f2-537e-4f6c-d104768a1214'
-UUID_MAGZ = '19b10012-e8f2-537e-4f6c-d104768a1214'
+UUID_MAG = '19b10010-e8f2-537e-4f6c-d104768a1214'
+UUID_ACCEL = '19b10011-e8f2-537e-4f6c-d104768a1214'
+UUID_GYRO = '19b10012-e8f2-537e-4f6c-d104768a1214'
 UUID_LIGHT = '19b10020-e8f2-537e-4f6c-d104768a1214'
-UUID_COLORR = '19b10021-e8f2-537e-4f6c-d104768a1214'
-UUID_COLORG = '19b10022-e8f2-537e-4f6c-d104768a1214'
-UUID_COLORB = '19b10023-e8f2-537e-4f6c-d104768a1214'
+UUID_GEST = '19b10030-e8f2-537e-4f6c-d104768a1214'
 UUID_PROXIMITY = '19b10040-e8f2-537e-4f6c-d104768a1214'
 UUID_TEMP = '19b10050-e8f2-537e-4f6c-d104768a1214'
 UUID_HUMIDITY = '19b10060-e8f2-537e-4f6c-d104768a1214'
@@ -37,7 +36,7 @@ def initGlobals():
   global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices, matchedDevices, sensorDataList, screen
   lastLoopTime = time.time()
 
-  scannCrono = 5
+  scannCrono = 2
   scannFrequency = 5
   isScanning = False
   foundDevices = []
@@ -51,13 +50,11 @@ class VainaSensorNode: #! UUID is actually the MAC address
   def __init__(self, _uuid: str, _name: str = ""):
     self.deviceUUID = _uuid
     self.deviceName = _name
-    self.magX: float = 0
-    self.magY: float = 0
-    self.magZ: float = 0
-    self.light: int = 255
-    self.colorR: int = 255
-    self.colorG: int = 255
-    self.colorB: int = 255
+    self.mag: list = []
+    self.accel: list = []
+    self.gyro: list = []
+    self.light: list = []
+    self.gest: int = 0
     self.proximity: float = 0
     self.temp: float = 21
     self.humidity: float = 124
@@ -76,13 +73,11 @@ class VainaSensorNode: #! UUID is actually the MAC address
   def getSensorData(self):
     return {
       'uuid': self.deviceUUID,
-      'magX': self.magX,
-      'magY': self.magY,
-      'magZ': self.magZ,
+      'mag': self.mag,
+      'accel': self.accel,
+      'gyro': self.gyro,
       'light': self.light,
-      'colorR': self.colorR,
-      'colorG': self.colorG,
-      'colorB': self.colorB,
+      'gest': self.gest,
       'proximity': self.proximity,
       'temp': self.temp,
       'humidity': self.humidity,
@@ -91,13 +86,11 @@ class VainaSensorNode: #! UUID is actually the MAC address
     }
 
   def updateSensorData(self, data: dict):
-    self.magX = data['magX']
-    self.magY = data['magY']
-    self.magZ = data['magZ']
+    self.mag = data['mag']
+    self.accel = data['accel']
+    self.magZ = data['gyro']
     self.light = data['light']
-    self.colorR = data['colorR']
-    self.colorG = data['colorG']
-    self.colorB = data['colorB']
+    self.gest = data['gest']
     self.proximity = data['proximity']
     self.temp = data['temp']
     self.humidity = data['humidity']
@@ -105,21 +98,16 @@ class VainaSensorNode: #! UUID is actually the MAC address
     self.impulseResponse = data['impulseResponse']
 
   def updateSensorDataFromUUID(self, uuid: str, data):
-    if uuid == UUID_MAGX:
-      self.magX = data
-    elif uuid == UUID_MAGY:
-      self.magY = data
-    elif uuid == UUID_MAGZ:
-      self.magZ = data
+    if uuid == UUID_MAG:
+      self.mag = data
+    elif uuid == UUID_ACCEL:
+      self.accel = data
+    elif uuid == UUID_GYRO:
+      self.gyro = data
     elif uuid == UUID_LIGHT:
       self.light = data
-    elif uuid == UUID_COLORR:
-      self.colorR = data
-    elif uuid == UUID_COLORG:
-      self.colorG = data
-    elif uuid == UUID_COLORB:
-      self.colorB = data
-      print(self.colorB)
+    elif uuid == UUID_GEST:
+      self.gest = data
     elif uuid == UUID_PROXIMITY:
       self.proximity = data
     elif uuid == UUID_TEMP:
@@ -134,20 +122,16 @@ class VainaSensorNode: #! UUID is actually the MAC address
       print(f"UUID {uuid} not found")
 
   def getSensorDataByUUID(self, uuid: str):
-    if uuid == UUID_MAGX:
-      return self.magX
-    elif uuid == UUID_MAGY:
-      return self.magY
-    elif uuid == UUID_MAGZ:
-      return self.magZ
+    if uuid == UUID_MAG:
+      return self.mag
+    elif uuid == UUID_ACCEL:
+      return self.accel
+    elif uuid == UUID_GYRO:
+      return self.gyro
     elif uuid == UUID_LIGHT:
       return self.light
-    elif uuid == UUID_COLORR:
-      return self.colorR
-    elif uuid == UUID_COLORG:
-      return self.colorG
-    elif uuid == UUID_COLORB:
-      return self.colorB
+    elif uuid == UUID_GEST:
+      return self.gest
     elif uuid == UUID_PROXIMITY:
       return self.proximity
     elif uuid == UUID_TEMP:
@@ -167,26 +151,20 @@ class VainaSensorNode: #! UUID is actually the MAC address
   def getDeviceName(self):
     return self.deviceName
 
-  def getMagX(self):
-    return self.magX
+  def getMagnetometer(self):
+    return self.mag
 
-  def getMagY(self):
-    return self.magY
+  def getAccelerometer(self):
+    return self.accel
 
-  def getMagZ(self):
-    return self.magZ
+  def getGyroscope(self):
+    return self.gyro
 
   def getLight(self):
     return self.light
 
-  def getColorR(self):
-    return self.colorR
-
-  def getColorG(self):
-    return self.colorG
-
-  def getColorB(self):
-    return self.colorB
+  def getGesture(self):
+    return self.gest
 
   def getProximity(self):
     return self.proximity
