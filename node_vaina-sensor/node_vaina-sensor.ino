@@ -50,6 +50,7 @@ void handleSerial(void);
 #define VAINA_ID 0 // DONT REMEMBER IF USED ON CLIENT
 #define UNCONNECTED_BLINK_FREQ 1000
 #define FREQ_BROADCAST 1000
+unsigned int tStart;
 bool isConnected = false; //miss
 bool waitBleLed = false; //Blue Blink while waiting for connection
 unsigned long disconnectedTimer;
@@ -162,6 +163,7 @@ int displayErrorOLED = 0;
 // ====== SETUP ============
 
 void setup() {
+  tStart = millis();
   setupRGBLED();
   tickerBlink.attach(&blink, 1);
 
@@ -235,5 +237,9 @@ void loop() {
   handleSerial();
   handleOLED();
 
+  if (millis() - tStart >= 1800000) {
+    Serial.print("RESET");
+    NVIC_SystemReset();
+  }
   delay(1);
 }
