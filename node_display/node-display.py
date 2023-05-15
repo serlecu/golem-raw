@@ -9,7 +9,7 @@ from src.graphics import *
 from src.debug_display import *
 from src.rail import *
 
-import simplepyble as ble
+# import simplepyble as ble
 
 def Setup():
   import src.globals as g
