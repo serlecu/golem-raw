@@ -24,6 +24,7 @@ using namespace mbed;
 
 // Utilities
 void(* resetFunc) (void) = 0; // Software reset
+void inLedWhite(bool);
 void inLedRed(bool);
 void inLedGreen(bool);
 void inLedBlue(bool);
@@ -223,7 +224,9 @@ void setup() {
   delay(1500);
 
   // All OK  
-  readySequence(4);
+  readySequence(2);
+
+  inLedWhite(HIGH);
 }
 
 
