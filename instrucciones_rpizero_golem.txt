@@ -1,0 +1,45 @@
+# INSTALL RasPI Zero - Pantalla
+
+1. Download and burn Raspberry Pi OS (64-bit) Desktop - Bullseye 2023-02-22:
+Link: https://downloads.raspberry.org/raspios_arm64/images/raspios_arm64-2023-02-22/
+
+2. Install PIMORONI hyperpixel 2r drivers:
+2.0. Navigate to desktop `cd Desktop`
+2.1. Clone the repository at desktop `git clone https://github.com/pimoroni/hyperpixel2r`
+2.2. Navigate inside the repository `cd hyperpixel2r`
+2.3. Install the drivers using `sudo ./install.sh`
+Ref: https://shop.pimoroni.com/products/hyperpixel-round
+
+3. Comment (add # at the beginning of the line) `dtoverlay=vc4-kms-v3d` inside `/boot/config.txt` using `sudo nano /boot/config.txt` (you can do that at the end if you want to work with an HDMI screen).
+Ref: https://shop.pimoroni.com/products/hyperpixel-round
+
+4. Clone the repository on Desktop `git clone https://github.com/serlecu/golem-node-screen.git`.
+
+5. Check that displayStartup.sh is in repo `cd golem-node-screen/node_display` and `cd ls`.
+
+6. Create a file `initTask.desktop` in `/etc/xdg/autostart/initTask.desktop` and `/home/pi/.config/autostart`:
+
+6.1. Check bash url: `/usr/bin/bash` or `/bin/bash`
+6.2. Check url of `displayStartup.sh`
+6.3. Use `sudo nano /etc/xdg/autostart/initTask.desktop` and write the new file.
+6.4. Use `sudo nano /home/pi/.config/autostart` and write the new file.
+
+```
+[Desktop Entry]
+Name=InitTask
+Exec=[bash url] [url of `displayStartup.sh`]
+Type=Application
+```
+Ref: https://forums.raspberrypi.com/viewtopic.php?t=294014
+
+7. Make sure the file displayStartup.sh inside the repo is executable with ‘sudo chmod -x displayStartup.s’
+
+8. Seguir pasos dentro de displayStartup.sh (dos veces si hace falta)
+
+10. Enable --experimental for Bluetooth -> check file /usr/local/libexec/bluetooth/bluetoothhd --experimental
+
+
+# SOLVE PROBLEMS WITH GIT REPO NOT PULLING
+1. Delete de repository folder `sudo rm -rf Desktop/golem-node-screen`.
+2. Navigate to Desktop `cd Desktop`.
+3. Clone again the repository `git clone https://github.com/serlecu/golem-node-screen.git`.
