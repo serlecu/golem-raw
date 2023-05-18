@@ -147,10 +147,10 @@ def updateDashboard(renderer, surface):
     elif g.serialMode:
         for value in g.accelVaina1:
                 mapValue = abs(value)  # form -1./+1. to 0./+1.
-                accel_data.append(mapValue)
+                accel_data.append(clamp(mapValue, 0.0, 1.0) )
         for value in g.accelVaina2:
                 mapValue = abs(value)
-                accel_data.append(mapValue)
+                accel_data.append(clamp(mapValue, 0.0, 1.0))
     else:
         for sensor in g.sensorDataList:
             for value in sensor.getAccelerometer():
@@ -163,9 +163,9 @@ def updateDashboard(renderer, surface):
         lux_data = random.sample(range(0,255), 8)
     elif g.serialMode:
         for value in g.lightVaina1:
-                lux_data.append(value)
+                lux_data.append(clamp(value *4, 0, 255))
         for value in g.lightVaina2:
-                lux_data.append(value)
+                lux_data.append(clamp(value *4, 0, 255))
     else:
         for sensor in g.sensorDataList:
             for value in sensor.getLight():
@@ -222,11 +222,11 @@ def updateDashboard(renderer, surface):
         gyro_data = random.sample(range(60,80), 4)
     elif g.serialMode:
         for value in g.gyroVaina1:
-                mapValue = (value+0.5)*100
-                gyro_data.append(mapValue)
+                mapValue = (value+0.5)*200
+                gyro_data.append(clamp(mapValue, 0, 100))
         for value in g.gyroVaina2:
-                mapValue = (value+0.5)*100
-                gyro_data.append(mapValue)
+                mapValue = (value+0.5)*200
+                gyro_data.append(clamp(mapValue, 0, 100))
     else:
         for sensor in g.sensorDataList:
             for value in sensor.getGyroscope():
@@ -305,7 +305,7 @@ def updateProyector(renderer, surface):
         if len(slidesUrn) >= totalSlides:
             slidesUrn = []
         slidesCrono = 0
-    db.dib_imag_estructura(surface, values=slideNumber, pos=(surface.get_width(),0), size=(600,600), spacing=120, mode=2)
+    db.dib_imag_estructura(surface, values=slideNumber, pos=(surface.get_width(),0), size=(600,600), spacing=140, mode=2)
     if g.serialMode:
         sensors = []
         vaina1:list[str] = []
@@ -339,9 +339,9 @@ def updateProyector(renderer, surface):
         vaina2.append(str(g.irVaina2[6:8]))
         sensors.append(vaina2)
 
-        db.sensor_table(surface, values=sensors, pos=(0, 0), spacing=(200,30), serialMode=True)
+        db.sensor_table(surface, values=sensors, pos=(0, 0), spacing=(220,30), serialMode=True)
     else:
-        db.sensor_table(surface, values=g.sensorDataList, pos=(0, 0), spacing=(200,30))
+        db.sensor_table(surface, values=g.sensorDataList, pos=(0, 0), spacing=(220,30))
 
     # create texture from surface and render it to its window
     texture = Texture.from_surface(renderer, surface)
@@ -371,3 +371,5 @@ def test_text(surface, text, pos, color):
     textpos.centery = pos[1]
     surface.blit(text, textpos)
 
+def clamp(n, minn, maxn):
+    return max(min(maxn,n),minn)
