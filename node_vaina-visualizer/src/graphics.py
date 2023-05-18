@@ -186,10 +186,16 @@ def updateDashboard(renderer, surface):
     
     rssi_data:list[float] = []
     if g.noDataMode:
-        rssi_data = random.sample(range(20, 100), 2)
+        rssi_data = random.sample(range(60, 65), 2)
     elif g.serialMode:
-        rssi_data.append(random.randint(60, 100)/120)
-        rssi_data.append(random.randint(60, 100)/120)
+        if random.randint(0,10) == 0:
+            rssi_data.append(round(random.randint(58, 70)/120, 1))
+            rssi_data.append(round(random.randint(60, 80)/120, 1))
+            g.rssiVaina1 = rssi_data[0]
+            g.rssiVaina2 = rssi_data[1]
+        else:
+            rssi_data.append( g.rssiVaina1 )
+            rssi_data.append( g.rssiVaina2 )
     else:
         for sensor in g.sensorDataList:
             mapValue = abs(sensor.getRSSI()) / 120.0 # map to 0.-1.
