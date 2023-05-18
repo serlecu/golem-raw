@@ -9,8 +9,11 @@ from . import globals as g
 import src.golemAudio as audio
 
 twodevices = False
-vaina1Port = '/dev/cu.usbmodem14201'
-vaina2Port = '/dev/cu.usbmodem14101'
+vaina1Port = ""
+vaina2Port = ""
+vaina1PortNew = ""
+vaina2PortNew = ""
+
 
 serialCronoMax:float = 0.1
 lastSerialLoopTime:float = 0.0
@@ -24,51 +27,69 @@ def setupSerial():
     findPorts()
     openSerial()
 
-def handleSerial():
-    readSerial()
-    # findPorts()
-    # reconnectSerial()
 
 def handleSerialThread():
     while not g.killSerialThread:
         handleSerial()
         time.sleep(0.1)
 
+
+def handleSerial():
+    findPorts()
+    openSerial()
+
+    readSerial()
+
+    # reconnectSerial()
+
+
 def findPorts():
-    global vaina1Port, vaina2Port
+    global vaina1Port, vaina2Port, vaina1PortNew, vaina2PortNew
 
-    if vaina1Port == "": # or vaina2Port == "":
-        print("Finding ports...")
+    # if vaina1Port == "": # or vaina2Port == "":
+    # print("Finding ports...")
 
-        filteredDevices:list = []
-        try:
-            devices = serial.tools.list_ports.comports()
-            # print(f"Devices: {devices}")
-            print(f"Vaina1: {vaina1Port}. Vaina2: {vaina2Port}")
-        except:
-            print("Error finding ports")
-            return
+    filteredDevices:list = []
+    try:
+        devices = serial.tools.list_ports.comports()
+        # print(f"Devices: {devices}")
+        print(f"Vaina1: {vaina1Port}. Vaina2: {vaina2Port}")
+    except:
+        print("Error finding ports")
+        return
+    else:
+        for device in devices:
+            print(f"Port: {device[0]} {device[1]}")
+            if device[1] == "Nano 33 BLE":
+                filteredDevices.append([device[0],""])
+        
+        if len(filteredDevices) > 1:
+            vaina1PortNew = filteredDevices[0][0]
+            vaina2PortNew = filteredDevices[1][0]
+        elif len(filteredDevices) > 0:
+            vaina1PortNew = filteredDevices[0][0]
+            vaina2PortNew = ""
         else:
-            for device in devices:
-                print(f"Port: {device[0]} {device[1]}")
-                if device[1] == "Nano 33 BLE":
-                    filteredDevices.append([device[0],""])
+            vaina1PortNew = ""
+            vaina2PortNew = ""
 
-            for i in range(0,len(filteredDevices)):
-                if filteredDevices[i][0] == vaina1Port:
-                    filteredDevices[i][1] = "vaina1"
+        print(f"New Ports: [Vaina1: {vaina1PortNew}. Vaina2: {vaina2PortNew} ]")  
 
-                elif filteredDevices[i][0] == vaina2Port:
-                    filteredDevices[i][1] = "vaina1"
+        # for i in range(0,len(filteredDevices)):
+        #     if filteredDevices[i][0] == vaina1Port:
+        #         filteredDevices[i][1] = "vaina1"
 
-                else:
-                    if filteredDevices[i][1] == "":
-                        vaina1Port = filteredDevices[i][0]
-                        filteredDevices[i][1] = "vaina1"
-                    elif filteredDevices[i][1] == "":
-                        vaina2Port = filteredDevices[i][0]
-                        filteredDevices[i][1] = "vaina2" 
-            print(f"New Ports: [Vaina1: {vaina1Port}. Vaina2: {vaina2Port} ]")  
+        #     elif filteredDevices[i][0] == vaina2Port:
+        #         filteredDevices[i][1] = "vaina1"
+
+        #     else:
+        #         if filteredDevices[i][1] == "":
+        #             vaina1Port = filteredDevices[i][0]
+        #             filteredDevices[i][1] = "vaina1"
+        #         elif filteredDevices[i][1] == "":
+        #             vaina2Port = filteredDevices[i][0]
+        #             filteredDevices[i][1] = "vaina2" 
+        # print(f"New Ports: [Vaina1: {vaina1Port}. Vaina2: {vaina2Port} ]")  
 
 
 def openSerial():
@@ -76,33 +97,49 @@ def openSerial():
 
     print("Opening serial ports...")
 
-    try:
-        vaina1 = serial.Serial(vaina1Port, 9600, timeout=1)
-        time.sleep(1)
-    except Exception as e:
-        print(e)
-        print("Trying again later...")
-        vaina1Connected = False
-        vaina1Port = ""
-        # time.sleep(5)
-    else:
-        vaina1Connected = True
-        print("Connected to vaina1.")
-    
-    try:
-        vaina2 = serial.Serial(vaina2Port, 9600, timeout=1)
-        time.sleep(1)
-    except Exception as e:
-        print(e)
-        print("Trying again later...")
-        vaina2Connected = False
-        vaina2Port = ""
-        # time.sleep(5)
-    else:
-        vaina2Connected = True
-        print("Connected to vaina2.")
+    if not (vaina1Port == vaina1PortNew):
+        print("New vaina port 2 available")
+        if not (vaina1PortNew == ""):
+            try:
+                vaina1 = serial.Serial(vaina1PortNew, 9600, timeout=1)
+                time.sleep(1)
+            except Exception as e:
+                print(e)
+                print("Trying again later...")
+                try:
+                    vaina1.close()
+                except:
+                    print("Port for vaina 1 wasn't open")
+                vaina1Connected = False
+                vaina1Port = ""
+                # time.sleep(5)
+            else:
+                vaina1Port = vaina1PortNew
+                vaina1Connected = True
+                print("Connected to vaina1.")
 
-    print("Serial ports opened if success.")
+    if not (vaina2Port == vaina2PortNew):
+        print("New vaina port 2 available")
+        if not(vaina2PortNew == ""):
+            try:
+                vaina2 = serial.Serial(vaina2PortNew, 9600, timeout=1)
+                time.sleep(1)
+            except Exception as e:
+                print(e)
+                print("Trying again later...")
+                try:
+                    vaina2.close()
+                except:
+                    print("Port for vaina 2 wasn't open")
+                vaina2Connected = False
+                vaina2Port = ""
+                # time.sleep(5)
+            else:
+                vaina2Port = vaina2PortNew
+                vaina2Connected = True
+                print("Connected to vaina2.")
+
+    print("End Serial ports opening.")
 
 
 def reconnectSerial():
@@ -286,7 +323,7 @@ def readSerial():
                     value2 = random.sample(range(25, 17600), 3)
                     value2 = [round(x/100-100,2) for x in value2]
                 elif header2 == "11":
-                    value2 = random.sample(range(-100, 100), 3)
+                    value2 = random.sample(range(0, 200), 3)
                     value2 = [round(x/100-1,2) for x in value2]
                 elif header2 == "12":
                     value2 = random.sample(range(-50, 50), 3)
