@@ -53,8 +53,8 @@ def setupScreens():
 
     # -- WINDOW A -- (proyector)
     winA = Window("1st window",
-                size=(1440,900),
-                position=(0, 0) )
+                size=(1280,1024),
+                position=(3841, 0) )
     winA.set_fullscreen(True)
     rendererA = Renderer(winA)
 
@@ -70,7 +70,7 @@ def setupScreens():
     # -- WINDOW B -- (TV)
     winB = Window("2nd window",
                 size=(3840, 2160), # 4K UHD
-                position=(1441, 0) )
+                position=(0, 0) )
     winB.set_fullscreen(True)
     rendererB = Renderer(winB)
 
