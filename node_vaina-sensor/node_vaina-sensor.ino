@@ -227,7 +227,6 @@ void setup() {
   readySequence(2);
 
   inLedWhite(HIGH);
-
 }
 
 

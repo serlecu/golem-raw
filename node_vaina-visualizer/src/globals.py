@@ -45,6 +45,7 @@ tempVaina1:float = 0
 humVaina1:float = 0
 pressVaina1:float = 0
 irVaina1:list = [0,0,0,0,0,0,0,0]
+rssiVaina1 = 60
 
 # Vaina2 variables
 magVaina2:list[float] = [0,0,0]
@@ -56,6 +57,7 @@ tempVaina2:float = 0
 humVaina2:float = 0
 pressVaina2:float = 0
 irVaina2:list = [0,0,0,0,0,0,0,0]
+rssiVaina2 = 0
 
 def initGlobals():
   global lastLoopTime, scannCrono, scannFrequency, isScanning, foundDevices, matchedDevices, sensorDataList, screen

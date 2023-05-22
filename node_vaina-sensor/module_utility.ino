@@ -22,6 +22,18 @@ void inLedWhite(bool state) {
   }
 }
 
+void inLedWhite(bool state) {
+  if(state){
+    digitalWrite(LEDR, !state);
+    digitalWrite(LEDG, !state);
+    digitalWrite(LEDB, !state);
+  } else {
+    digitalWrite(LEDR, state);
+    digitalWrite(LEDG, state);
+    digitalWrite(LEDB, state);
+  }
+}
+
 void inLedRed(bool state) {
   if(state){
     digitalWrite(LEDR, !state);
