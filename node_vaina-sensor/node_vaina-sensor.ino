@@ -24,6 +24,7 @@ using namespace mbed;
 
 // Utilities
 void(* resetFunc) (void) = 0; // Software reset
+void inLedWhite(bool);
 void inLedRed(bool);
 void inLedGreen(bool);
 void inLedBlue(bool);
@@ -41,13 +42,16 @@ void handleBLE(void);
 void handleIR(void);
 void handleSensors(void);
 void handleOLED(void);
+void handleSerial(void);
 
 // ====== VARAIBLES ======
 
 // -- Main -- //
+#define SERIAL_MODE false
 #define VAINA_ID 0 // DONT REMEMBER IF USED ON CLIENT
 #define UNCONNECTED_BLINK_FREQ 1000
-#define FREQ_BROADCAST 250
+#define FREQ_BROADCAST 1000
+unsigned int tStart;
 bool isConnected = false; //miss
 bool waitBleLed = false; //Blue Blink while waiting for connection
 unsigned long disconnectedTimer;
@@ -84,7 +88,7 @@ float valPressure;
 bool isReadLPS = false; //miss
 
 // -- Audio -- //
-#define AUDIO_IMPULSE_FREQ 10000
+#define AUDIO_IMPULSE_FREQ 5000
 unsigned long IRtimer = 0;
 volatile bool isIRon = false;
 volatile bool isPlaying = false;
@@ -103,6 +107,7 @@ rtos::Thread impulseThread;
 Ticker audioTicker;
 PwmOut PWM_A( digitalPinToPinName( 2 ) );
 volatile int playingSample = 0;
+volatile bool endSample = false;
 // Record: PDM
 static const char channels = 1; // default number of output channels
 static const int frequency = 16000; // default PCM output frequency
@@ -114,7 +119,7 @@ int readingSample = 0;
 #define SAMPLES 1024 // power of 2
 #define SAMPLING_FREQ 24000 // 12 kHz Fmax = sampleF /2 
 #define AMPLITUDE 100 // sensitivity
-#define FREQUENCY_BANDS 14
+#define FREQUENCY_BANDS 8
 double vImag[SAMPLES];
 double vReal[SAMPLES];
 arduinoFFT fft = arduinoFFT(vReal, vImag, SAMPLES, SAMPLING_FREQ);
@@ -147,7 +152,7 @@ BLECharacteristic impulseResponseChar("19B10080-E8F2-537E-4F6C-D104768A1214", BL
 // -- OLED -- //
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
-#define NOTIFICATION_BADGE_DECAY 5
+#define NOTIFICATION_BADGE_DECAY 3
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 int justNotified = 0;
 int launchIR = 0;
@@ -159,6 +164,7 @@ int displayErrorOLED = 0;
 // ====== SETUP ============
 
 void setup() {
+  tStart = millis();
   setupRGBLED();
   tickerBlink.attach(&blink, 1);
 
@@ -175,6 +181,7 @@ void setup() {
   inLedGreen(HIGH);
   Serial.begin(115200);
   delay(1500);
+  while (!Serial && SERIAL_MODE);
   if (!Serial){
     errorSequence(2);
   }
@@ -217,7 +224,9 @@ void setup() {
   delay(1500);
 
   // All OK  
-  readySequence(4);
+  readySequence(2);
+
+  inLedWhite(HIGH);
 }
 
 
@@ -225,10 +234,15 @@ void setup() {
 
 void loop() {
 
-  handleBLE();
-  handleIR(wasConnected);
+  // handleBLE();
+  handleIR(true);//wasConnected);
   handleSensors();
+  handleSerial();
   handleOLED();
 
+  if (millis() - tStart >= 1800000) {
+    Serial.print("RESET");
+    NVIC_SystemReset();
+  }
   delay(1);
 }

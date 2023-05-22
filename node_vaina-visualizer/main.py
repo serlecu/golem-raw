@@ -1,69 +1,50 @@
 import time
 import threading
 
-#import simplepyble as ble
-# import bluetooth as bluez
-import pygame
-
-from src.bluetooth import *
+from src.golemSerial import *
 from src.graphics import *
 from src.debugInDisplay import *
+from src.golemAudio import *
 
 def Setup():
     import src.globals as g
 
     g.initGlobals()
 
+    threadAudio = threading.Thread(target=hiloAudio, daemon=True)
+    threadAudio.start()
+
+    # Open Serial Port
+    openSerial()
+
     # Initialize Pygame
-    pygame.init()
+    # setupSimplePygame(g.screen)
+    setupScreens()
 
-    g.screen = pygame.display.set_mode((1080,720))
-    pygame.display.set_caption("Golem: Vaina Visualizer")
-    pygame.mouse.set_visible(False)
-
-    # Initialize Bluetooth
-    setupBTAdapter()
+    serialThread = threading.Thread(target=handleSerialThread, daemon=True)
+    serialThread.start()
 
     # End of Setup() ========================================
+
 
 def Update():
     import src.globals as g
 
     while True:
-        # Handle Bluetooth device scanning
-        if((g.isScanning == False) and (g.scannCrono <= 0)):
-            scan_thread = threading.Thread(target=scanBT, daemon=True)
-            scan_thread.start()
-            g.scannCrono = g.scannFrequency
-            
-        # Handle Pygame events
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                # Quit the application if the X button is pressed
-                pygame.quit()
-                quit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    # Quit if the 'esc' key is pressed
-                    pygame.quit()
-                    quit()
 
-        # Handle Bluetooth connections and data
-        handleBTConnections()
-        handleBTData()
+        # Handle Pygame events
+        handlePygameInteraction()
+
+        # Handle Serial Reading
+        # handleSerial()
 
         # Draw graphics on the screen
         DrawLoop()
-        DrawDebugLayer()
+        # DrawDebugLayer()
 
-        # Update the Pygame display
-        pygame.display.update()
-
-
-        # Update Timers
-        if(g.isScanning == False):
-            g.scannCrono -= (time.time() - g.lastLoopTime)
-
+        g.dashboardCrono += time.time() - g.lastLoopTime
+        if(g.dashboardCrono > 99):
+            g.dashboardCrono = 0
         g.lastLoopTime = time.time()
 
   # End of Update() ========================================

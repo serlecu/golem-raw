@@ -1,7 +1,7 @@
 void setupOLED() {
   // Clear the display
-  display.clearDisplay();
-  display.display();
+  // display.clearDisplay();
+  // display.display();
 }
 
 void handleOLED() {
@@ -11,15 +11,21 @@ void handleOLED() {
   } else {
     display.clearDisplay();
     
-    notifyBadge(12, 24, 6, launchIR);
-    statusBadge(28, 24, 6, isIRon ); //Playing
-    statusBadge(40, 24, 6, isPlaying ); //Playing
-    statusBadge(52, 24, 6, isRecording ); //Recording
-    statusBadge(64, 24, 6, (isIRprocessing > 0) ); //Recording
+    notifyRect(12, 24, 15, 6, launchIR);
     
-    notifyBadge(84, 24, 6, justNotified);
+    statusRect(28, 24, 15, 6, isIRon ); //Playing
+    statusRect(40, 24, 15, 6, isPlaying ); //Playing
+    statusRect(52, 24, 15, 6, isRecording ); //Recording
+    statusRect(64, 24, 15, 6, (isIRprocessing > 0) ); //Recording
+    
+    notifyRect(82, 24, 3, 6, justNotified);
+    
+    datagram(96, 24, 6, resultsFFT, FREQUENCY_BANDS, 0, 800000000);
 
-    headerText(BLE.address());
+    headerText(BLE.address(), 12, 0);
+
+    display.fillRect(0, 20, 2, 40, SSD1306_BLACK);    
+    display.fillRect(0, 20, 2, lightValues[0] /255 * 40, SSD1306_WHITE);
 
     //scrollingMAC();
     display.display();
@@ -34,12 +40,31 @@ void statusBadge(int16_t posX, int16_t posY, int16_t radius, bool listener) {
   }
 }
 
+void statusRect(int16_t posX, int16_t posY, int16_t width, int16_t height, bool listener) {
+  if ( listener ) {
+    display.fillRect(posX, posY, width, height, SSD1306_WHITE);
+  } else {
+    display.fillRect(posX, posY, width, height, SSD1306_BLACK);
+    display.fillRect(posX, posY, 1, height, SSD1306_WHITE);
+  }
+}
+
 void notifyBadge(int16_t posX, int16_t posY, int16_t radius, int listener) {
   if ( listener > 0 ) { // contador de ciclos
     circleFilled(posX, posY, radius);
     listener --;
   } else {
     circleOutline(posX, posY, radius);
+  }
+}
+
+void notifyRect(int16_t posX, int16_t posY, int16_t width, int16_t height, int listener) {
+  if ( listener > 0 ) { // contador de ciclos
+    display.fillRect(posX, posY, width, height, SSD1306_WHITE);
+    listener --;
+  } else {
+    display.fillRect(posX, posY, width, height, SSD1306_BLACK);
+    display.fillRect(posX, posY, 1, height, SSD1306_WHITE);
   }
 }
 
@@ -61,10 +86,20 @@ void circleFilled(int16_t posX, int16_t posY, int16_t radius) {
   // }
 }
 
-void headerText(String text) {
+void datagram(int16_t posX, int16_t posY, int16_t height, volatile double data[], int numBands, float dataMin, float dataMax) { //+data array
+  display.fillRect(posX, posY, (2*numBands), height, SSD1306_BLACK);
+  
+  for (int i=0; i < numBands; i++) {
+    int16_t newHeight = height * ( (data[i] - dataMin) / (dataMax - dataMin) );
+    display.fillRect(posX, int16_t(posY-height/2), 2, newHeight, SSD1306_WHITE);
+    posX+=2;
+  }
+}
+
+void headerText(String text, int16_t posX, int16_t posY ) {
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
-  display.setCursor(10, 0);
+  display.setCursor(posX, posY);
   display.println(text);
 }
 
