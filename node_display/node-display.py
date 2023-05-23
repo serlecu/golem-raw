@@ -17,15 +17,15 @@ def Setup():
   g.initGlobals()
   
   # Init Rail
-  try:
-    initRail()
-  except Exception as e:
-    print(e)
-  else:
-    g.i2cConnected = True
+  # try:
+  #   initRail()
+  # except Exception as e:
+  #   print(e)
+  # else:
+  #   g.i2cConnected = True
      
-  rail_thread = threading.Thread(target=railControl, daemon=True)
-  rail_thread.start()
+  # rail_thread = threading.Thread(target=railControl, daemon=True)
+  # rail_thread.start()
   
 
   # Initialize Pygame
@@ -91,7 +91,7 @@ def Update():
       # ~ g.connectingCrono = round(random.uniform(g.connectFreq, g.connectFreq+5.0), 2)
     
     # Handle Bluetooth notifications
-    handleBTData()
+    # handleBTData()
 
     # Draw graphics on the screen
     DrawLoop()
