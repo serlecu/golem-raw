@@ -73,6 +73,7 @@ async def bleakLoopAsync():
         async with BleakScanner() as scanner:
             # 1. Scann
             await updateScanResoults(scanner)
+            await asyncio.sleep(2)
             # ~ if len(connectingClients) < 1:
                 # ~ try:
                     # ~ await asyncio.sleep(5)
@@ -93,40 +94,40 @@ async def bleakLoopAsync():
             print("BLEAK: ...end filtering Found Devices.")
                     
             # 3. Connect
-            print("BLEAK: start connecting")
-            for d in matchedDevices:
-                if device in connectedDevices:
-                    continue
-                else:
-                    async with BleakClient(d) as client:
-                        print(f"BLEAK: Start Client {client.address}")
-                        print(f"{client.address} is connected {client.is_connected}")
-                        connectedDevices.append(d)
+            # print("BLEAK: start connecting")
+            # for d in matchedDevices:
+            #     if device in connectedDevices:
+            #         continue
+            #     else:
+            #         async with BleakClient(d) as client:
+            #             print(f"BLEAK: Start Client {client.address}")
+            #             print(f"{client.address} is connected {client.is_connected}")
+            #             connectedDevices.append(d)
                         
-                        # 4. Subscribe to notify
-                        try:
-                            await client.start_notify(
-                                            char_specifier=CHARACTERISTIC_UUID, 
-                                            callback=onCharacNotified 
-                                            )
-                        except Exception as e:
-                            print(f"BLEAK ERROR: on notify. {e}")
-                            await asyncio.sleep(3)
-                        else:
-                            print(f"BLEAK: success subribing to {CHARACTERISTIC_UUID} of {client.address}")
-                            keepConnected = True
-                            while keepConnected:
-                                await asyncio.sleep(10)
-                                await updateScanResoults(scanner)
+            #             # 4. Subscribe to notify
+            #             try:
+            #                 await client.start_notify(
+            #                                 char_specifier=CHARACTERISTIC_UUID, 
+            #                                 callback=onCharacNotified 
+            #                                 )
+            #             except Exception as e:
+            #                 print(f"BLEAK ERROR: on notify. {e}")
+            #                 await asyncio.sleep(3)
+            #             else:
+            #                 print(f"BLEAK: success subribing to {CHARACTERISTIC_UUID} of {client.address}")
+            #                 keepConnected = True
+            #                 while keepConnected:
+            #                     await asyncio.sleep(10)
+            #                     await updateScanResoults(scanner)
                                 
-                        finally:
-                            try:
-                                await client.unpair()
-                            except Exception as e:
-                                print(f"BLEAK ERROR: {e}")
-                            finally:
-                                connectedDevices.remove(d)
-                                print(f"BLEAK: End Client {client.address}")   
+            #             finally:
+            #                 try:
+            #                     await client.unpair()
+            #                 except Exception as e:
+            #                     print(f"BLEAK ERROR: {e}")
+            #                 finally:
+            #                     connectedDevices.remove(d)
+            #                     print(f"BLEAK: End Client {client.address}")   
             # ~ await scanner.stop()
         
 async def updateScanResoults(scanner):
