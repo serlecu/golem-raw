@@ -7,7 +7,7 @@ import random
 from src.bluetooth import *
 from src.graphics import *
 from src.debug_display import *
-from src.rail import *
+# from src.rail import *
 
 # import simplepyble as ble
 
@@ -52,6 +52,11 @@ def Setup():
   # Initialize BLESS Server
   loop = asyncio.get_event_loop()
   loop.run_until_complete(initServerAsync(loop))
+
+  # Start BLEAK scan loop
+  scan_thread = threading.Thread(target=bleakLoopThread, daemon=True)
+  scan_thread.start()
+
   
   
 # End of Setup() ========================================
@@ -60,8 +65,7 @@ def Setup():
 def Update():
   import src.globals as g
   
-  scan_thread = threading.Thread(target=bleakLoopThread, daemon=True)
-  scan_thread.start()
+  
 
   while True:
     # Handle Bluetooth device scanning
