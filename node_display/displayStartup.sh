@@ -17,8 +17,17 @@ sudo hciconfig hci0 piscan
 echo "Config Rail i2C for Hyperp-Pixel"
 sudo ln -s /dev/i2c-11 /dev/i2c-1
 
+# Generate the .log file name
+index=0
+filename="logfile.log"
+# Check if the file already exists
+while [[ -e "$filename" ]]; do
+  index=$((index + 1))
+  filename="logfile_$index.log"
+done
+
 echo "run python"
-python ~/Desktop/golem-node-screen/node_display/node-display.py >> logfile.log 2>&1
+python ~/Desktop/golem-node-screen/node_display/node-display.py >> "$filename" 2>&1
 
 # echo "run processing"
 #~/Desktop/golem-node-screen/node_display/application.linux-arm64/node_display &
