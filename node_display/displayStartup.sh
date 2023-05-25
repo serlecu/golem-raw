@@ -18,7 +18,7 @@ echo "Config Rail i2C for Hyperp-Pixel"
 sudo ln -s /dev/i2c-11 /dev/i2c-1
 
 echo "run python"
-python ~/Desktop/golem-node-screen/node_display/node-display.py
+python ~/Desktop/golem-node-screen/node_display/node-display.py >> logfile.log 2>&1
 
 # echo "run processing"
 #~/Desktop/golem-node-screen/node_display/application.linux-arm64/node_display &
