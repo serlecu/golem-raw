@@ -52,7 +52,7 @@ def setupBTAdapter():
     global scanner
     print("Initializing Bluetooth...")
     
-    scanner = BleakScanner()
+    scanner = BleakScanner(scanning_mode="passive")
     
     g.setupBleak = True
     
@@ -70,12 +70,15 @@ async def bleakLoopAsync():
     
     while not g.killBleak:
         
+        print("BLEAK: start scanning")
+        g.isScanning = True
         async with BleakScanner() as scanner:
             # 1. Scann
             try:
               await updateScanResoults(scanner)
             except Exception as e:
               print(e)
+              await scanner.stop()
               await asyncio.sleep(2)
             else:
               # ~ if len(connectingClients) < 1:
@@ -133,13 +136,13 @@ async def bleakLoopAsync():
               #                     connectedDevices.remove(d)
               #                     print(f"BLEAK: End Client {client.address}")   
               await scanner.stop()
+        g.isScanning = False      
         await asyncio.sleep(10)
         
 async def updateScanResoults(scanner):
     
     if not g.isScanning:
-        print("BLEAK: start scanning")
-        g.isScanning = True
+        
         
         await asyncio.sleep(5)
         try:
@@ -157,15 +160,15 @@ async def updateScanResoults(scanner):
             g.foundDevicesBleak = list(devices)
             # ~ g.railSpeed = 50 + ( len(devices) * 5 )
             # ~ g.railDelay = 1.0 - ( len(devices) * 0.07 )
-            if len(devices) > 0:
-                g.railDelay = 1.0 / len(devices)
-            else:
-                g.railDelay = 1.0
+            # if len(devices) > 0:
+            #     g.railDelay = 1.0 / len(devices)
+            # else:
+            #     g.railDelay = 1.0
             
         await asyncio.sleep(2)
         print("BLEAK: end scanning")
         # g.scannCrono = g.scannFrequency
-        g.isScanning = False
+        
         
             
 
@@ -217,7 +220,7 @@ def filterDevice(device, targetService):
             print(f"BLEAK alert: Device [{device.name}] already connected.")
         else:
             print(f"BLEAK: Match [{device.name}].")
-            device.disconnected_callback = (lambda d=device: onDisconnectedDeviceBleak(d))
+            # device.disconnected_callback = (lambda d=device: onDisconnectedDeviceBleak(d))
             matchedDevices.append(device)
             # ~ matchedClients.append(client)
 
