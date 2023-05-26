@@ -132,7 +132,8 @@ async def bleakLoopAsync():
               #                 finally:
               #                     connectedDevices.remove(d)
               #                     print(f"BLEAK: End Client {client.address}")   
-              # ~ await scanner.stop()
+              await scanner.stop()
+        await asyncio.sleep(10)
         
 async def updateScanResoults(scanner):
     
@@ -150,8 +151,8 @@ async def updateScanResoults(scanner):
             print(f"BLEAK 73: {e}")
             await asyncio.sleep(5)
         else:
-            if len(devices) > 20:
-                devices = devices[:20]
+            if len(devices) > 16:
+                devices = devices[:16]
             g.foundDevicesBleak = list(devices)
             # ~ g.railSpeed = 50 + ( len(devices) * 5 )
             # ~ g.railDelay = 1.0 - ( len(devices) * 0.07 )
