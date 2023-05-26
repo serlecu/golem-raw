@@ -150,6 +150,8 @@ async def updateScanResoults(scanner):
             print(f"BLEAK 73: {e}")
             await asyncio.sleep(5)
         else:
+            if len(devices) > 20:
+                devices = devices[:20]
             g.foundDevicesBleak = list(devices)
             # ~ g.railSpeed = 50 + ( len(devices) * 5 )
             # ~ g.railDelay = 1.0 - ( len(devices) * 0.07 )
