@@ -141,10 +141,11 @@ async def updateScanResoults(scanner):
         print("BLEAK: start scanning")
         g.isScanning = True
         
+        await asyncio.sleep(5)
         try:
             # ~ await scanBTbleak(scanner)
             # ~ await scanner.start()
-            await asyncio.sleep(5)
+            
             # ~ devices = await scanner.discover(timeout=5.0)
             devices = scanner.discovered_devices
         except Exception as e:
