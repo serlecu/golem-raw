@@ -52,7 +52,7 @@ def setupBTAdapter():
     global scanner
     print("Initializing Bluetooth...")
     
-    scanner = BleakScanner()
+    scanner = BleakScanner(scanning_mode="passive")
     
     g.setupBleak = True
     
