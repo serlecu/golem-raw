@@ -84,7 +84,7 @@ async def bleakLoopAsync():
               await updateScanResoults(scanner)
             except Exception as e:
               print(e)
-              # await scanner.stop()
+              await scanner.stop()
               await asyncio.sleep(2)
             else:
               # ~ if len(connectingClients) < 1:
