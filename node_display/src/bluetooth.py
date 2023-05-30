@@ -74,11 +74,11 @@ async def bleakLoopAsync():
         g.isScanning = True
         async with BleakScanner() as scanner:
             # 1. Scann
-            # try:
-            #   await scanner.start()
-            # except Exception as e:
-            #   print(e)
-            #   await asyncio.sleep(1)
+            try:
+              await scanner.start()
+            except Exception as e:
+              print(e)
+              await asyncio.sleep(1)
             try:
               await asyncio.sleep(5)
               await updateScanResoults(scanner)
