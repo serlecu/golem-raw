@@ -52,7 +52,7 @@ def setupBTAdapter():
     global scanner
     print("Initializing Bluetooth...")
     
-    scanner = BleakScanner(scanning_mode="passive")
+    scanner = BleakScanner()#scanning_mode="passive")
     
     g.setupBleak = True
     
@@ -141,7 +141,7 @@ async def bleakLoopAsync():
         
 async def updateScanResoults(scanner):
     
-    if not g.isScanning:
+    #if not g.isScanning:
         
         
         await asyncio.sleep(5)
