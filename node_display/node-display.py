@@ -47,11 +47,13 @@ def Setup():
   g.setupPygame = True
 
   # Initialize BLEAK Client
-  setupBTAdapter()
+  if not g.offlineMode:
+    setupBTAdapter()
   
   # Initialize BLESS Server
-  loop = asyncio.get_event_loop()
-  loop.run_until_complete(initServerAsync(loop))
+  if not g.offlineMode:
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(initServerAsync(loop))
   
   
 # End of Setup() ========================================
@@ -60,10 +62,22 @@ def Setup():
 def Update():
   import src.globals as g
   
-  scan_thread = threading.Thread(target=bleakLoopThread, daemon=True)
-  scan_thread.start()
+  if not g.offlineMode:
+    scan_thread = threading.Thread(target=bleakLoopThread, daemon=True)
+    scan_thread.start()
 
   while True:
+    if g.offlineMode:
+       #turn state of g.isScanning each 10 seconds
+      if g.scannCrono <= 0:
+        if g.isScanning:
+          g.shuffleOfflineList()
+          g.isScanning = False
+          g.scannCrono = 5
+        else:
+          g.isScanning = True
+          g.scannCrono = 10
+
     # Handle Bluetooth device scanning
     # ~ if((g.isScanning == False) and (g.scannCrono <= 0)):
       # ~ scan_thread = threading.Thread(target=scanBT, daemon=True)
@@ -95,19 +109,19 @@ def Update():
 
     # Draw graphics on the screen
     DrawLoop()
-    DrawDebugLayer()
+    #DrawDebugLayer()
 
     # Update the Pygame display
     pygame.display.update()
 
 
     # Update Timers
-    # if(g.isScanning == False):
-    #   g.scannCrono -= (time.time() - g.lastLoopTime)
-    # ~ if (g.isConnecting == False):
-      # ~ g.connectCrono -= (time.time() - g.lastLoopTime)
-
-    # ~ g.lastLoopTime = time.time()
+    if g.offlineMode:
+      if(g.scannCrono > 0):
+        g.scannCrono -= (time.time() - g.lastLoopTime)
+      # ~ if (g.isConnecting == False):
+        # ~ g.connectCrono -= (time.time() - g.lastLoopTime)
+      g.lastLoopTime = time.time()
 
   # End of Update() ========================================
     

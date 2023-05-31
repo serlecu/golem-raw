@@ -469,11 +469,3 @@ def onWriteRequest( char: BlessGATTCharacteristic,
     if char.value == b'\x0f':
         logger.debug("NICE")
         trigger.set()
-
-
-
-# Testing
-# ~ g.initGlobals()
-
-# ~ loop = asyncio.get_event_loop()
-# ~ loop.run_until_complete(initServerAsync(loop))
