@@ -27,13 +27,7 @@ def test_text(screen, text, pos, color, size = 12):
 
 def debugScannedDevicesColor(devices, screen):
     ypos = 0
-
-    if g.serverLessMode:
-        #include fictive devices
-        devices.insert( random.randint(0,(len(devices)%10)), "SLAG_4e:dc:27 -> e4:5f:1:4e:dc:27" )
-        devices.insert( random.randint(0,(len(devices)%10)), "SLAG_4e:09:7e -> e4:5f:1:4e:09:7e" )
-        devices.insert( random.randint(0,(len(devices)%10)), "SLAG_4e:7c:71 -> e4:5f:1:4e:7c:71" )
-
+    
     for i, device in enumerate(devices):
         textColor = (100, 100, 100)
 
