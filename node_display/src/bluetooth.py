@@ -194,15 +194,16 @@ async def scanBTbleak(scanner):
       try:
         await asyncio.sleep(4.0)
         g.foundDevicesBleak = scanner.discovered_devices
+        await asyncio.sleep(0.1)
+        await scanner.stop()
+      except Exception as e:
+        print(e)
+      else:
         if g.serverLessMode:
           #include fictive devices
           g.foundDevicesBleak.insert( random.randint(0,(len(g.foundDevicesBleak)%10)), "SLAG_4e:dc:27 -> e4:5f:1:4e:dc:27" )
           g.foundDevicesBleak.insert( random.randint(0,(len(g.foundDevicesBleak)%10)), "SLAG_4e:09:7e -> e4:5f:1:4e:09:7e" )
           g.foundDevicesBleak.insert( random.randint(0,(len(g.foundDevicesBleak)%10)), "SLAG_4e:7c:71 -> e4:5f:1:4e:7c:71" )
-        await asyncio.sleep(0.1)
-        await scanner.stop()
-      except Exception as e:
-        print(e)
     
     
     #_onScanStop
