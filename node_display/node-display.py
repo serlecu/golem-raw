@@ -81,8 +81,7 @@ def Update():
           g.isScanning = True
           g.scannCrono = 10
     else: #onlineMode
-      if((g.isScanning == False) and (g.scannCrono <= 0)):
-        g.isScanning = True
+      if((not g.isScanning) and (g.scannCrono <= 0)):
         g.scannCrono = g.scannFrequency
         #g.scannCrono = round(random.uniform(g.scannFrequency, g.scannFrequency+5.0), 2)
         scan_thread = threading.Thread(target=scanBT, daemon=True)
