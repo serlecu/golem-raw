@@ -6,27 +6,13 @@ import random
 
 
 nodeID: str
-setupBleak: bool = False
-setupBless: bool = False
-setupPygame: bool = False
 lastLoopTime: float = 0.0
 
 
-# Bluetooth
-deviceInfo: str
-isScanning: bool
-scannCrono: float = 3.0
-scannFrequency: float = 10.0
-killBleak: bool = False
-foundDevicesBleak: list#[BLEDevice]
-# ~ matchedClients: list#[BleakClient]
+# Pygame
+setupPygame: bool = False
+screen: pygame.Surface
 
-isConnecting:bool = False
-connectCrono: float = 0.0
-connectFreq: float = 5.0
-failedNotifications: list
-
-runningBLEserver: bool = False
 
 # Rail
 i2cConnected = False
@@ -39,12 +25,30 @@ endSwitchCounter = 0
 syncState = False
 
 
-# Pygame
-screen: pygame.Surface
+# Bluetooth BLEAK Client
+setupBleak: bool = False
+killBleak: bool = False
+deviceInfo: str
+isScanning: bool
+scannCrono: float = 3.0
+scannFrequency: float = 10.0
+foundDevicesBleak: list#[BLEDevice]
+# ~ matchedClients: list#[BleakClient]
+
+isConnecting:bool = False
+connectCrono: float = 0.0
+connectFreq: float = 5.0
+failedNotifications: list
+
+
+# Bluetooth BLESS Server
+serverLessMode: bool = True
+setupBless: bool = False
+runningBLEserver: bool = False
 
 
 # Offline Mode
-offlineMode: bool = True
+offlineMode: bool = False
 offlineListLen: int
 offlineMacList: list = [
     "SLAG_a9:dc:27 -> b3:e3:15:a9:dc:27",

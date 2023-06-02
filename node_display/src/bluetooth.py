@@ -178,13 +178,12 @@ def scanBT():
     global scanner, connectingClients
     
     if len(connectingClients) < 1:
-        asyncio.run(scanBTbleak(scanner))
+          asyncio.run(scanBTbleak(scanner))
     
 # BLEAK
 async def scanBTbleak(scanner):
     global devicesChecked
     #_onScanStart
-    g.isScanning = True
     print("BLEAK: Scan started")
     
     await scanner.start()
@@ -198,12 +197,12 @@ async def scanBTbleak(scanner):
     print("BLEAK: Scan complete")
     
     # filter devices
-    print("BLEAK: Filtering Found Devices...")
-    for device in g.foundDevicesBleak :
-        filterDevice(device, TARGET_SERVICE)
-    print("BLEAK: ...end filtering Found Devices.")
+    # print("BLEAK: Filtering Found Devices...")
+    # for device in g.foundDevicesBleak :
+    #     filterDevice(device, TARGET_SERVICE)
+    # print("BLEAK: ...end filtering Found Devices.")
     
-    devicesChecked = False
+    # devicesChecked = False
     g.isScanning = False
     
                 

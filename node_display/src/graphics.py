@@ -37,6 +37,11 @@ def debugScannedDevicesColor(devices, screen):
         test_text(screen, text, (screen.get_width()/2, 100+ypos), textColor, size =16)
         ypos += 20
 
+    if len(devices) > 15:
+      textColor = (100, 100, 100)
+      text = "..."
+      test_text(screen, text, (screen.get_width()/2, 100+ypos), textColor, size =16)
+
 def debugScannedDevicesOffline(deviceList:list, screen):
     ypos = 0
     countSLAG = 0
