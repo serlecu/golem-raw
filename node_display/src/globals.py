@@ -23,6 +23,8 @@ railSpeed: int = 60
 railDelay: float = 1.0
 endSwitchCounter = 0
 syncState = False
+restartUSBFreq = 10.0
+restartUSBCrono: float = 10.0
 
 
 # Bluetooth BLEAK Client

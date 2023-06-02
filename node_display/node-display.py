@@ -122,19 +122,29 @@ def Update():
     # Update the Pygame display
     pygame.display.update()
 
+    # Restart USB power if time to do so
+    if g.restartUSBCrono <= 0:
+      print("Restarting USB")
+      #os.system("sudo systemctl restart usbmount")
+      os.system("/sys/devices/platform/soc/20980000.usb/buspower")
+      g.restartUSBCrono = g.restartUSBFreq
+
 
     # Update Timers
+    g.restartUSBCrono -= (time.time() - g.lastLoopTime)
+
     if g.offlineMode:
       if(g.scannCrono > 0):
         g.scannCrono -= (time.time() - g.lastLoopTime)
       g.lastLoopTime = time.time()
+
     else:
       if(g.scannCrono > 0):
         if (g.isScanning == False):
           g.scannCrono -= (time.time() - g.lastLoopTime)
         # if (g.isConnecting == False):
         #   g.connectCrono -= (time.time() - g.lastLoopTime)
-        
+
       g.lastLoopTime = time.time()
 
   # End of Update() ========================================
