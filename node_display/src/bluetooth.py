@@ -185,13 +185,19 @@ async def scanBTbleak(scanner):
     global devicesChecked
     #_onScanStart
     print("BLEAK: Scan started")
+    try:
+      await scanner.start()
+    except Exception as e:
+      print(e)
+    else:
+      try:
+        await asyncio.sleep(4.0)
+        g.foundDevicesBleak = scanner.discovered_devices
+        await asyncio.sleep(0.1)
+        await scanner.stop()
+      except Exception as e:
+        print(e)
     
-    await scanner.start()
-    await asyncio.sleep(4.0)
-    await scanner.stop()
-    await asyncio.sleep(0.1)
-    
-    g.foundDevicesBleak = scanner.discovered_devices
     
     #_onScanStop
     print("BLEAK: Scan complete")
