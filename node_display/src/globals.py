@@ -51,10 +51,9 @@ runningBLEserver: bool = False
 offlineMode: bool = False
 offlineListLen: int
 offlineMacList: list = [
-    "SLAG_a9:dc:27 -> b3:e3:15:a9:dc:27",
-    "SLAG_b5:09:7e -> b3:e3:15:b5:09:7e",
-    "SLAG_ee:7c:71 -> b3:e3:15:ee:7c:71",
-    #"SLAG_de:92:da -> b3:e3:15:de:92:da",
+    "SLAG_4e:dc:27 -> e4:5f:1:4e:dc:27",
+    "SLAG_4e:09:7e -> e4:5f:1:4e:09:7e",
+    "SLAG_4e:7c:71 -> e4:5f:1:4e:7c:71",
     "85:f5:75:ce:4a:e3",
     "7e:4b:74:3f:1b:7d",
     "a2:fd:1c:3f:97:9f",
