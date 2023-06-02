@@ -202,10 +202,10 @@ async def scanBTbleak(scanner):
       except Exception as e:
         print(e)
       else:
-        if g.serverLessMode:
-          g.foundDevicesBleak.insert( random.randint(0,(len(g.foundDevicesBleak)%10)), "SLAG_4e:dc:27 -> e4:5f:1:4e:dc:27" )
-          g.foundDevicesBleak.insert( random.randint(0,(len(g.foundDevicesBleak)%10)), "SLAG_4e:09:7e -> e4:5f:1:4e:09:7e" )
-          g.foundDevicesBleak.insert( random.randint(0,(len(g.foundDevicesBleak)%10)), "SLAG_4e:7c:71 -> e4:5f:1:4e:7c:71" )
+        # if g.serverLessMode:
+        #   g.foundDevicesBleak.insert( random.randint(0,(len(g.foundDevicesBleak)%10)), "SLAG_4e:dc:27 -> e4:5f:1:4e:dc:27" )
+        #   g.foundDevicesBleak.insert( random.randint(0,(len(g.foundDevicesBleak)%10)), "SLAG_4e:09:7e -> e4:5f:1:4e:09:7e" )
+        #   g.foundDevicesBleak.insert( random.randint(0,(len(g.foundDevicesBleak)%10)), "SLAG_4e:7c:71 -> e4:5f:1:4e:7c:71" )
 
         try: 
           await scanner.stop()
