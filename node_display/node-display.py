@@ -122,11 +122,11 @@ def Update():
     pygame.display.update()
 
     # Restart USB power if time to do so
-    if g.restartUSBCrono <= 0:
-      print("Restarting USB")
-      #os.system("sudo systemctl restart usbmount")
-      os.system("/sys/devices/platform/soc/20980000.usb/buspower")
-      g.restartUSBCrono = g.restartUSBFreq
+    # if g.restartUSBCrono <= 0:
+    #   print("Restarting USB")
+    #   #os.system("sudo systemctl restart usbmount")
+    #   os.system("/sys/devices/platform/soc/20980000.usb/buspower")
+    #   g.restartUSBCrono = g.restartUSBFreq
 
 
     # Update Timers
