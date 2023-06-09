@@ -1,7 +1,6 @@
 import time
 import threading
 import asyncio
-import random
 
 # import bluetooth as bt
 # import simplepyble as ble
@@ -179,51 +178,32 @@ def scanBT():
     global scanner, connectingClients
     
     if len(connectingClients) < 1:
-          if not g.isScanning:
-            g.isScanning = True
-            asyncio.run(scanBTbleak(scanner))
+        asyncio.run(scanBTbleak(scanner))
     
 # BLEAK
 async def scanBTbleak(scanner):
     global devicesChecked
     #_onScanStart
+    g.isScanning = True
     print("BLEAK: Scan started")
-
-
-    try:
-      await scanner.start()
-    except Exception as e:
-      print(e)
-    else:
-      try:
-        await asyncio.sleep(4.0)
-        g.foundDevicesBleak = scanner.discovered_devices
-        await asyncio.sleep(0.1)
-      except Exception as e:
-        print(e)
-      else:
-        # if g.serverLessMode:
-        #   g.foundDevicesBleak.insert( random.randint(0,(len(g.foundDevicesBleak)%10)), "SLAG_4e:dc:27 -> e4:5f:1:4e:dc:27" )
-        #   g.foundDevicesBleak.insert( random.randint(0,(len(g.foundDevicesBleak)%10)), "SLAG_4e:09:7e -> e4:5f:1:4e:09:7e" )
-        #   g.foundDevicesBleak.insert( random.randint(0,(len(g.foundDevicesBleak)%10)), "SLAG_4e:7c:71 -> e4:5f:1:4e:7c:71" )
-
-        try: 
-          await scanner.stop()
-        except Exception as e:
-          print(e)
-
+    
+    await scanner.start()
+    await asyncio.sleep(4.0)
+    await scanner.stop()
+    await asyncio.sleep(0.1)
+    
+    g.foundDevicesBleak = scanner.discovered_devices
     
     #_onScanStop
     print("BLEAK: Scan complete")
     
     # filter devices
-    # print("BLEAK: Filtering Found Devices...")
-    # for device in g.foundDevicesBleak :
-    #     filterDevice(device, TARGET_SERVICE)
-    # print("BLEAK: ...end filtering Found Devices.")
+    print("BLEAK: Filtering Found Devices...")
+    for device in g.foundDevicesBleak :
+        filterDevice(device, TARGET_SERVICE)
+    print("BLEAK: ...end filtering Found Devices.")
     
-    # devicesChecked = False
-    g.scannCrono = g.scannFrequency
+    devicesChecked = False
     g.isScanning = False
     
                 

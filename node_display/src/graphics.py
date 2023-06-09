@@ -27,26 +27,15 @@ def test_text(screen, text, pos, color, size = 12):
 
 def debugScannedDevicesColor(devices, screen):
     ypos = 0
-    
     for i, device in enumerate(devices):
         textColor = (100, 100, 100)
-
-        if type(device) is str:
+      
+        if "SLAG_" in device.name:
           textColor = (255, 255, 255)
-          text = device
-          test_text(screen, text, (screen.get_width()/2, 100+ypos), textColor, size =16)
-        else:
-          if "SLAG_" in device.name:
-            textColor = (255, 255, 255)
 
-          text = f"{device.name} -> {device.address}"
-          test_text(screen, text, (screen.get_width()/2, 100+ypos), textColor, size =16)
+        text = f"{device.name} -> {device.address}"
+        test_text(screen, text, (screen.get_width()/2, 100+ypos), textColor, size =16)
         ypos += 20
-
-    if len(devices) > 15:
-      textColor = (100, 100, 100)
-      text = "..."
-      test_text(screen, text, (screen.get_width()/2, 100+ypos), textColor, size =16)
 
 def debugScannedDevicesOffline(deviceList:list, screen):
     ypos = 0
