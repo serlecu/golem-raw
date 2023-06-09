@@ -50,7 +50,7 @@ runningBLEserver: bool = False
 
 
 # Offline Mode
-offlineMode: bool = False
+offlineMode: bool = True
 offlineListLen: int
 offlineMacList: list = [
     "SLAG_4e:dc:27 -> e4:5f:1:4e:dc:27",
