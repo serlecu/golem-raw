@@ -41,7 +41,6 @@ def setupSimplePygame(surface):
 
     surface = pygame.display.set_mode((1080,720))
     pygame.display.set_caption("Golem: Vaina Visualizer")
-    pygame.mouse.set_visible(False)
 
 
 # pygame setup for dual screen
@@ -50,6 +49,8 @@ def setupScreens():
     pygame.font.init()
     pygame.display.init()
     pygame.key.set_repeat(1000, 10)
+    pygame.mouse.set_pos( (0,2160) )
+    pygame.mouse.set_visible(False)
 
     # -- WINDOW A -- (proyector)
     winA = Window("1st window",
@@ -83,7 +84,6 @@ def setupScreens():
     texture.draw()
     rendererB.present()
 
-
     
 
 
@@ -96,6 +96,7 @@ def DrawLoop():
         pass
 
     clock.tick()
+    pygame.mouse.set_pos( (0,2160) ) # reset mouse position
     updateDashboard(rendererB, tempSurfaceB)
     updateProyector(rendererA, tempSurfaceA)
     
