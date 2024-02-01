@@ -231,42 +231,42 @@ def readSerial():
                                 print(f"Vaina1 Char {header1}: {value1} | {vtype1}")
                                 newData1 = True
         # Si no hay conexión en Vaina1 hacer datos random
-        else:
-            # print("No vaina1")
-            header1 = random.choice(["10","11","12","20","40","50","60","70","80"])
-            uuid1 = '19b100' + header1 + '-e8f2-537e-4f6c-d104768a1214'
-            if header1:
-            # print(f"Char {uuid1}: {value1} | {type}")
-                if header1  == "10":
-                    # value1 = []
-                    # for i in range(len(g.magVaina1)):
-                    #     value =  200 * round(noise.pnoise1(g.magVaina1[i]/50 + i, 1), 2) -100
-                    #     value1.append(value)                          
+        # else:
+        #     # print("No vaina1")
+        #     header1 = random.choice(["10","11","12","20","40","50","60","70","80"])
+        #     uuid1 = '19b100' + header1 + '-e8f2-537e-4f6c-d104768a1214'
+        #     if header1:
+        #     # print(f"Char {uuid1}: {value1} | {type}")
+        #         if header1  == "10":
+        #             # value1 = []
+        #             # for i in range(len(g.magVaina1)):
+        #             #     value =  200 * round(noise.pnoise1(g.magVaina1[i]/50 + i, 1), 2) -100
+        #             #     value1.append(value)                          
                                                
-                    value1 = random.sample(range(25, 17600), 3) # -100/+100
-                    value1 = [round(x/100-100,2) for x in value1]
-                elif header1 == "11":
-                    value1 = random.sample(range(0, 200), 3) # -1/+1
-                    value1 = [round(x/100-1,2) for x in value1]
-                elif header1 == "12":
-                    value1 = random.sample(range(0, 100), 3) # -50/+50
-                    value1 = [round(x/100-50,2) for x in value1]
-                elif header1 == "20":
-                    value1 = random.sample(range(0, 255), 3)
-                elif header1 == "40":
-                    value1 = random.randint(0,255)
-                elif header1 == "50":
-                    value1 = round(random.randint(2100,3500)/100,2)
-                elif header1 == "60":
-                    value1 = round(random.randint(2000,4500)/100,2)
-                elif header1 == "70":
-                    value1 = round(random.randint(10000,10100)/100,2)
-                elif header1 == "80":
-                    value1 = random.sample(range(8000, 8000000000), 8) # -64/-6
-                    value1 = [round(x*0.1,2) for x in value1]
+        #             value1 = random.sample(range(25, 17600), 3) # -100/+100
+        #             value1 = [round(x/100-100,2) for x in value1]
+        #         elif header1 == "11":
+        #             value1 = random.sample(range(0, 200), 3) # -1/+1
+        #             value1 = [round(x/100-1,2) for x in value1]
+        #         elif header1 == "12":
+        #             value1 = random.sample(range(0, 100), 3) # -50/+50
+        #             value1 = [round(x/100-50,2) for x in value1]
+        #         elif header1 == "20":
+        #             value1 = random.sample(range(0, 255), 3)
+        #         elif header1 == "40":
+        #             value1 = random.randint(0,255)
+        #         elif header1 == "50":
+        #             value1 = round(random.randint(2100,3500)/100,2)
+        #         elif header1 == "60":
+        #             value1 = round(random.randint(2000,4500)/100,2)
+        #         elif header1 == "70":
+        #             value1 = round(random.randint(10000,10100)/100,2)
+        #         elif header1 == "80":
+        #             value1 = random.sample(range(8000, 8000000000), 8) # -64/-6
+        #             value1 = [round(x*0.1,2) for x in value1]
                     
-            newData1 = True
-            pass
+        #     newData1 = True
+        #     pass
 
 
         # Si hay conexión leer y parsear datos            
@@ -313,37 +313,37 @@ def readSerial():
                                 print(f"Vaina2 Char {header2}: {value2} | {vtype2}")
                                 newData2 = True
         # Si no hay conexión en Vaina2 hacer datos random
-        else:
-            # print("No vaina2")
-            header2 = random.choice(["10","11","12","20","40","50","60","70","80"])
-            uuid2 = '19b100' + header2 + '-e8f2-537e-4f6c-d104768a1214'
-            if header2:
-            # print(f"Char {uuid2}: {value2} | {type}")
-                if header2  == "10":
-                    value2 = random.sample(range(25, 17600), 3)
-                    value2 = [round(x/100-100,2) for x in value2]
-                elif header2 == "11":
-                    value2 = random.sample(range(0, 200), 3)
-                    value2 = [round(x/100-1,2) for x in value2]
-                elif header2 == "12":
-                    value2 = random.sample(range(-50, 50), 3)
-                    value2 = [round(x/100-50,2) for x in value2]
-                elif header2 == "20":
-                    value2 = random.sample(range(0, 255), 3)
-                elif header2 == "40":
-                    value2 = random.randint(0,255)
-                elif header2 == "50":
-                    value2 = round(random.randint(2100,3500)/100,2)
-                elif header2 == "60":
-                    value2 = round(random.randint(2000,4500)/100,2)
-                elif header2 == "70":
-                    value2 = round(random.randint(10000,10100)/100,2)
-                elif header2 == "80":
-                    value2 = random.sample(range(8000, 8000000000), 8)
-                    value2 = [round(x*0.1,2) for x in value2]
+        # else:
+        #     # print("No vaina2")
+        #     header2 = random.choice(["10","11","12","20","40","50","60","70","80"])
+        #     uuid2 = '19b100' + header2 + '-e8f2-537e-4f6c-d104768a1214'
+        #     if header2:
+        #     # print(f"Char {uuid2}: {value2} | {type}")
+        #         if header2  == "10":
+        #             value2 = random.sample(range(25, 17600), 3)
+        #             value2 = [round(x/100-100,2) for x in value2]
+        #         elif header2 == "11":
+        #             value2 = random.sample(range(0, 200), 3)
+        #             value2 = [round(x/100-1,2) for x in value2]
+        #         elif header2 == "12":
+        #             value2 = random.sample(range(-50, 50), 3)
+        #             value2 = [round(x/100-50,2) for x in value2]
+        #         elif header2 == "20":
+        #             value2 = random.sample(range(0, 255), 3)
+        #         elif header2 == "40":
+        #             value2 = random.randint(0,255)
+        #         elif header2 == "50":
+        #             value2 = round(random.randint(2100,3500)/100,2)
+        #         elif header2 == "60":
+        #             value2 = round(random.randint(2000,4500)/100,2)
+        #         elif header2 == "70":
+        #             value2 = round(random.randint(10000,10100)/100,2)
+        #         elif header2 == "80":
+        #             value2 = random.sample(range(8000, 8000000000), 8)
+        #             value2 = [round(x*0.1,2) for x in value2]
                     
-            newData2 = True
-            pass
+        #     newData2 = True
+        #     pass
 
 
         # Actualizar datos de vaina1
