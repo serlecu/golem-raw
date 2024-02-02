@@ -258,7 +258,7 @@ void publishValues() {
         lightValuesStr += ",";
       }
     }
-    Serial.println(lightValuesStr);
+    // Serial.println(lightValuesStr);
     stringValue = String(VAINA_ID);
     stringValue += String(20);
     stringValue += lightValuesStr; // int[4][0-255]
