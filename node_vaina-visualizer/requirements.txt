@@ -9,4 +9,4 @@ pyobjc-framework-Cocoa==9.0.1
 pyobjc-framework-libdispatch==9.0.1
 python-lightblue==1.0.3
 simplepyble==0.6.1
-serial
+serial==10.2.4
