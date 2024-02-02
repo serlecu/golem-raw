@@ -47,7 +47,7 @@ void handleSerial(void);
 // ====== VARAIBLES ======
 
 // -- Main -- //
-#define SERIAL_MODE false
+#define SERIAL_MODE true
 #define VAINA_ID 0 // DONT REMEMBER IF USED ON CLIENT
 #define UNCONNECTED_BLINK_FREQ 1000
 #define FREQ_BROADCAST 1000
@@ -88,7 +88,7 @@ float valPressure;
 bool isReadLPS = false; //miss
 
 // -- Audio -- //
-#define AUDIO_IMPULSE_FREQ 5000
+#define AUDIO_IMPULSE_FREQ 10000
 unsigned long IRtimer = 0;
 volatile bool isIRon = false;
 volatile bool isPlaying = false;
@@ -207,21 +207,21 @@ void setup() {
   delay(1500);
   
   // --- BLE ---
-  inLedBlue(HIGH);
-  if (!BLE.begin()) { // Try enabling BLE
-    inLedBlue(LOW);
-    Serial.println( "starting Bluetooth® Low Energy module failed!" );
-    Serial.println( "Restarting..." );
-    errorSequence(4);
-    resetFunc(); // Reset if not succeded
-  }
-  inLedBlue(LOW);
-  delay(500);  
+  // inLedBlue(HIGH);
+  // if (!BLE.begin()) { // Try enabling BLE
+  //   inLedBlue(LOW);
+  //   Serial.println( "starting Bluetooth® Low Energy module failed!" );
+  //   Serial.println( "Restarting..." );
+  //   errorSequence(4);
+  //   resetFunc(); // Reset if not succeded
+  // }
+  // inLedBlue(LOW);
+  // delay(500);  
 
-  inLedBlue(HIGH);
-  setupBLE();
-  inLedBlue(LOW);
-  delay(1500);
+  // inLedBlue(HIGH);
+  // setupBLE();
+  // inLedBlue(LOW);
+  // delay(1500);
 
   // All OK  
   readySequence(2);
@@ -240,7 +240,7 @@ void loop() {
   handleSerial();
   handleOLED();
 
-  if (millis() - tStart >= 1800000) {
+  if (millis() - tStart >= 900000) {
     Serial.print("RESET");
     NVIC_SystemReset();
   }

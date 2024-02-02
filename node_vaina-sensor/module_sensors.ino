@@ -60,14 +60,14 @@ void readSensors() {
   }
 
   //APDS
-  if ((APDS.colorAvailable()) && (lightUpdate == false)) {
+  if (APDS.colorAvailable()) {
     APDS.readColor(lightValues[0], lightValues[1], lightValues[2]);
     lightUpdate = true;
   }
-  if (APDS.gestureAvailable()) {
-    valGesture = APDS.readGesture();
-    gestUpdate = true;
-  }
+  // if (APDS.gestureAvailable()) {
+  //   valGesture = APDS.readGesture();
+  //   gestUpdate = true;
+  // }
   if (APDS.proximityAvailable()) {
     valProximity = APDS.readProximity();
     proxUpdate = true;
@@ -86,40 +86,40 @@ void readSensors() {
 }
 
 void printValuesToSerial() {
-  Serial.print( "Magnet Field: " );
-  Serial.print( String(magnetValues[0], 2) );
-  Serial.print( " , " );
-  Serial.print( String(magnetValues[1], 2) );
-  Serial.print( " , " );
-  Serial.println( String(magnetValues[2], 2) );
-  Serial.print( "Accelerometer: " );
-  Serial.print( String(accelValues[0], 2) );
-  Serial.print( " , " );
-  Serial.print( String(accelValues[1], 2) );
-  Serial.print( " , " );
-  Serial.println( String(accelValues[2], 2) );
-  Serial.print( "Gyroscope: " );
-  Serial.print( String(gyroValues[0], 2) );
-  Serial.print( " , " );
-  Serial.print( String(gyroValues[1], 2) );
-  Serial.print( " , " );
-  Serial.println( String(gyroValues[2], 2) );
-  Serial.print( "Color: " );
-  Serial.print( String(lightValues[0]) );
-  Serial.print( " , " );
-  Serial.print( String(lightValues[1]) );
-  Serial.print( " , " );
-  Serial.println( String(lightValues[2]) );
-  Serial.print( "Light: " );
-  Serial.println( String(lightValues[4]) );
-  Serial.print( "Gesture: " );
-  Serial.println( String(valGesture) );
-  Serial.print( "Proximity: " );
-  Serial.println( String(valProximity) );
-  Serial.print( "Temperature: " );
-  Serial.println( String(valTemperature, 2) );
-  Serial.print( "Humidity: " );
-  Serial.println( String(valHumidity, 2) );
-  Serial.print( "Pressure: " );
-  Serial.println( String(valPressure, 2) );
+//   Serial.print( "Magnet Field: " );
+//   Serial.print( String(magnetValues[0], 2) );
+//   Serial.print( " , " );
+//   Serial.print( String(magnetValues[1], 2) );
+//   Serial.print( " , " );
+//   Serial.println( String(magnetValues[2], 2) );
+//   Serial.print( "Accelerometer: " );
+//   Serial.print( String(accelValues[0], 2) );
+//   Serial.print( " , " );
+//   Serial.print( String(accelValues[1], 2) );
+//   Serial.print( " , " );
+//   Serial.println( String(accelValues[2], 2) );
+//   Serial.print( "Gyroscope: " );
+//   Serial.print( String(gyroValues[0], 2) );
+//   Serial.print( " , " );
+//   Serial.print( String(gyroValues[1], 2) );
+//   Serial.print( " , " );
+//   Serial.println( String(gyroValues[2], 2) );
+//   Serial.print( "Color: " );
+//   Serial.print( String(lightValues[0]) );
+//   Serial.print( " , " );
+//   Serial.print( String(lightValues[1]) );
+//   Serial.print( " , " );
+//   Serial.println( String(lightValues[2]) );
+//   Serial.print( "Light: " );
+//   Serial.println( String(lightValues[4]) );
+//   Serial.print( "Gesture: " );
+//   Serial.println( String(valGesture) );
+//   Serial.print( "Proximity: " );
+//   Serial.println( String(valProximity) );
+//   Serial.print( "Temperature: " );
+//   Serial.println( String(valTemperature, 2) );
+//   Serial.print( "Humidity: " );
+//   Serial.println( String(valHumidity, 2) );
+//   Serial.print( "Pressure: " );
+//   Serial.println( String(valPressure, 2) );
 }

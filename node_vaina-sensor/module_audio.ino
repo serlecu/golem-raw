@@ -87,7 +87,7 @@ void playImpulseThreadedLoop() {
       audioTicker.attach(&outputSample, 1.0 / 16000.0);
 
       while ( (millis() - playbackTimer) < IBUFFER_MILLIS ){
-        Serial.println(String((millis() - playbackTimer))+" / "+String(IBUFFER_MILLIS));
+        // Serial.println(String((millis() - playbackTimer))+" / "+String(IBUFFER_MILLIS));
         rtos::ThisThread::sleep_for(20);
       }
 

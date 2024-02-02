@@ -33,7 +33,7 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
-    delay(500);
+    // delay(200);
 
     magnetUpdate = false;
   }
@@ -57,7 +57,7 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
-    delay(500);
+    // delay(200);
     
     accelUpdate = false;
   }
@@ -81,7 +81,7 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );  
-    delay(500);
+    // delay(200);
     
     gyroUpdate = false;
   }
@@ -105,7 +105,7 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
-    delay(500);
+    // delay(200);
     
     lightUpdate = false;
   }
@@ -113,15 +113,15 @@ void publishValuesSerial() {
   // Serial.println("publishValues: FLAG 4");
   // Gesture
   if (gestUpdate) {
-    stringValue += "$";
-    stringValue += String(40);
-    stringValue += valGesture; // int[0-3]
-    stringValue += "\n";
+    // stringValue += "$";
+    // stringValue += String(40);
+    // stringValue += valGesture; // int[0-3]
+    // stringValue += "\n";
 
-    byte plain[stringValue.length()];
-    stringValue.getBytes(plain, stringValue.length() );
-    Serial.write( plain, stringValue.length() );
-    delay(500);
+    // byte plain[stringValue.length()];
+    // stringValue.getBytes(plain, stringValue.length() );
+    // Serial.write( plain, stringValue.length() );
+    // delay(200);
     
     gestUpdate = false;
   }
@@ -137,7 +137,7 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
-    delay(500);
+    // delay(200);
     
     proxUpdate = false;
   }
@@ -153,7 +153,7 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() ); 
-    delay(500);
+    // delay(200);
     
     tempUpdate = false;
   }
@@ -169,7 +169,7 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
-    delay(500);
+    // delay(200);
     
     humUpdate = false;
   }
@@ -185,7 +185,7 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
-    delay(500);
+    // delay(200);
     
     pressUpdate = false;
   }
@@ -209,7 +209,7 @@ void publishValuesSerial() {
     byte plain[stringValue.length()];
     stringValue.getBytes(plain, stringValue.length() );
     Serial.write( plain, stringValue.length() );
-    delay(500);
+    // delay(200);
 
     IRupdated = false;
   }
